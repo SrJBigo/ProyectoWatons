@@ -4,4 +4,4 @@ Al ser originalmente 'Watons' un proyecto cerrado de 1 persona, se encuentran ci
 - No hay estandarización del nombre de las variables/funciones:
      Nombres como 'player_salto'; 'jugador_jump' son habituales
 - La indentacion (sangria) es inconsistente. 
-- La nombrar, la separaqcion de palabras ViaMayusculas es practicamente inexistente, se suele emplear el guion_bajo:
+- Al nombrar, la separacion de palabras ViaMayusculas es practicamente inexistente, se suele emplear el guion_bajo:
