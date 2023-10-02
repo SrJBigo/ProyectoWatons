@@ -5,3 +5,4 @@ Al ser originalmente 'Watons' un proyecto cerrado de 1 persona, se encuentran ci
      Nombres como 'player_salto'; 'jugador_jump' son habituales
 - La indentacion (sangria) es inconsistente. 
 - Al nombrar, la separacion de palabras ViaMayusculas es practicamente inexistente, se suele emplear el guion_bajo:
+- Variables temporales o de marcador de posicionh suelen iniciarse con '_'; ejemplo: _estavariablenoesimportantexd.
