@@ -1,18 +1,6 @@
-  //dummy
-var TWITTER_SIZE=
-{
-  w: 504,
-  h: 281,
-}
-
-
-
-
-
-
 var _BASICO =
 {
- //no zoom mobile  eta name="viewport"  content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+      //no zoom mobile  name="viewport"  content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
 
       IS_MOBILE:"",      
       IN_IFRAME: (!(window===window.parent)) ,
@@ -36,7 +24,6 @@ var _BASICO =
              
             },
             f_data
-
             );
 
 
@@ -173,6 +160,8 @@ var _BASICO =
         } 
       //let _ctx = DUMMY_CANVAS.getContext('2d');
       },
+
+
       //odiv con funciones basicas con 'obj' custom
       crear_odiv_hueco(f_x, f_y, f_w, f_h)
       {
@@ -579,25 +568,21 @@ var _BASICO =
                     {
                     this.x = ff_x;
                     this.update();
-                    //this.obj.style.left=ff_x+"px";
                     },
                     set_y(ff_y)
                     {
                     this.y = ff_y;
                     this.update();
-                    //this.obj.style.top=  ff_y+"px";
                     },
                     set_w(ff_w)
                     {
                     this.w = ff_w;
                     this.update();
-                    //this.obj.style.width=  ff_w+"px";
                     },
                     set_h(ff_h)
                     {
                     this.h = ff_h;
                     this.update();
-                    //this.obj.style.height=  ff_h+"px";
                     },
                     set_xy(f_x, f_y)
                     {
@@ -663,16 +648,10 @@ var _BASICO =
                   
                       this.obj.innerHTML = u;
                       this.set_w(this.obj.offsetWidth+_f_plus);
-                      if(p==1)
-                      {
-                        //alert(this.obj.offsetWidth)
-                      }
 
                         if(this.w>_maxw)
-                        {
                         _maxw = this.w;  
-                        }
-
+                        
                       }
                     
 
@@ -725,13 +704,9 @@ var _BASICO =
                        {
                                                                                 //medium=firefix fix
                         if(f_str=='none' || f_str=='' || f_str=='initial' || f_str=='medium')
-                        {
                         return(0);
-                        } 
+                         
                       
-                        //if(Number( f_str.slice(0,  -2) ) !==1)
-                        //alert(f_str)
-
                         return (  Number( f_str.slice(0,  -2) )  )
                        
 
@@ -787,51 +762,37 @@ var _BASICO =
 
 
    
-        _foo.obj.style.userSelect= "none";
+       _foo.obj.style.userSelect= "none";
 
    
        //control opacidad
       if(__f_estilo!==undefined&&__f_estilo.opacity!==undefined)
-      {
-     
       _foo.set_opacity(__f_estilo.opacity);
-      }
+      
       else
-      {
+      _foo.set_opacity(1);
+      
 
-        _foo.set_opacity(1);
-      }
-
-
-
-      _foo.obj.ondragstart=function(e) //
-      {
+      _foo.obj.ondragstart=function(e)
       e.preventDefault();
-      }
+      
 
 
-
-       
-
-     
       //autoreferencia
       _foo.obj.odiv = _foo;
       
       if(f_desodiv.hijos!=undefined)
-      {
         f_desodiv.hijos.push(_foo);
-      }
+      
 
       if(f_desodiv.obj==document.body) //ejemplo: creacion en document.body...
       {
-      if(f_desodiv.obj.hijos==undefined)
-      {
-      f_desodiv.obj.hijos = [];
-      }
+        if(f_desodiv.obj.hijos==undefined)
+        f_desodiv.obj.hijos = [];
+        
       f_desodiv.obj.hijos.push(_foo);
       }
                 
-
            
       //establecer estilo      
       if(__f_estilo != undefined && __f_estilo!= ""){   
