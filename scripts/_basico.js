@@ -774,7 +774,10 @@ var _BASICO =
       
 
       _foo.obj.ondragstart=function(e)
-      e.preventDefault();
+      {
+      e.preventDefault();  
+      }
+      
       
 
 
