@@ -5522,34 +5522,22 @@ var _ESPECIALIZADO =
       let _data = setloop_prop(
         {
           elem: [],
-
           odiv_des: _root, //al recibir indefiido _root por defecto, al recibir referencia recursiva -> racimo
           x: 0,
           y: 0,
-
           primario: 1, //empleado en creacion listeners generales (mousedown)
-
           macro_padre: f_donde, //referencia compartida al craer racimo recursivo
-
           w: 100, //sugerencia, si anchura de html es superior, se sobrepasara(no sobrescribe esto)
           h: 100,
           margen_interno: [10, 10],
-
           orientacion: 0,
-
-
           style: {},
-
-
           document_mousedown(e) {
-
-
             let _inside = 0;
             let _path = e.composedPath();
             for (var u of _path) //
             {
               if (u === this.odiv_des.obj || u === this.odiv.obj) {
-
                 _inside = 1;
                 break;
               }
@@ -5558,15 +5546,9 @@ var _ESPECIALIZADO =
 
             if (_inside == 0) {
               this.close();
-
               //    console.log("MOUSEDOWN ELIMINADO")
             }
-
-
-
           },
-
-
         },
         f_data
       );
@@ -5589,7 +5571,7 @@ var _ESPECIALIZADO =
         let _type = get_type(_u);
 
         let _uh = _data.h;         //altura local
-        let _ustyle = _data.style; //style local (necerario para personalizacion puntual $EMPTY, etc...)
+        let _ustyle = _data.style; //style local (necesario para personalizacion puntual $EMPTY, etc...)
         let _uhtml = '';
 
         //json incrustado en casilla

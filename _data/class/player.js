@@ -487,30 +487,20 @@ document.currentScript.class =
       this.xvelocity += (0 - this.xvelocity) / 5;
       if ($WIN.teclado.get("izq"))
         this.estado = 2;
-
-
       if ($WIN.teclado.get("der"))
         this.estado = 3;
-
-
     }
 
     //caminar izquieda
     if (this.estado == 2) {
       this.orientacion = 0;
-
-
       this.polvo.run();
-
-
       this.xvelocity -= this.movedata.xvel_impetu;
       if (this.xvelocity < (-this.movedata.xvel_max)) {
         this.xvelocity = (-this.movedata.xvel_max);
       }
-
       if ($WIN.teclado.get("izq") == 0) {
         this.estado = 0;
-
       }
     }
 
@@ -518,18 +508,14 @@ document.currentScript.class =
     if (this.estado == 3) {
       this.orientacion = 1;
       this.polvo.run();
-
       this.xvelocity += this.movedata.xvel_impetu;
       if (this.xvelocity > this.movedata.xvel_max) {
         this.xvelocity = this.movedata.xvel_max;
       }
-
       if ($WIN.teclado.get("der") == 0) {
         this.estado = 1;
       }
     }
-
-
 
     let estado_h = this.estado;
 
@@ -546,21 +532,14 @@ document.currentScript.class =
       this.x = 0;
     }
 
-
     this.anim_arma.animdata.set_anim(this.estado_arma);
 
-
     this.anim.animdata.set_anim(estado_h);
-
 
     this.anim.x = -13;
     this.anim.y = -5;
     this.xprevious = this.x;
     this.yprevious = this.y;
-
-
-
-
 
     $root.level.x = (this.x * -1) - this.w / 2 + $root.w / 2;
     $root.level.y = (this.y * -1) - this.h / 2 + $root.h / 2;
