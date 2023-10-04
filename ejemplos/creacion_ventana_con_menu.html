@@ -1,0 +1,38 @@
+<script type="text/javascript" src="/scripts/_basico.js"> </script>
+<script type="text/javascript" src="/scripts/_especializado.js"> </script>
+
+<script>
+
+  ini_root();
+
+  let _menu =
+         {
+         menu_a:
+                {
+                 alert_simple  : "mensaje",
+                 alert_simple_2: "mensaje_2",
+                 'alert simple con espacios en el nombre': "mensaje:3",
+                 funcion_personalizada(){
+                                        
+                                        },
+                 mas_opciones:
+                              {
+                               a:"a",
+                               b:"b",
+                               c:"c"
+                              },
+                },
+          menu_b:
+                {
+                 alert_simple: "mensaje"
+                },
+          $menu_c:
+                {
+                 alert_simple: "mensaje"
+                }
+
+         }
+
+  ventana.crear_ventana(_root, {x:0, y:0, w:400,h:400, titulo: 'Ejemplo de Ventana con menu', grab:1, resize:1, menu: _menu}   );
+
+</script>
