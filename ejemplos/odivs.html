@@ -7,22 +7,26 @@
   
 
   //'odiv' (Objeto DIV) es un termino el cual, como su nombre indica, hace referencia un objeto con un div 'incrustado'.
-  //Este objeto tiene ciertas funciones utiles que hacen la manipulacion del div se mucho mas rapida.
+  //Este objeto tiene ciertas funciones utiles que hacen la manipulacion del div sea mucho mas rapida.
 
   // creacion odiv simple
   //
   //              odiv destino    x   y   w   h       estilo
   //                       /     /   /   /   /          /                     
-  let _odiv = crear_odiv(_root, 0,  0, 10, 10,  {background:'gray'});
+  let _odiv = crear_odiv(_root, 0,  0, 10, 10,  {background:'white'});
 
   //manipulacion del odiv tras creacion
 
-  //cambiar posicion
+  //cambiar posicion/dimension
      _odiv.set_x(10);
      _odiv.set_y(10);
      _odiv.set_w(200);
      _odiv.set_h(100);
 
+   //cambiar estilo
+     _odiv.set_style({
+                      background:'gray'
+                     })
 
 
 
