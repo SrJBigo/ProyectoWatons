@@ -1,0 +1,76 @@
+<script type="text/javascript" src="/scripts/_basico.js"> </script>
+<script type="text/javascript" src="/scripts/_especializado.js"> </script>
+
+<script>
+
+//'Fondoges' es un subgestor de 'gameges' que, tal como indica su nombre, se encarga de manejar la representacion/scroll de los fondos.
+//Ubicacion: _scripts/_especializado.js -> GAME.crear_gestor():{ fondoges }
+
+ini_root();
+
+
+var win = ventana.crear_ventana(_root, {x:10,y:10,w:500,h:500,
+                                        titulo:"Fondoges [presiona las teclas de direccion para mover el fondo central]", grab:1, enterframe:1, teclado:1} );
+
+
+  //Llamado via LOAD_ISC() al final del archivo...
+  _al_cargar_recursos = function()
+  {
+
+    //array empleado en la creacion del proximo gestor
+    let _array_con_canvas = [
+                            crear_canvas( win._bloque, 2,   0,0,  win._bloque.wr,  win._bloque.hr ),
+                            crear_canvas( win._bloque, 2,   0,0,  win._bloque.wr,  win._bloque.hr ),
+                           ];
+
+    //establecer canvas transparentes
+     _array_con_canvas[0].obj.style.background = 'transparent';
+     _array_con_canvas[1].obj.style.background = 'transparent';
+
+   //creacion del gestor principal del juego
+   var ges = GAME.crear_gestor(win,  _array_con_canvas, 
+
+                                                   //propiedades del '_root' a crear (contenedor de 'clips' (sprites, imagenes, etc...) )
+                                                   {
+                                                   des:win._bloque, 
+                                                   w:_array_con_canvas[0].wr/2,
+                                                   h:_array_con_canvas[0].hr/2  
+                                                   }
+                                );
+
+     //===================================     
+     //inicializacion de subgestor de fondos
+     //==================================
+     ges.fondoges.ini(0, {image:0, x:10, y:0});
+     ges.fondoges.ini(1, {image:1, x:10, y:0});
+     //               |     |
+     //     indice del canvas a pintar
+     //                     |
+     //                   inage: indice de la imagen a pintar referente a LIB.IMAGES[]
+        
+
+          // si al crear ventana se define (enterframe=1) esta funcion es llamada en cada refrescar de pantalla         
+          win.enterframe=function()
+          {
+             //control de pósicion de los fondos
+             ges.fondoges.fondos[0].x+=2;
+             ges.fondoges.fondos[1].x-=2;
+
+             ges.fondoges.fondos[1].y-=1;
+             ges.fondoges.fondos[1].x-=0.2;
+          }
+  }
+
+
+  //cargar recursos
+  LOAD_ISC(["/_data/images/fondo_A0.png", "/_data/images/fondo_A1.png"],
+           
+            [], 
+            [],
+
+            win,//donde crear contenedor LIB{IMAGES:[], SOUNDS:[] ...}
+            
+            _al_cargar_recursos);
+
+
+</script>
