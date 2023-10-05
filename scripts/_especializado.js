@@ -102,7 +102,7 @@ var _ESPECIALIZADO =
   },
 
 
-  // Imagen, sonido, clips
+  // Imagen, sonido, textos(clases)
   // |
   LOAD_ISC(f_images, f_sounds, f_clases, f_donde, f_callback) {
 
@@ -172,6 +172,8 @@ var _ESPECIALIZADO =
               }
 
               //set $ de LIB               
+              if(f_donde.$ ==undefined)
+                 f_donde.$={};
               f_donde.$.LIB = f_donde.LIB;
               _root.set_$(f_donde);
 

@@ -1,0 +1,32 @@
+<script type="text/javascript" src="/scripts/_basico.js"> </script>
+<script type="text/javascript" src="/scripts/_especializado.js"> </script>
+
+<script>
+
+ ini_root();
+
+ let _array_con_url_de_imagenes               = [];
+ let _array_con_url_de_sonidos                = [];
+ let _array_con_url_de_txt_o_js_o_json_o_etc  = []
+
+ let _objeto_en_donde_quieres_que_se_cree_LIB = {};
+ let _funcion_a_llamar_tras_cargar_los_archivos = function()
+                                                  {
+                                                  alert('¡Carga satisfactoria!')
+                                                  
+                                                  //log objeto LIB (contenedor de archivos cargados)
+                                                  console.log(_objeto_en_donde_quieres_que_se_cree_LIB.LIB)
+                                                  }
+
+
+         LOAD_ISC(
+                     _array_con_url_de_imagenes, 
+  	                 _array_con_url_de_sonidos,
+  	                 _array_con_url_de_txt_o_js_o_json_o_etc,
+
+  	                 _objeto_en_donde_quieres_que_se_cree_LIB,
+  	                 _funcion_a_llamar_tras_cargar_los_archivos
+  	             );
+
+
+</script>
