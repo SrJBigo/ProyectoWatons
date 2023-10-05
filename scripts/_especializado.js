@@ -1,7 +1,68 @@
+//=============
+// |indice
+// Atajo a secciones introduciendo '|' + 'nombre seccion' en el buscador de texto
+//=============
+/*
+|especializado
+
+ |loader                     gestor de carga de recursos                      
+  |load_isc                  isc  = imagen sonido clase
+  |load_isct                 isct = imagen sonido clase 'three'(libreria externa 'three.js')
+ |skin                       control de aspecto de ventanas/botones
+ |escenario                  controlador de escenas
+ |enterframe                 
+   |enterload
+   |enterframe_recursivo
+ |teclado
+ |audio                      sumamente incompleto; permite carga basica de sonidos
+ |cursor                     relativo al mouse
+ |game                       gestor de juegos
+ |ventana                    
+ |menu                       barra de menu
+ |slideshow                  control de 'transiciones' visuales (codigo antiguo, usar con precaucion)
+ |form                       relativo a elementos de formulario (text_input, botones, etc...)
+*/
+
+
+
+//|especializado
 var _ESPECIALIZADO =
 {
-  //                              ['url','url']
-  //  [],      [],       [],      [{map:"", },{}]
+  //'|atajos'
+  LOAD_ISC()
+  {
+   return(LOADER.LOAD_ISC(...arguments  ))
+  },
+  LOAD_ISCT()
+  {
+   return(LOADER.LOAD_ISCT(...arguments  ))
+  },
+
+
+  //|loader
+  LOADER:
+  {
+  //|load_isc
+  //       Imagen[],   sonido[],   textos(clases)[]
+  //           |       |           |   
+  LOAD_ISC(f_images, f_sounds, f_clases, f_donde, f_callback) {
+
+    LOADER.cargar_recursos({
+      images: f_images,
+      sounds: f_sounds,
+      clases: f_clases,
+      },
+
+      f_donde,
+      f_callback,
+    );
+
+  },//fin load_isc
+
+  //|load_isct
+  //                                        ['url','url']
+  //                                        [{map:"", },{}]
+  //                                          |
   LOAD_ISCT(f_images, f_sounds, f_clases, f_three,
     f_donde, f_callback) {
     function _three_ok() //modulo three cargado o existente
@@ -10,7 +71,6 @@ var _ESPECIALIZADO =
       let _textures = [];
       let _materials = [];
       //{map:'/_recursos/draw_01.png', transparent:true},
-
 
       for (var u of f_three) {
         let _tex;
@@ -83,7 +143,6 @@ var _ESPECIALIZADO =
 
       );
 
-
     }//_three_ok
 
     if (_root['_THREE'] == undefined) {
@@ -99,41 +158,20 @@ var _ESPECIALIZADO =
     }
 
 
-  },
-
-
-  // Imagen, sonido, textos(clases)
-  // |
-  LOAD_ISC(f_images, f_sounds, f_clases, f_donde, f_callback) {
-
-    LOADER.cargar_recursos({
-      images: f_images,
-      sounds: f_sounds,
-      clases: f_clases,
-
-    },
-      f_donde,
-      f_callback,
-    );
-
-  },
+  },//fin_load_isct
 
 
 
-
-  LOADER:
-  {
-
-
+    //no se recomienda llamar directamente; en su lugar emplear 'load_isc' 
     cargar_recursos(f_data, f_donde, f_callback) {
 
       let _data = setloop_prop(
         {
-          images: [], //urls 
+          images: [], 
           sounds: [],
           clases: [],
 
-          LIB:      //objeto final
+          LIB:   
           {
             IMAGES: [],
             CLASES: [],
@@ -269,7 +307,6 @@ var _ESPECIALIZADO =
       }
 
 
-
       //sonidos
       i = 0;
       for (var u of _data.sounds) {
@@ -362,9 +399,8 @@ var _ESPECIALIZADO =
   },
 
 
-
   //===============================
-  //            |skin
+  // |skin
   //===============================
 
   SKIN:
@@ -716,22 +752,13 @@ var _ESPECIALIZADO =
 
     },//fin silver
 
-
-
-
-
-
-
-
-
   },
   // fin SKIN
 
 
   //=========================================================
-  //                       < |ESCENARIO > // ejecucion via ENTERFRAME
+  //  |ESCENARIO  // ejecucion via ENTERFRAME
   //==========================================================
-
 
   ESCENARIO:
   {
@@ -945,11 +972,11 @@ var _ESPECIALIZADO =
 
 
   //==============================================================
-  //                    ENTER FRAME 
+  //   |ENTERFRAME 
   //==============================================================
 
-
   //|enterload
+  //funcion encarga de ejecutar 'enterframe' o 'load' en objetos 
   enterload(f_donde, f_this = f_donde) {
 
     let _clip = f_donde;
@@ -1005,14 +1032,9 @@ var _ESPECIALIZADO =
   },
 
 
-
   //|enterframe_recursivo
   enterframe_recursivo(f_donde) {
 
-
-    //let _delplus = 0; //variable empleada en actualizacion de z_index
-
-    //workarround
     if (f_donde.hijos_clip == undefined)
       f_donde.hijos_clip = [];
 
@@ -1029,15 +1051,6 @@ var _ESPECIALIZADO =
       else
         _u = f_donde.hijos_clip[i - f_donde.hijos.length];
 
-      //     if(get_type(u)!=='array')
-      //      u = [u]; //empleado para simular 'capas'
-
-      //    for(var _u of u)
-      //    {
-
-      //  if(_delplus >0 && _u.z!== _u.z-_delplus)
-      //    _u.z -=_delplus;
-
 
       enterload(_u);
 
@@ -1049,17 +1062,9 @@ var _ESPECIALIZADO =
       if (_u.is_clip && _u._DEL) {
         f_donde.hijos_clip.splice(i, 1);
         i--;
-        //      _delclips.push(_u);
-        //            _delplus++;      
       }
-      //  }
-
+     
     }
-
-    //for(u of _delclips)
-    // u.padre.hijos_clip.splice(u.z,1)
-
-
 
   },
 
@@ -1125,18 +1130,12 @@ var _ESPECIALIZADO =
     return (window.requestAnimationFrame(f_donde._enterframe));
 
 
-
-
-
-
-
   },
 
 
   //=======================================================
-  //                     |TECLADO
+  // |TECLADO
   //=======================================================
-  //             odiv
 
   TECLADO:
   {
@@ -1646,13 +1645,9 @@ var _ESPECIALIZADO =
 
   },
 
-
   //======================================================
-  //       |AUDIO
+  // |AUDIO
   //======================================================
-
-
-
   AUDIO:
   {
     ctx: '',
@@ -1858,9 +1853,7 @@ var _ESPECIALIZADO =
   CURSOR:
   {
 
-    //=====
-    //|grab
-    //=====
+    //|grab 
     //                                  {onmousedown(){}..., onmousemove(){}....}
     crear_grab(f_quien, f_detonante, f_data) {
 
@@ -2589,13 +2582,6 @@ var _ESPECIALIZADO =
   //======================================================
 
   GAME: {
-
-
-
-
-
-
-
 
 
     //ayuda a
@@ -4306,7 +4292,6 @@ var _ESPECIALIZADO =
   ventana:
   {
 
-
     crear_ventana(f_donde, f_data, f_skin = [undefined, {}]) {
 
       if (get_type(f_data.titulo) != 'object')
@@ -4872,13 +4857,7 @@ var _ESPECIALIZADO =
 
 
 
-
-
-
-
-
-
-
+    //no se recomienda su uso
     crear_ven_yesno(f_donde, f_data, f_sub = 0) {
 
       let _data = setloop_prop(
@@ -5054,9 +5033,6 @@ var _ESPECIALIZADO =
 
       _b_texto.obj.innerHTML = fd.texto;
     },
-
-
-
 
 
 
@@ -6059,7 +6035,7 @@ var _ESPECIALIZADO =
 
 
   //=============================
-  //       ||slideshow
+  //  |slideshow
   //=============================
 
   SLIDESHOW:
@@ -6067,7 +6043,6 @@ var _ESPECIALIZADO =
 
     efectos:
     {
-
 
       blink:
       {
@@ -7723,9 +7698,6 @@ var _ESPECIALIZADO =
 
 
 }//especializado...
-
-
-
 
 
 
