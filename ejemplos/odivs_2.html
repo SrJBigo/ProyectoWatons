@@ -1,0 +1,24 @@
+<script type="text/javascript" src="/scripts/_basico.js"> </script>
+<script type="text/javascript" src="/scripts/_especializado.js"> </script>
+
+<script>
+
+  ini_root();
+  
+
+  //'odiv' (Objeto DIV) es un termino el cual, como su nombre indica, hace referencia un objeto con un div 'incrustado'.
+  //Este objeto tiene ciertas funciones utiles que hacen la manipulacion del div sea mucho mas rapida.
+
+
+  //
+  //                    odiv destino    x   y         w       h         estilo
+  //                             /     /   /         /       /            /                     
+  let _odiv_padre = crear_odiv(_root, 0,  0,       300,    100,   {background:'blue', border:'5px solid black', borderRadius:'10px'});
+
+  //creacion odiv con anchura relativa a 'padre'
+  let _odiv_hijo = crear_odiv(_odiv_padre, 0,0,  [10,10],[10,10], {background:'red', textAlign:'center', paddingTop:'20px'} )
+      _odiv_hijo.obj.innerHTML = "texto prueba";
+
+
+
+</script>
