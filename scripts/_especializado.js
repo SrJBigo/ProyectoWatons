@@ -21,6 +21,7 @@
  |menu                       barra de menu
  |slideshow                  control de 'transiciones' visuales (codigo antiguo, usar con precaucion)
  |form                       relativo a elementos de formulario (text_input, botones, etc...)
+ |debug                      miscelaneo
 */
 
 
@@ -7035,6 +7036,7 @@ var _ESPECIALIZADO =
 
       let _data = setloop_prop(
         {
+          uid: fl(Math.random()*100),
           padre: f_donde,
 
           x: 0,
@@ -7050,6 +7052,7 @@ var _ESPECIALIZADO =
           capa_n: 1,
 
           estado: 1, //1=funcional; 0=pausado
+          estado_tiledraw: 1, //1 = dibujar en odiv destino; 0 =pausado
           key:
           {
             capas: ['|', '1', '2'],
@@ -7225,8 +7228,11 @@ var _ESPECIALIZADO =
 
           enable_extend: 1,
           run() {
+            //console.log(this.estado + ' ' + this.estado_tiledraw)
             if (this.estado == 1) {
 
+              //  console.log(this.uid + ' editor.run()-> estado: '+this.estado)
+              
               //|editor
               let _cursor = this.cursor[1];
               let _tileges = this.tileges;
@@ -7235,7 +7241,7 @@ var _ESPECIALIZADO =
               let _teclado = this.teclado;
               let _key = this.key;
 
-              if (_cursor.estado[0] == 1) {
+              if (_cursor.estado[0] == 1 && this.estado_tiledraw == 1) {
 
                 let _cx = fl((_cursor.x - (_offset.x * 2)) / ($tileges.wt * $tileges.canvasses[this.capa_n].parent_canvas.p_size));
                 let _cy = fl((_cursor.y - (_offset.y * 2)) / ($tileges.ht * $tileges.canvasses[this.capa_n].parent_canvas.p_size));
@@ -7274,9 +7280,6 @@ var _ESPECIALIZADO =
                 let k = _key.capas[i];
                 if (_teclado.get(k, 2) == 1) {
                   this.set_capa_act(i);
-
-
-
                 }
               }
 
@@ -7518,15 +7521,21 @@ var _ESPECIALIZADO =
 
 
           },
+          
 
 
           ini() {
 
+            
+
             this.selector._padre = this;
 
             this.win = ventana.crear_ventana(_data.padre, { x: _data.x, y: _data.y, w: _data.w, h: _data.h, titulo: 'Editor', grab: 1, cursor: 2, menu: this.menu, menu_this: this });
+            this.win.enterframe= bindear_(this.run, this);
+            
             this.image_odiv = crear_odiv(_data.win._bloque, 10, 10, 10, 10)
 
+          
 
 
 
@@ -7546,14 +7555,14 @@ var _ESPECIALIZADO =
             this.teclado.onkeydown = bindear_(this.key.onkeydown, this);
             this.teclado.onkeyup = bindear_(this.key.onkeyup, this);
 
+            //this.odiv_des.hijos.push(this);
 
-            this.odiv_des.modulos_enterframe.push(
+            /*this.odiv_des.modulos_enterframe.push(
               {
-                enterframe: bindear_(this.run, this),
-
-
+              enterframe: bindear_(this.run, this),
               }
             )
+            */
 
 
             this.tileprop.ini();

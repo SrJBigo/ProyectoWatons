@@ -4,14 +4,16 @@
 
 
 <script>
-
+  // bloquear caracteristicas de desarrollo al publicar betas
+  var _MODO_DESARROLLO = 1;
 
 
   ini_root();
 
+  //relativo a dispositivos mobiles
   set_viewport({ width: 400, height: "", user_scalable: 0 });
 
-  var _NEOCITIES_LOCK = 0;
+  
 
 
   //|game
@@ -23,6 +25,13 @@
     map_original: '',
     map: '',
 
+    set_map()//atajo
+    {
+     if(game.escenario.act.set_map!==undefined)
+       {
+        game.escenario.act.set_map(...arguments);
+       }
+    },
     //|dialogo
     dialogo:
     {
@@ -91,18 +100,16 @@
         $root.x = 0;
         $root.y = 0;
 
-
         this.act = this.escenas[_name];
 
         if (this.act.editor?.img_id != undefined) {
-          game.editor.set({ image_url: $LIB.IMAGES[this.act.editor.img_id] });
+          game.editor.iniset({ image_url: $LIB.IMAGES[this.act.editor.img_id] });
         }
         else {
           game.editor.cerrar();
         }
 
         if (this.act.editor?.tiledata_id != undefined) {
-          console.log(this.act.editor.tiledata_id)
           GES.tileges.tiledatas.set(this.act.editor.tiledata_id);
         }
 
@@ -343,21 +350,36 @@
             GES.fondoges.ini(1, { image: 11, x: 0, y: 0 }); //canvasses gameges pintado
             GES.fondoges.estado = 1;
 
-            //GES.fondoges.fondos=[];
-
-
-            game.set_map($LIB.CLASES[7]);
-
-            this.hud.ini();
+            this.set_map($LIB.CLASES[7]);
+            
           },
           enterframe() {
             //GES.canvasses[2].no_clear=1;
             //GES._enterframe=()=>{GES.canvasses[2].draw.line(0,0,100,100);}
+          },
 
-            if (game.editor.estado == 0)
-              game.editor.tile_editor.estado = game.editor.estado;
+        set_map(f_map) {
+          console.log('set_map');
+          game.first_draw = 1;
 
-          }
+          $root.hijos_clip = [];
+          game.objs = [];
+
+          let _map = clone_object(f_map);
+          game.map = _map;
+
+          GES.tileges.update_tilemaps(_map.maps[0], _map.maps[1], _map.maps[2], _map.maps[3]);
+
+
+          var _level = WIN.gameges.crear_vacio($root, { w: fl(WIN._bloque.wr / 2), h: fl(WIN._bloque.hr / 2) });
+          $root.level = _level;
+
+          game.editor.tile_editor.offset_obj = _level;
+          //x:2
+          WIN.gameges.cargar_clase(_level, 0, { x: 2 * 16, y: 4 * 16, nombre: 'jugador' }); //jugador
+
+          this.hud.ini();
+        },
 
 
         },//play_0
@@ -415,7 +437,7 @@
             let u = game.map.maps[3][_y][_x];
             u.x = _x;
             u.y = _y;
-            console.log(u);
+            
 
             console.log('objeto ' + u.id + ' creado')
 
@@ -437,11 +459,7 @@
 
       game.dialogo.ini();
 
-
-
-
-      crear_enterframe(WIN, WIN, function () { game.escenario.enterframe(); });
-
+      crear_enterframe(_root, WIN, function () { game.escenario.enterframe(); });
 
       game.escenario.set('wmap');
 
@@ -453,10 +471,12 @@
     //|editor
     editor:
     {
-      estado: 0, //0 = modo juego; 1 = modo editor; -1 = desactivado
+      estado: -1, //0 = modo juego; 1 = modo editor; -1 = desactivado
       tile_editor: '',
       on_keydown(_k) {
-        if (_k.key == '1') {
+        //provisorio metodo de agregar enemigos
+        
+        /*if (_k.key == '1') {
           let _cursor = WIN.cursor_bloque;
 
           let _x = fl(((_cursor.x / 2) - $root.level.x) / 16);
@@ -478,30 +498,38 @@
             }
           );
         }
+         */
+         if(this.estado>=0)
+         {
+            if (_k.key == 'Escape' && _MODO_DESARROLLO) 
+            {
+            this.set(swap_bin(this.estado) );
+            }
+         }
 
-        if (_k.key == 'Escape' && _NEOCITIES_LOCK == 0) {
-          this.estado = swap_bin(this.estado);
-          game.editor.tile_editor.set_capa_act(); //forzar actualizacion titulo ventanaeditor
-          if (this.estado == 1) {
-            this.grab.clear();
-            WIN.macrobloque.header.titulo.obj.style.background = 'gray';
-            let _jugador = $root.level.jugador;
-            let _psave = { x: _jugador.x, y: _jugador.y };
+      },
+      on_mousedown(e) {
+        if(this.estado==1) 
+        {
+        let _xm = (e.offsetX / 2) - $root.level.x;
+        let _ym = (e.offsetY / 2) - $root.level.y;
+          for (var u of game.objs) {
+            if (game.simple_hit_test(u, { x: _xm, y: _ym, w: 1, h: 1 })) {
+              
+              this.tile_editor.estado_tiledraw = 0;
 
-            game.set_map($LIB.CLASES[7]);
-            $root.level.jugador.x = _psave.x;
-            $root.level.jugador.y = _psave.y;
+              this.grab.obj = u;
+              this.grab.plus[0] = u.x - _xm;
+              this.grab.plus[1] = u.y - _ym;
 
-          }
-          else {
-            this.grab.clear();
-            WIN.macrobloque.header.titulo.obj.style.background = 'lightgray';
+             }
           }
         }
 
       },
+
       on_mousemove(e) {
-        if (this.grab.obj !== '') {
+        if (this.estado==1 && this.grab.obj !== '') {
           let _obj = this.grab.obj;
           let _xt = fl(((e.offsetX / 2) - $root.level.x + this.grab.plus[0] + _obj.w / 2) / 16);
           let _yt = fl(((e.offsetY / 2) - $root.level.y + this.grab.plus[1] + _obj.h / 2) / 16);
@@ -520,9 +548,38 @@
 
       },
       on_mouseup(e) {
-        game.editor.tile_editor.estado = 1;
-        this.grab.clear();
+        if(this.estado==1)
+        {
+          this.tile_editor.estado_tiledraw=1;
+          this.grab.clear();
+        }        
       },
+
+        set(f_n = this.estado)//cambio estado
+        {
+          console.log("set editor: "+f_n);
+          this.estado = f_n;
+          this.tile_editor.estado = f_n;
+
+          this.tile_editor.set_capa_act(); //forzar actualizacion titulo ventanaeditor
+          if (this.estado == 1) {
+            this.grab.clear();
+            WIN.macrobloque.header.titulo.obj.style.background = 'gray';
+            let _jugador = $root.level.jugador;
+            let _psave = { x: _jugador.x, y: _jugador.y };
+
+            game.set_map($LIB.CLASES[7]);
+
+            $root.level.jugador.x = _psave.x;
+            $root.level.jugador.y = _psave.y;
+          }
+          else {
+
+            this.grab.clear();
+            WIN.macrobloque.header.titulo.obj.style.background = 'lightgray';
+          }
+        },
+
 
       grab: {
         obj: '',
@@ -533,36 +590,27 @@
         }
 
       },
-      on_mousedown(e) {
-        let _xm = (e.offsetX / 2) - $root.level.x;
-        let _ym = (e.offsetY / 2) - $root.level.y;
-
-        if (game.editor.estado) {
-          for (var u of game.objs) {
-            if (game.simple_hit_test(u, { x: _xm, y: _ym, w: 1, h: 1 })) {
-              game.editor.tile_editor.estado = 0;
-              this.grab.obj = u;
-              this.grab.plus[0] = u.x - _xm;
-              this.grab.plus[1] = u.y - _ym;
-
-            }
-          }
-        }
-
-      },
-      cerrar() {
-        if (game.editor.tile_editor !== '') {
-          game.editor.tile_editor.win.cerrar();
-          game.editor.tile_editor = '';
+     
+      cerrar() { //llamado al cambiar a una escena sin editor
+        if(this.tile_editor !== '') {
+          this.set(0);
+          console.log('editor eliminado')
+          this.tile_editor.win.cerrar();
+          this.tile_editor = '';
+          this.estado=-1;
         }
 
       },          //{image_url:'' }
-      set(f_data = {})//empleado al crear o actualizar editor
+      iniset(f_data = {})
       {
-        if (this.tile_editor !== '') {
+        if (this.tile_editor !== '') 
+        {
+          console.log('editor imagen cambiada')
           this.tile_editor.set_image(f_data.image_url)
+          this.tile_editor.estado_tiledraw=1;
         }
         else {
+          console.log('editor creado')
           this.tile_editor = DEBUG.crear_tile_editor(
             _root,
             {
@@ -599,26 +647,23 @@
 
               },
               ...f_data
-            })
+            })//creacion editor
         }
+        this.set(0);
 
       },
 
     },//editor
     on_keydown(_key) {
-      if (this.editor.tile_editor !== '')
         this.editor.on_keydown(_key);
     },
     on_mousedown(e) {
-      if (this.editor.tile_editor !== '')
         this.editor.on_mousedown(e);
     },
     on_mouseup(e) {
-      if (this.editor.tile_editor !== '')
         this.editor.on_mouseup(e);
     },
     on_mousemove(e) {
-      if (this.editor.tile_editor !== '')
         this.editor.on_mousemove(e);
     },
 
@@ -652,30 +697,6 @@
       game.set_map($LIB.CLASES[7]);
     },
 
-    set_map(f_map) {
-      console.log('set_map');
-      game.first_draw = 1;
-
-      $root.hijos_clip = [];
-      this.objs = [];
-
-      let _map = clone_object(f_map);
-      this.map = _map;
-
-
-
-      GES.tileges.update_tilemaps(_map.maps[0], _map.maps[1], _map.maps[2], _map.maps[3]);
-
-
-      var _level = WIN.gameges.crear_vacio($root, { w: fl(WIN._bloque.wr / 2), h: fl(WIN._bloque.hr / 2) });
-      $root.level = _level;
-
-      game.editor.tile_editor.offset_obj = _level;
-      //x:2
-      WIN.gameges.cargar_clase(_level, 0, { x: 2 * 16, y: 4 * 16, nombre: 'jugador' }); //jugador
-
-
-    },
     remove_all_obj() {
       this.objs = [];
 

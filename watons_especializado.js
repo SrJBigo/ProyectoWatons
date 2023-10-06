@@ -1,6 +1,7 @@
 //funciones auxiliares demasiado prolongadas como para ponerlas en el archivo principal [watons.php]
 
 //'trasplantado' desde proyecto 'adventure'
+//recorrer en su totalidad un array
 function _loop_in_array(f_arr, f_func = undefined) {
 
   function _rec(_arr, _inobj = 0) {
@@ -8,20 +9,17 @@ function _loop_in_array(f_arr, f_func = undefined) {
       let u = _arr[i];
       let _type = get_type(u);
 
-      if (_type !== 'array' && _type !== 'object') {
+      if (_type !== 'array' && _type !== 'object') 
         f_func(u, i, _arr, _inobj);
-      }
-      if (_type == 'array') {
+      
+      if (_type == 'array') 
         _rec(u);
-      }
+      
 
       if (_type == 'object') {
 
         _rec(Object.keys(u), u);
-
-
         _rec(Object.values(u));
-
       }
 
     }
@@ -185,7 +183,6 @@ var RPG =
 
           for (var u of this.clips)
             u.on_dialogo_end();
-
 
         },
         run() {
@@ -487,8 +484,7 @@ var RPG =
         //this.odiv.hide();                    
 
         this.buf = this.canvas.crear_buffer();
-        this.teclado.onkeydown = this.keydown;
-
+        this.teclado.add_keydown(this.keydown)
 
         //  $gameges.crear_vacio($root, {x:0,y:0, w:$root.nivel.w,h:50, draw_color:"white", visible:false});
 
