@@ -387,7 +387,7 @@ document.currentScript.class =
       game.reiniciar();
     }
 
-    if (this.en_suelo_tt > 0 && $WIN.teclado.get('z') == 1) {
+    if (this.en_suelo_tt > 0 && ($WIN.teclado.get('z') == 1 || $WIN.teclado.get('space') == 1)) {
 
       $WIN.teclado.get('z', 2)
       this.en_suelo_tt = 0;
@@ -395,10 +395,10 @@ document.currentScript.class =
       this.yvelocity = (-this.movedata.yvel_salto);
       //AUDIO.play_sample($WIN.LIB.SOUNDS[0],5);
     }
-    if (this.salto_estado == 1 && $WIN.teclado.get('z') == 0) {
+    if (this.salto_estado == 1 && ($WIN.teclado.get('z') == 0 || $WIN.teclado.get('space') == 0)) {
       this.salto_estado = 2;
       if (this.yvelocity < 0) {
-        this.yvelocity = this.yvelocity / 2;
+        this.yvelocity = this.yvelocity / 1;
       }
     }
 
