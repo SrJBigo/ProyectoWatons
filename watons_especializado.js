@@ -87,13 +87,16 @@ var RPG =
 
         tt: [0, 0],
 
-        ini_speed: [4,0], //al iniciart write
+        ini_speed: [4,0], //al iniciar write
         master_speed: [4, 0], //velocidad master
         speed: [4, 0], //velocidad linea
 
 
-        reset_speed() {
+        reset_speed(to_ini=0) {
+          if(to_ini==0)
           this.speed = [this.master_speed[0], this.master_speed[1]]
+          else
+          this.speed = [this.ini_speed[0], this.ini_speed[1]]
         },
         yplus: 0,
 
@@ -177,6 +180,7 @@ var RPG =
 
         on_end() {
           //this._padre.odiv.hide()
+          this.reset_speed(1);//1=regresar a valores speed iniciales [no 'master']
           this.estado = 0;
           this._padre.canvas.clear();
           this._padre.buf.clear();
@@ -196,11 +200,6 @@ var RPG =
           let _fuente = this._padre.fuente;
           let _margen = this.margen;
           let _z = _teclado.get('z', 2);
-          if(this.force_z)
-          {
-            console.log('dada')
-             _z=1;
-          }
            
 
 
@@ -245,12 +244,13 @@ var RPG =
           }
 
           else if (this.estado == 'wait_act') {
-            if (_z == 1) {
-              this.force_z=0;
+            if (_z == 1 || this.force_z) {
+             
 
               this.reset_speed();
 
-              if (this.act[0] < this.texto.length - 1) {
+              if (this.act[0] < this.texto.length - 1 || this.force_z) {
+                 this.force_z=0;
 
                 this.estado = 'scroll_top';
                 this.act[0]++;
@@ -268,9 +268,10 @@ var RPG =
           }
 
           //escritura normal
+          
           else if (this.estado == 1) {
-
             this.tt[0]++;
+
 
             block_tt:
             if (this.tt[0] > this.tt[1]) {
@@ -313,22 +314,30 @@ var RPG =
                       break block_tt;
 
                     }
-                    if (i == 'speed') {
+                    if (i == 'speed') { //velocidad dialogo temporal
                       this.speed = u;
                     }
 
-                    if (i == 'm_speed') {
+                    if (i == 'm_speed') {//velocidad dialogo macro
                       this.master_speed = u;
                       this.speed=this.master_speed;
                     }
 
-                    if (i == 'script') {
+                    if (i == 'script') {//script personalizado (ejecutar via 'eval')
                       eval(u);
                     }
 
-                    if (i == 'next') {
-                      this.force_z=1;
-                      
+                    if (i == 'next') { //ir al siguiente parrafo
+                      this.force_z=1;                      
+                      this.estado='wait_act';
+                      break block_tt;
+                    }
+                    if(i=='pause') //en milisegundos
+                    {
+                    this.estado='paused';
+                    setTimeout(()=>{
+                                    this.estado=1;
+                                   },u)
                     }
 
                   }
@@ -355,6 +364,8 @@ var RPG =
                     }
                   }
                 }
+                if(this.estado=='paused')
+                  break block_tt;
 
                 draw_letra({
                   canvas: this._padre.buf, img: _fuente.img,

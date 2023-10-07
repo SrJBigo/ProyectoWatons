@@ -204,12 +204,12 @@
 
             GES.canvasses[2].no_clear = 1;
 
-            let _script = '{"script":"game.escenario.act.end_line()"}';
+            let _script = '{"pause":1000, "script":"game.escenario.act.end_line()" } {"next":"" }';
 
-            game.dialogo.set(['{"id":"main","m_speed":[1,1]}Hace miles de años, en la {"speed":[10,10]}Constelacioqn 73...',
-               _script+'Existio lo que era llamado el bar de los amiguitos.',
-               _script+'Un magico lugar que acogia a las solitarias almas del multiverso.',
-               _script+'Tiempos felices. Mas nadia hacia presagiar lo que el futuro les deparaba...',
+            game.dialogo.set(['{"id":"main","m_speed":[4,4]}Hace miles de años, en la Constelacion 73...' + _script ,
+               'Existio lo que era llamado el bar de los amiguitos.'+ _script,
+               'Un magico lugar que acogia a las solitarias almas del multiverso.'+ _script,
+               'Tiempos felices. Mas nadia hacia presagiar lo que el futuro les deparaba...'+'{"pause":9999999999999}',
               {
                 asas: ['daasd']
               }
