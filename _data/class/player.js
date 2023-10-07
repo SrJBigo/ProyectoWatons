@@ -394,7 +394,7 @@ document.currentScript.class =
       this.salto_estado = 1;
       this.yvelocity = (-this.movedata.yvel_salto);
       AUDIO.play_sample($WIN.LIB.SOUNDS[2]);
-    } 
+    }
     if (this.salto_estado == 1 && $WIN.teclado.get('z') == 0) {
       this.salto_estado = 2;
       if (this.yvelocity < 0) {
@@ -451,8 +451,6 @@ document.currentScript.class =
     }
 
 
-
-
     //angulo arma
     if ($WIN.teclado.get('izq'))
       this.estado_arma = 0;
@@ -467,6 +465,7 @@ document.currentScript.class =
       let _a = this.orientacion;
       if (_a == 1) _a++;
       this.estado_arma = _a;
+
     }
 
 
