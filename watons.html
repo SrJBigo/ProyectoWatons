@@ -123,6 +123,8 @@
       },
       enterframe() {
 
+        WIN.set_title('Watons, legend of pipi [' + game.escenario.act.name + ']');
+
         if (this.act !== '') {
           this.act.enterframe();
           game.dialogo.run();
@@ -160,7 +162,11 @@
                   this._tt[0] = 0;
                   this.logo.filter.opacity -= 20;
                   if (this.logo.filter.opacity < 0)
+                  {
                     this.logo.filter.opacity = 0;
+                    game.escenario.set('intro_1')
+                  }
+
                 }
               }
             }
@@ -204,12 +210,14 @@
 
             GES.canvasses[2].no_clear = 1;
 
-            let _script = '{"pause":1000, "script":"game.escenario.act.end_line()" } {"next":"" }';
+            let _script = '{"speed":[4,4], "pause":1000, "script":"game.escenario.act.end_line()" } {"next":"" }';
+            let _s0 = '{"speed":[20,20]}';
+            let _s1 = '{"speed":[7,7]}';
 
-            game.dialogo.set(['{"id":"main","m_speed":[4,4]}Hace miles de años, en la Constelacion 73...' + _script ,
-               'Existio lo que era llamado el bar de los amiguitos.'+ _script,
+            game.dialogo.set(['{"id":"main","m_speed":[4,4]}Hace miles de años, en la Constelacion 73'+_s0+'...' + _script ,
+               'Existio lo que era llamado '+_s1+'el bar de los amiguitos.'+ _script,
                'Un magico lugar que acogia a las solitarias almas del multiverso.'+ _script,
-               'Tiempos felices. Mas nadia hacia presagiar lo que el futuro les deparaba...'+'{"pause":9999999999999}',
+               'Tiempos felices. Mas nadie hacia presagiar lo que el futuro les deparaba...'+'{"pause":9999999999999}',
               {
                 asas: ['daasd']
               }
@@ -468,9 +476,8 @@
 
       crear_enterframe(_root, WIN, function () { game.escenario.enterframe(); });
 
-      game.escenario.set('wmap');
 
-
+      game.escenario.set('intro_0');
 
 
     },//ini
@@ -751,7 +758,7 @@
   var WIN = ventana.crear_ventana(_root,
     //400   400
     {
-      x: 0, y: 0, w: 390, h: 390, teclado: 1, titulo: "Watons: Legends of Pipi [proto 2]", grab: 1, resize: 0,
+      x: 0, y: 0, w: 390, h: 390, teclado: 1, titulo: "", grab: 1, resize: 0,
       menu: {
         Juego: {
           Reiniciar() {

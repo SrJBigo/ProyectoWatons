@@ -2658,17 +2658,20 @@ var _ESPECIALIZADO =
         _enterframe() { },
 
         clear_all() {
+          
           for (var u of this.canvasses) {
+            u.obj.style.background = "transparent";
             if (u.no_clear != 1)
+            {
               u.clear();
+            }
           }
 
         },
         enterframe() {
 
           this.clear_all();
-
-
+       
           //ejecutar modulos
 
           if (this.fondoges.estado == 1 && this.fondoges.id !== "") {
@@ -2681,7 +2684,9 @@ var _ESPECIALIZADO =
           }
 
           if (this.tileges.estado == 1) {
+
             this.tileges.run();
+          
 
 
             //end ejecutar modulos
@@ -2689,7 +2694,7 @@ var _ESPECIALIZADO =
             //pintado final
             for (var i = 0; i < this.canvasses.length; i++) {
               let _u = this.canvasses[i];
-              _u.obj.style.background = "transparent";
+              
 
               for (var j = 0; j < _u.buffers.length; j++) {
                 let _j = _u.buffers[j];
@@ -2700,7 +2705,7 @@ var _ESPECIALIZADO =
                     _cords[0], _cords[1], _cords[2], _cords[3], _cords[4], _cords[5], _cords[6], _cords[7]);
                 }
               }
-            }
+             }
           }
 
           this._enterframe();

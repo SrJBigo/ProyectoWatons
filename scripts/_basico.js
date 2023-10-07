@@ -1075,6 +1075,7 @@ var _BASICO =
       this.ctx.fillRect(0, 0, this.w, this.h);
     }
     _foo.clear = function () {
+      
       this.ctx.clearRect(0, 0, this.wr, this.hr);
     }
     //
