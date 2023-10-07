@@ -185,6 +185,10 @@
               h: 5 * 16
             };
           },
+          end_line()//llamado al terminar parrafo cinematico
+          {
+            this.estado = 1;
+          },
           load() {
             this.c_id = 0;
             this.tt[0] = 0;
@@ -200,12 +204,12 @@
 
             GES.canvasses[2].no_clear = 1;
 
+            let _script = '{"script":"game.escenario.act.end_line()"}';
 
-            game.dialogo.set(['{"id":"main"}Hace miles de años, en la Constelacion 73...',
-              'Existio lo que era llamado el bar de los amiguitos. ',
-              'Un magico lugar que acogia a las solitarias almas del multiverso.',
-              'Tiempos felices. Mas nadia hacia presagiar lo que el futuro les deparaba...',
-
+            game.dialogo.set(['{"id":"main","m_speed":[1,1]}Hace miles de años, en la {"speed":[10,10]}Constelacioqn 73...',
+               _script+'Existio lo que era llamado el bar de los amiguitos.',
+               _script+'Un magico lugar que acogia a las solitarias almas del multiverso.',
+               _script+'Tiempos felices. Mas nadia hacia presagiar lo que el futuro les deparaba...',
               {
                 asas: ['daasd']
               }
@@ -228,8 +232,11 @@
               if (this.tt[0] > this.tt[1]) {
                 this.tt[0] = 0;
                 _cinema.filter.opacity += 15;
-                if (_cinema.filter.opacity >= 100)
-                  this.estado = 1;
+                  if (_cinema.filter.opacity >= 100)
+                  {
+                    _cinema.filter.opacity=100;
+                    //this.estado = 1;
+                  }
               }
             }
             if (this.estado == 1) {
@@ -813,9 +820,13 @@
   ],
 
     [
-      //'/samples/02_piano2.wav',
-      //'/samples/BGM_003.WAV'
-    ],
+    "_data/sounds/hit_0.wav",
+    "_data/sounds/hit_1.wav",
+
+    "_data/sounds/jump_0.wav",
+    "_data/sounds/jump_1.wav",
+    "_data/sounds/jump_2.wav",
+     ],
 
     ["_data/class/player.js",
       "_data/class/obj_e16.js",

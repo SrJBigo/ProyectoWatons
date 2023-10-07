@@ -86,11 +86,14 @@ var RPG =
 
 
         tt: [0, 0],
-        default_speed: [4, 0],
-        speed: [4, 0],
+
+        ini_speed: [4,0], //al iniciart write
+        master_speed: [4, 0], //velocidad master
+        speed: [4, 0], //velocidad linea
+
 
         reset_speed() {
-          this.speed = [this.default_speed[0], this.default_speed[1]]
+          this.speed = [this.master_speed[0], this.master_speed[1]]
         },
         yplus: 0,
 
@@ -193,6 +196,12 @@ var RPG =
           let _fuente = this._padre.fuente;
           let _margen = this.margen;
           let _z = _teclado.get('z', 2);
+          if(this.force_z)
+          {
+            console.log('dada')
+             _z=1;
+          }
+           
 
 
           //actualizacion automatica de this.line
@@ -237,6 +246,8 @@ var RPG =
 
           else if (this.estado == 'wait_act') {
             if (_z == 1) {
+              this.force_z=0;
+
               this.reset_speed();
 
               if (this.act[0] < this.texto.length - 1) {
@@ -287,6 +298,7 @@ var RPG =
                     if (i == 'goto') {
                       this.texto = this.tags[u].arr;
 
+                      console.log(this.tags)
                       this.act[0] = this.tags[u].act[0];
                       this.act[1] = this.tags[u].act[1];
                       this.x = 0;
@@ -294,6 +306,7 @@ var RPG =
                       if (get_type(this.tags[u].arr) == 'object') {
                         this.texto = [this.texto];
                         this.estado = 2;
+
                         this.reset_speed();
                       }
 
@@ -302,6 +315,20 @@ var RPG =
                     }
                     if (i == 'speed') {
                       this.speed = u;
+                    }
+
+                    if (i == 'm_speed') {
+                      this.master_speed = u;
+                      this.speed=this.master_speed;
+                    }
+
+                    if (i == 'script') {
+                      eval(u);
+                    }
+
+                    if (i == 'next') {
+                      this.force_z=1;
+                      
                     }
 
                   }
@@ -425,6 +452,7 @@ var RPG =
             }
 
             if (_z == 1) {
+              
               this.estado = "scroll_top";
               this.y = Object.keys(this.line).length - 1;
 
