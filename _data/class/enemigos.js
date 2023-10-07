@@ -59,11 +59,13 @@ document.currentScript.class =
   {
     _padre: '',
     hp: [10, 10],
+    sound_id:0,
 
     on_hit(f_quien, f_data) {
 
       if (game.editor.estado == 1) return;
 
+      AUDIO.play_sample($WIN.LIB.SOUNDS[this.sound_id],0);
       this.hp[0] -= f_data.damage;
       if (this.hp[0] <= 0) {
         this._padre.remove();
@@ -188,6 +190,7 @@ document.currentScript.class =
       offset: [-7, -16],
       hitcon: {
         hp: [12, 12],
+        sound_id:0,
       },
       loadframe() {
 
