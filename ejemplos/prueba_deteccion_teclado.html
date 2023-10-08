@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<script type="text/javascript" src="/scripts/_basico.js"> </script>
+<script type="text/javascript" src="/scripts/_especializado.js"> </script>
+
+<script>
+
+  ini_root();
+
+
+
+    let win = ventana.crear_ventana(_root, {x:0, y:0, w:400,h:400, titulo: 'Prueba de input de teclado', grab:1, resize:0, teclado:1, enterframe:1}   );
+    
+    
+    let _teclas = {}
+    let _teclas_a_crear =[
+                          [0,1,2,3,4,5,6,7,8,9],
+                          ['q','w','e','r','t','y','u','i','o','p'],
+                          ['a','s','d','f','g','h','j','k','l','ñ'],
+                          ['z','x','c','v','b','n','m',',','.','-'],
+                          ['izq','arr','der','aba',' 	','lshift','enter'],
+
+                         ]
+    
+    function crear_tecla(_x,_y, _key)
+    {
+      let _tecla = crear_odiv(win._bloque, _x*30,_y*30, 30,30, {textAlign:'center', paddingTop:6})
+          _tecla.obj.innerHTML = _key;
+
+          
+/*
+          _tecla.obj.onmousedown = (e)=>
+                           {
+                            _tecla.obj.style.background='gray';
+                           }
+         _tecla.obj.onmouseup = (e)=>
+                           {
+                            _tecla.obj.style.background='white';
+                           }
+*/
+
+          _teclas[_key]=_tecla;
+    }
+
+
+   //crear teclas
+   for (var i in _teclas_a_crear)
+   {
+   	 for(var j in _teclas_a_crear[i])
+   	 {
+      let u = _teclas_a_crear[i][j];
+      crear_tecla(j,i, u)
+   	 }
+   }
+
+
+    
+  win.enterframe = function()
+  {
+       for(var i in _teclas)
+       {
+       	let u = _teclas[i];
+          if($TECLADO.get(i)) 	
+          {
+            u.obj.style.background='gray';
+          }
+            if($TECLADO.get(i)==0) 	
+          {
+            u.obj.style.background='white';
+          }
+
+       }
+
+  	  
+  	
+  }
+
+
+
+
+</script>
