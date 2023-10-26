@@ -6885,8 +6885,8 @@ var _ESPECIALIZADO =
 
     //uso recomendado
     // FORM.crear_textarea(_a,{titulo:"jaja", value:"jaja", y:100, centro:100, onwrite(){}  })
+    //|crear_textarea
     crear_textarea(f_donde, f_data) {
-
 
 
       let _data = setloop_prop(
@@ -6901,11 +6901,13 @@ var _ESPECIALIZADO =
           centro: "", //macro.w/2
 
           macro_style: { overflow: 'visible' },
-          titulo_style: { border: 'none' },
+          titulo_style: { border: 'none'},
           input_style: {},
+          multiline:0,
           max_char: 10,
 
           modo_borde: 'sobrepuesto',
+          onenter_by_key:1,
           onwrite() { },
           onenter() { },
         },
@@ -6924,12 +6926,12 @@ var _ESPECIALIZADO =
       _macro.padre = _titulo;
 
       _titulo.obj.innerHTML = _data.titulo;
-
-      let _input = FORMS.crear_textarea(_macro, _data.centro, -1, _macro.wr - _data.centro, _macro.hr);
+                                                                                                   //-5 = compensar quirk mode
+      let _input = FORMS.crear_textarea(_macro, _data.centro, -1,   _macro.wr - _data.centro, _data.h-5);
       _macro.input = _input;
       _input.padre = _macro;
 
-      _input.obj.maxLength = _data.max_char;
+      //_input.obj.maxLength = _data.max_char;
       _input.obj.value = _data.value;
 
 
@@ -6954,9 +6956,10 @@ var _ESPECIALIZADO =
       _input.obj.onkeydown = function (e) {
 
         if (e.key == "Enter") {
-          if (_input.padre.onenter !== undefined)
+          if (_input.padre.onenter !== undefined && _input.padre.onenter_by_key)
             _input.padre.onenter();
 
+           if(_input.padre.multiline==0)
           e.preventDefault();
         }
 
@@ -7053,7 +7056,6 @@ var _ESPECIALIZADO =
           th: 16,
 
           minimap_scale: 1,
-
           capa_n: 1,
 
           estado: 1, //1=funcional; 0=pausado
@@ -7061,36 +7063,30 @@ var _ESPECIALIZADO =
           key:
           {
             capas: ['|', '1', '2'],
-
             erase: ['lshift', 0], //tecla, indice tile vacio
             drop: 'space',
 
             add: ['a', 'w', 'd', 's'],
             rem: [['lshift', 'a'], ['lshift', 'w'], ['lshift', 'd'], ['lshift', 's']],
 
-
-
-            onkeydown(e) {
-
-
-            },
-
-            onkeyup(e) {
-
-            },
-
+            onkeydown(e) {},
+            onkeyup(e)   {},
           },//key
 
+
+          images: '', //<------- //[]
           offset_obj: "", //empleado al pintar tiles
           odiv_des: "",
           cursor_des: "",
           tileges: "",  //<-------
-          image_url: '', //<-------
+          
           cursor: '', //[]
-          tilemaps: "",
+          
           win: '',
-          image_odiv: '',
+          odiv_image: '',
           teclado: '',
+
+          modo:0, //tile, objectos
 
           //|tileprop (editor)
           tileprop:
@@ -7106,70 +7102,125 @@ var _ESPECIALIZADO =
               col: "",
             },
             ini() {
+
+               //modo objetos
+              if(this._padre.modo==1)
+              {
+              let _odiv = this.odiv = crear_odiv(this._padre.win._bloque, this.x, this.y, this.w, 300)
+              this.forms.id    = FORM.crear_textarea(_odiv, { titulo: "ID", centro:60, value: "", titulo_style:{paddingLeft:'4px'}, y: 0, h:21, onwrite() { }, onenter() { } })
+              this.forms.name  = FORM.crear_textarea(_odiv, { titulo: "Name" , centro:60, value: "", titulo_style:{paddingLeft:'4px'}, y: 20,h:21, onwrite() { }, onenter() { } })
+              this.forms.json  = FORM.crear_textarea(_odiv, { 
+                                                             titulo: "" ,
+                                                             centro:0,
+                                                             value: "",
+                                                             multiline:1,
+                                                             titulo_style:{paddingLeft:'4px'},
+                                                             y: 40,h:300,
+                                                             onwrite() { },
+                                                             onenter_by_key:0,
+
+                                                             onenter: bindear_(function () 
+                                                            {
+                                                           // let _tiledata = this._padre.tileges.tiledata;
+                                                            
+                                                                this._padre.objcon.update_props_select();
+
+                                                            }, this)
+
+                                                             })
+              }
+
+
+
+              //modo tiles
+              if(this._padre.modo==0)
+              {
               let _odiv = this.odiv = crear_odiv(this._padre.win._bloque, this.x, this.y, this.w, this.h)
-              //                                   let _x = [0,    10, 100,   -1,100,   10];
 
-
-              this.forms.id = FORM.crear_textarea(_odiv, { titulo: "ID: ", value: "", y: 0, onwrite() { }, onenter() { } })
-              this.forms.x = FORM.crear_textarea(_odiv, { titulo: "X: ", value: "", y: 20, onwrite() { }, onenter() { } })
-              this.forms.y = FORM.crear_textarea(_odiv, { titulo: "Y: ", value: "", y: 40, onwrite() { }, onenter() { } })
-
+              this.forms.id = FORM.crear_textarea(_odiv, { titulo: "ID", centro:60, value: "", titulo_style:{paddingLeft:'4px'}, y: 0, h:21, onwrite() { }, onenter() { } })
+              this.forms.x  = FORM.crear_textarea(_odiv, { titulo: "X" , centro:60, value: "", titulo_style:{paddingLeft:'4px'}, y: 20,h:21, onwrite() { }, onenter() { } })
+              this.forms.y  = FORM.crear_textarea(_odiv, { titulo: "Y" , centro:60, value: "", titulo_style:{paddingLeft:'4px'}, y: 40,h:21, onwrite() { }, onenter() { } })
               this.forms.col = FORM.crear_textarea(_odiv, {
-                titulo: "Col: ", value: "", y: 60, onwrite() { },
-                onenter: bindear_(function () {
-                  let _tiledata = this._padre.tileges.tiledata;
-                  let _value = this.forms.col.get_value().split(",");
+                                                            titulo: "Col", 
+                                                            value: "", 
+                                                            centro:60,
+                                                            y: 60, 
+                                                            h:21,
+                                                            titulo_style:{paddingLeft:'4px'}, 
+                                                            onwrite() { },
+                                                            onenter: bindear_(function () 
+                                                            {
+                                                            let _tiledata = this._padre.tileges.tiledata;
+                                                            let _value = this.forms.col.get_value().split(",");
 
-                  for (var i = 0; i < _value.length; i++) {
-                    _value[i] = +_value[i];
-                  }
+                                                              for (var i = 0; i < _value.length; i++) 
+                                                              _value[i] = +_value[i];
+                                                            
+                                                               let _id = this._padre.selector.id;
 
-                  let _id = this._padre.selector.id;
+                                                               _tiledata.col[_id] = _value;
+                                                            }, this)
 
-                  _tiledata.col[_id] = _value;
+                                                        })
 
-                }, this)
 
-              })
               this.forms.anim = FORM.crear_textarea(_odiv, {
-                titulo: "Anim: ", value: "", y: 80, max_char: 15, onwrite() { },
-                onenter: bindear_(function () {
-                  let _tiledata = this._padre.tileges.tiledata;
+                                                        titulo: "Anim",
+                                                        value: "",
+                                                        centro:60,
+                                                        y: 80,
+                                                        h:21,
+                                                        titulo_style:{paddingLeft:'4px'}, 
+                                                        max_char: 15,
+                                                        onwrite() { },
+                                                        onenter: bindear_(function () 
+                                                        {
+                                                        let _tiledata = this._padre.tileges.tiledata;
+                                                        let _value = this.forms.anim.get_value().split(",");
 
+                                                          for (var i = 0; i < _value.length; i++) {
+                                                            if (_value[i] !== "")
+                                                              _value[i] = +_value[i];
+                                                          }
 
-                  let _value = this.forms.anim.get_value().split(",");
+                                                          let _id = this._padre.selector.id;
 
+                                                          _tiledata.anim[_id] = _value;
 
-                  for (var i = 0; i < _value.length; i++) {
-                    if (_value[i] !== "")
-                      _value[i] = +_value[i];
-                  }
+                                                        }, this)
 
+                                                       })
 
-                  let _id = this._padre.selector.id;
-
-                  _tiledata.anim[_id] = _value;
-
-
-                }, this)
-
-              })
+              }
 
 
             },
             set() {
               let _tiledata = this._padre.tileges.tiledata;
-              this.forms.id.set_value(this._padre.selector.id)
-              this.forms.x.set_value(this._padre.selector.xt)
-              this.forms.y.set_value(this._padre.selector.yt)
+              this.forms.id?.set_value(this._padre.selector.id)
+              this.forms.x?.set_value(this._padre.selector.xt)
+              this.forms.y?.set_value(this._padre.selector.yt)
+              this.forms.col?.set_value(_tiledata.col[this._padre.selector.id])
+              this.forms.anim?.set_value(_tiledata.anim[this._padre.selector.id])
 
-              this.forms.col.set_value(_tiledata.col[this._padre.selector.id])
-              this.forms.anim.set_value(_tiledata.anim[this._padre.selector.id])
+              
+              if(this._padre.objcon.act)
+              {
+              this.forms.name?.set_value(this._padre.objcon.act.id);  
+              this.forms.json?.set_value(this._padre.objcon.act.json);  
+              }
+              
+              else
+              {
+              this.forms.name?.set_value('');  
+              this.forms.json?.set_value('');  
+              }
+              
 
             },
+          },//tileprop
 
-          },
-
+          //|selector
           selector:
           {
             _padre: "",
@@ -7182,10 +7233,22 @@ var _ESPECIALIZADO =
             odiv: "",
             set(f_x, f_y) {
 
+             this._padre.objcon.select = '';
 
-              if (arguments.length == 1) {
+             let _padre = this._padre;
+
+             let _odiv = this.odiv;
+             if(_odiv==='')
+             _odiv = this.odiv = crear_odiv(_padre.odiv_image, 0, 0, _padre.tw, _padre.th, { background: 'none', border: '1px solid red' })
+            
+              //console.log(this._padre.win.escenario.frame[])
+
+             bindear_(this._padre.escenario.frames[this._padre.escenario.current].on_selector_set,
+                      this._padre.escenario)(f_x);
+
+              if (arguments.length == 1) 
+              {
                 let _y = fl(arguments[0] / 10);
-
                 let _x = (rd(((arguments[0] / 10) - _y) * 10))
 
                 this.odiv.set_x((_x * this._padre.tw) * this._padre.minimap_scale + 1);
@@ -7199,26 +7262,32 @@ var _ESPECIALIZADO =
                 this.xt = _x;
                 this.yt = _y;
               }
+
               this._padre.tileprop.set();
 
             },
           },//selector
 
 
-          set_capa_act(f_n = this.capa_n) {
+          //actualizar n capa activa
+          set_capa_act(f_n = this.capa_n) 
+          {
             this.capa_n = f_n;
             let _text = "Editor [" + this.capa_n + "]";
             this.win.set_title(this.on_set_title(_text));
           },
-          on_set_title(f_text) {
+          on_set_title(f_text) 
+          {
             return (f_text);
           },
 
-          on_set_tile(f_y, f_x, f_id) {
+          on_set_tile(f_y, f_x, f_id) 
+          {
 
           },
 
-          set_tile(f_y, f_x, f_id) {
+          set_tile(f_y, f_x, f_id)
+          {
             if (this.tileges.tilemaps[this.capa_n][f_y] == undefined || this.tileges.tilemaps[this.capa_n][f_y][f_x] == undefined)
               return;
 
@@ -7232,12 +7301,125 @@ var _ESPECIALIZADO =
           },
 
           enable_extend: 1,
-          run() {
-            //console.log(this.estado + ' ' + this.estado_tiledraw)
-            if (this.estado == 1) {
 
-              //  console.log(this.uid + ' editor.run()-> estado: '+this.estado)
+         //|objcon editor
+         objcon:
+          {
+           _padre:'',
+           callback(){ },//al crear
+           act:'',
+           act_n:'',
+           select:'', //obj en tilemaps[3]; no clip
+           map:'',
+           update_props_select()
+           {
+            let _select = this.select;
+            if(_select!=='')
+            {
+              let _value = this._padre.tileprop.forms.json.get_value();
+              let _json = JSON.parse(_value);
+              for(var i in _json)
+              {
+               _select[i]=_json[i];
+              }
               
+              console.log(_select)
+              
+
+            }
+
+           },
+           set_select(f_obj)
+           {
+           this.select = f_obj;
+           },
+           delete_select()
+           {
+           let _select = this.select;
+           if(_select!=='')
+           {
+             _select._clip.remove();
+             this._padre.tileges.tilemaps_all[3][_select.y][_select.x]=0;
+             this.select = '';
+
+           }
+            
+
+
+           },
+           json_sanitizador(_k, _v)
+           {
+                  if(get_type(_v)=='object'&&_v.noclone)
+                  {
+                    return null;
+                  }
+                  return _v;
+           },
+
+           ids:
+             {
+              0:{
+                 _id:'', //index ids(automatico)
+
+                 id: 'perro',
+                 in: 0,
+                 json:'{"direccion":0}'//nunca referenciado en tilemaps[3]
+                 
+                 },
+              1:{
+                 _id:'', //index ids(automatico)
+
+                 id: 'perro_2',
+                 in: 0,
+                 json:'{"direccion":0}'//nunca referenciado en tilemaps[3]
+                 
+                 },
+              50:{
+                 _id:'', //index ids(automatico)
+
+                 id: 'completo',
+                 in: 0,
+                 json:'{"hp":0}'//nunca referenciado en tilemaps[3]
+                 
+                 },
+              100:{
+                 _id:'', //index ids(automatico)
+
+                 id: 'w_mapoint',
+                 in: 0,
+                 json:'{"mapa":0}'//nunca referenciado en tilemaps[3]
+                 
+                 }
+             },
+            set(fx, fy) //actualizar selector textarea (solo llamado click obj gamearea)
+            {
+              if(this._padre.modo==1)
+              {
+                
+                let _json_array = this._padre.tileges.tilemaps_all[3][fy][fx];
+                this.set_select(_json_array);
+
+                let _ido = JSON.parse(this.ids[_json_array._id].json);
+                let _obj = {};
+                
+
+                for(var i in _ido)
+                {
+                   _obj[i] = _json_array[i];
+                }
+
+                this._padre.tileprop.forms.json.set_value( JSON.stringify(_obj, this.json_sanitizador) );
+              }
+            }
+
+          },
+
+         
+
+          run() 
+          {
+
+            if (this.estado == 1) {              
               //|editor
               let _cursor = this.cursor[1];
               let _tileges = this.tileges;
@@ -7246,7 +7428,12 @@ var _ESPECIALIZADO =
               let _teclado = this.teclado;
               let _key = this.key;
 
-              if (_cursor.estado[0] == 1 && this.estado_tiledraw == 1) {
+             
+
+
+                  //this.modo == 0 -> pintado tiles
+              if (this.modo == 0 &&_cursor.estado[0] == 1 && this.estado_tiledraw == 1)
+              {
 
                 let _cx = fl((_cursor.x - (_offset.x * 2)) / ($tileges.wt * $tileges.canvasses[this.capa_n].parent_canvas.p_size));
                 let _cy = fl((_cursor.y - (_offset.y * 2)) / ($tileges.ht * $tileges.canvasses[this.capa_n].parent_canvas.p_size));
@@ -7277,7 +7464,52 @@ var _ESPECIALIZADO =
                 _tileges.refresh.force();
               }
 
+              //pintar objetos
+              if(this.modo==1)
+              {
+               if(_teclado.get('delete'))
+                {
+                  this.objcon.delete_select();
+                }
+              if(_cursor.estado[0] == 1 && this.objcon.act && this.estado_tiledraw==1)
+              {
 
+                
+               
+                _cursor.estado[0]=0;
+                let _x = fl(((_cursor.x / 2) - $root.level.x) / 16);
+                let _y = fl(((_cursor.y / 2) - $root.level.y) / 16);
+                  
+                let _obj = this.objcon.act;
+               
+                let _mapdata =
+                {
+                  ..._obj,
+                  ...{
+                     x: _x,
+                     y: _y,
+                     _id: this.objcon.act_n,
+                     },
+                  ...JSON.parse(this.tileprop.forms.json.get_value())
+                }
+                delete _mapdata.json;
+                
+                let _map =  _tileges.tilemaps_all[3];
+                
+                 _map[_y][_x] = _mapdata;
+                 this.objcon.set_select(_mapdata);
+
+                this.objcon.callback(
+                                     {
+                                      x: _x,
+                                      y: _y,
+                                      mapdata: _mapdata
+                                     }
+                                    );
+                
+
+              }
+            }
 
 
               //control capas
@@ -7288,9 +7520,7 @@ var _ESPECIALIZADO =
                 }
               }
 
-              if (this.enable_extend) {
-
-
+              if (this.enable_extend && _teclado.get('space')) {
 
                 //extender lienzo
                 let _extends = [
@@ -7309,7 +7539,8 @@ var _ESPECIALIZADO =
                     _teclado.set(_key.add[i], 2);
 
                     extend_multiarrays(this.tileges.tilemaps_all, { [_foo[i]]: 1 });
-                    // extend_multiarrays(this.tilemaps, { [_foo[i]] :1 });
+                    
+                    
 
 
                     this.tileges.update_tilemaps();
@@ -7338,6 +7569,18 @@ var _ESPECIALIZADO =
           //|menu
           menu:
           {
+            Modo:
+            {
+            'Modo tile'()
+                   {
+                   this.win.escenario.cambiar(0);
+                   },
+            'Modo objetos'()
+                   {
+                   this.win.escenario.cambiar(1);
+                   }
+
+            },
             Tools:
             {
               'Mostrar tiledata'() {
@@ -7482,11 +7725,9 @@ var _ESPECIALIZADO =
                 nombre: 'nuevo_mapa',
                 descripcion: "",
                 maps: [...this.tileges.tilemaps, _tilemap_obj], //temporal?
-
               },
               f_data
             )
-
 
             if (to_string == 0)
               return (_data)
@@ -7498,17 +7739,20 @@ var _ESPECIALIZADO =
           },
 
 
-          set_image(_img) {
-
-            let _odiv = this.image_odiv = crear_odiv(this.win._bloque, 0, 0, _img.naturalWidth + 23, [0, 0], { overflow: 'scroll' });
-
-            let _canvas = this.canvas = crear_canvas(_odiv, 1, 0, 0, _img.naturalWidth, _img.naturalHeight);
-
-            this.img = _img;
+            set_modo(f_modo = this.modo) 
+            {
+            this.modo = f_modo;
+            this.img = this.images[f_modo];
+            let _img = this.img;
+             
+            
+            let _odiv_image = this.odiv_image;
+                _odiv_image.set(0,0,_img.naturalWidth + 23, [0, 0], {background:'white', overflow:'scroll'});
+            
+            this.canvas.clear();
             this.canvas.ctx.drawImage(_img, 0, 0)
 
-            this.selector.odiv = crear_odiv(_odiv, 0, 0, this.tw, this.th, { background: 'none', border: '1px solid red' })
-            this.selector.set(1);
+            
 
             //supliir tiledatas incompletos segun altura de imagen
             let _wt_total = _img.naturalHeight / this.th;
@@ -7520,88 +7764,127 @@ var _ESPECIALIZADO =
 
               if (_tiledata.anim[i] == undefined || _tiledata.anim[i] == "undefined" || _tiledata.anim[i] === "")
                 _tiledata.anim[i] = [""];
-
             }
 
 
 
           },
           
+          //|escenario editor
+          escenario: //this => _data (variable reemplazada con escenario creado)
+          [
+           {
+            loadframe()
+            {
+              this.selector.odiv="";
+            }
+           },
+           //tile
+           {
+            loadframe()
+            {
+             
+             this.odiv_image = crear_odiv(_data.win._bloque, 10, 10, 10, 10)
+             this.canvas = crear_canvas(this.odiv_image, 1,    0, 0, 500, 500);
+             
+             this.set_modo(0);
 
-
-          ini() {
-
+             this.tileprop.ini();
+             this.selector.set(1);
+            },
+            enterframe()
+            {
             
+            },
+            on_selector_set()
+            {
 
-            this.selector._padre = this;
+            }
 
+           },
+
+           //object
+           {
+            loadframe()
+            {
+             this.odiv_image = crear_odiv(_data.win._bloque, 10, 10, 10, 10)
+             this.canvas = crear_canvas(this.odiv_image, 1,    0, 0, 500, 500);
+             
+             this.set_modo(1);
+             this.tileprop.ini();
+             this.selector.set(0);
+             
+            },
+            enterframe()
+            {
+            
+            },
+
+            on_selector_set(f_u)
+            {
+
+             this.editor.objcon.act = this.editor.objcon.ids[f_u];
+             this.editor.objcon.act_n = f_u;
+
+            }
+
+
+           },
+
+
+          ]
+
+          ,
+
+          //| ini editor
+          ini() 
+           {
+            
             this.win = ventana.crear_ventana(_data.padre, { x: _data.x, y: _data.y, w: _data.w, h: _data.h, titulo: 'Editor', grab: 1, cursor: 2, menu: this.menu, menu_this: this });
             this.win.enterframe= bindear_(this.run, this);
-            
-            this.image_odiv = crear_odiv(_data.win._bloque, 10, 10, 10, 10)
-
-          
-
-
 
             this.cursor = [this.win.cursor_bloque, _data.cursor_des];
             this.win.cursor_bloque.mousedown = bindear_(this.mousedown, this);
-            this.tilemaps = this.tileges.tilemaps;
-
-
-            if (this.teclado == "") {
+            
+            // si no se encuentra teclado, crearlo en root
+            if (this.teclado == "") 
+            {
               if (_root.teclado == undefined)
                 this.teclado = TECLADO.crear_teclado(_root);
-
               else
                 this.teclado = _root.teclado;
             }
 
-            this.teclado.onkeydown = bindear_(this.key.onkeydown, this);
-            this.teclado.onkeyup = bindear_(this.key.onkeyup, this);
+           this.teclado.onkeydown = bindear_(this.key.onkeydown, this);
+           this.teclado.onkeyup   = bindear_(this.key.onkeyup, this); 
 
-            //this.odiv_des.hijos.push(this);
+           this.set_capa_act(1);
 
-            /*this.odiv_des.modulos_enterframe.push(
-              {
-              enterframe: bindear_(this.run, this),
-              }
-            )
-            */
+           this.win.crear_escenario(0, this, this.escenario);
+           this.escenario = this.win.escenario;
+           this.escenario.editor = this;
 
-
-            this.tileprop.ini();
-
-            this.set_capa_act(1);
-
-            let _img = _data.image_url;
-            if (get_type(_data.image_url) == 'string') {
-              _img = document.createElement("img");
-              _img.src = _data.image_url;
-              this.img = _img;
-              _img.onload = (e) => {
-                this.set_image(_img);
-              }
-            }
-            else {
-              this.set_image(_img);
-            }
-
-          },
+            
+          },//ini editor
 
 
-          mousedown(e) {
+          mousedown(e) 
+           {
             let _cursor = this.cursor[0];
 
-            if (_cursor.x > this.image_odiv.xr && _cursor.x < this.image_odiv.xr + this.image_odiv.wr - 25 &&
-              _cursor.y > this.image_odiv.yr && _cursor.y < this.image_odiv.yr + this.image_odiv.hr) {
+            if (_cursor.x > this.odiv_image.xr && _cursor.x < this.odiv_image.xr + this.odiv_image.wr - 25 &&
+              _cursor.y > this.odiv_image.yr && _cursor.y < this.odiv_image.yr + this.odiv_image.hr) {
               let _x = Math.floor((_cursor.x) / (this.tw * this.minimap_scale));
-              let _y = Math.floor((_cursor.y + this.image_odiv.obj.scrollTop) / (this.th * this.minimap_scale));
+              let _y = Math.floor((_cursor.y + this.odiv_image.obj.scrollTop) / (this.th * this.minimap_scale));
 
-              //console.log(_x)
               let _u = _y * 10 + _x;
-
               this.selector.set(_u);
+              
+
+              
+              
+              
+
             }
 
           },

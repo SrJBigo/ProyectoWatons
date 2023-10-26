@@ -30,6 +30,8 @@ document.currentScript.class =
             { ll: 10, flip: [0, 0], buf: [[2, 0], [2, 1], [2, 2], [2, 1]] },
             { ll: 10, flip: [0, 0], buf: [[0, 0], [0, 1], [0, 2], [0, 1]] },
 
+            { ll: 30, flip: [1, 0], buf: [[0, 3]  ] },
+
 
 
           ),
@@ -44,12 +46,15 @@ document.currentScript.class =
 
   },
 
-
+current_mapoint:0,
+mapstart_tt:[0,60],
   w: 16,
   h: 16,
   tile_des: { x: 0, y: 0 },
 
   draw_color: '',
+
+
 
   update_fondos() { },
 
@@ -328,8 +333,40 @@ document.currentScript.class =
     this.movecon.run();
     this.propagar.run();
     let _vel = 1.6;
+
+    let _to = _tilemaps[3][_y16][_x16];
+        
+    if(this.estado==5)//load tt
+    {
+      this.mapstart_tt[0]++;
+      if(this.mapstart_tt[0]==this.mapstart_tt[1])
+      {
+      game.escenario.act.on_mapoint_start(_to);
+      }
+      
+
+
+    }
+
     if (this.estado == 0)//quieto
     {
+
+        if(this.current_mapoint !== _to && get_type(_to)=='object' && _to.id=='w_mapoint')
+        {
+          this.current_mapoint = _to;
+          game.escenario.act.on_mapoint_stand(_to);
+        }
+
+      if ($WIN.teclado.get('z',2) == 1) {
+
+        if(get_type(_to)=='object' && _to.id=='w_mapoint')
+        {
+           
+           this.estado=5;
+        }
+      }
+        
+
       if ($WIN.teclado.get('izq') == 1) {
         this.check_tile_ini(1);
       }
@@ -350,6 +387,16 @@ document.currentScript.class =
       }
     }
 
+    else
+    {
+      if(this.current_mapoint!==0)
+      {
+        game.escenario.act.on_mapoint_leave(this.current_mapoint); 
+        this.current_mapoint = 0;
+      }
+    
+    }
+
 
     //hacia izquierda
     if (this.x > this.tile_des.x * 16) {
@@ -357,7 +404,9 @@ document.currentScript.class =
       if (this.x <= this.tile_des.x * 16) {
         this.x = this.tile_des.x * 16;
         if (this.check_tile_nextmove() == 0)
+        {
           this.estado = 0;
+        }
       }
     }
     //hacia arriba
@@ -366,7 +415,9 @@ document.currentScript.class =
       if (this.y <= this.tile_des.y * 16) {
         this.y = this.tile_des.y * 16;
         if (this.check_tile_nextmove() == 0)
+        {
           this.estado = 0;
+        }
       }
     }
 
@@ -376,7 +427,9 @@ document.currentScript.class =
       if (this.x >= this.tile_des.x * 16) {
         this.x = this.tile_des.x * 16;
         if (this.check_tile_nextmove() == 0)
+        {
           this.estado = 0;
+        }
       }
     }
 
@@ -386,18 +439,19 @@ document.currentScript.class =
       if (this.y >= this.tile_des.y * 16) {
         this.y = this.tile_des.y * 16;
         if (this.check_tile_nextmove() == 0)
+        {
           this.estado = 0;
+        }
       }
     }
-
-
 
     this.anim.animdata.set_anim(_estado_h);
 
 
+
+
     this.anim.x = 0;
     this.anim.y = 0;
-
 
 
 

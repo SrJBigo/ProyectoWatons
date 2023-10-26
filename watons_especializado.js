@@ -39,6 +39,93 @@ function _loop_in_array(f_arr, f_func = undefined) {
 var RPG =
 {
 
+  
+ crear_img_texto(f_data={})
+ {
+
+	let _data =
+	  	           {
+	                ...{
+	                   image:$LIB.IMAGES[16],
+	                   canvas:DUMMY_CANVAS,
+	                   texto:'A',
+	                   x:0,
+	                   y:0,
+	                   w:[1,1],
+	                   h:[1,1]
+
+	                   },
+	                ...f_data
+	  	           }
+	  	           
+	let  _texto = _data.texto;
+	let _wtotal = _data.texto.length*_data.w[1];              
+	let _htotal = _data.h[1];              
+
+	     _data.canvas.set(_wtotal,_htotal);
+
+	    for(var i =0;i<_texto.length; i++)
+	    {
+	  	let u = _texto.charAt(i);
+	    	     draw_letra({
+	                  canvas: _data.canvas,
+	                  img: _data.image,
+	                  char: u,
+	                  x: _data.w[1]*i,
+	                  y: 0,
+	                  w: _data.w,
+	                  h: _data.h,
+	                })
+
+	    }
+	     
+	           
+	      let _img = document.createElement('img');
+	          _img.src = _data.canvas.toDataURL();
+
+         return(_img);
+
+
+ },
+
+
+  crear_texto(f_donde, _data={})
+  {
+
+   let _img = RPG.crear_img_texto(_data);   
+   let _wtotal = _data.texto.length*_data.w[1];              
+   let _htotal = _data.h[1];              
+
+
+   let _otexto =  _data.gameges.crear_imagen(f_donde, _img, 2,  {x:_data.x,y:_data.y,w:_wtotal, h:_htotal}); 
+       _otexto.data_text = _data;
+       _otexto.set_text=function(f_texto)
+       {
+         let _img = RPG.crear_img_texto({
+         	                            ...this.data_text,
+         	                            ...{
+         	                            	texto:f_texto
+         	                               }
+         	                             });
+         let _wtotal = f_texto.length*this.data_text.w[1];              
+         let _htotal = this.data_text.h[1];   
+
+         this.w = _wtotal;           
+         this.h = _htotal;           
+
+         
+         _img.onload=()=>{
+          this.image = _img;	
+         }
+         
+         
+
+       }
+
+   return(_otexto);
+    
+  },
+
   crear_dialogo(f_donde, f_data) {
     let _data = setloop_prop({
       fuente:

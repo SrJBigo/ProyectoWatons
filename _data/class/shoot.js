@@ -9,14 +9,14 @@ document.currentScript.class =
   LOAD:
   {
     modo: 'vacio',
-    canvas_id: 2,
+    canvas_id: 1,
 
     child:
     {
       LOAD:
       {
         id: 6,
-        canvas_id: 2,
+        canvas_id: 1,
         modo: 'sprite',
 
         animdata: GAME.crear_animdata({ master: { wt: 16, ht: 16, ll: 30 } },
@@ -96,12 +96,15 @@ document.currentScript.class =
         //hit enemigos
         for (var u of game.objs) {
           if (game.simple_hit_test(this, u)) {
-            this.remove();
+            
 
-            if (u.hitcon !== undefined)
-              u.hitcon.on_hit(this, { damage: 2 })
+            if (u.hitcon !== undefined && u.hitcon.on_hit(this, { damage: 2 }, 'bullet') )
+            {
+              this.remove();
+              break;
+            }
 
-            break;
+            
           }
         }
         _a:
@@ -119,24 +122,33 @@ document.currentScript.class =
             break _a;
           }
 
-
+          let _xypolvo_plus = [0,0];
           if (this.estado == 0)
+          {
             this.x = fl(this.x / 16) * 16 + this.w;
+            _xypolvo_plus[0] = -8;
+          }
 
           if (this.estado == 1)
+          {
             this.y = fl(this.y / 16) * 16 + this.h;
+            _xypolvo_plus[1] = -8;
+          }
 
           if (this.estado == 2)
+          {
             this.x = fl((this.x + _pact.x) / 16) * 16 - this.w;
+            _xypolvo_plus[0] = 8;
+          }
 
           if (this.estado == 3)
+          {
             this.y = fl((this.y + _pact.y) / 16) * 16 - this.h;
+            _xypolvo_plus[1] = 8;
+          }
 
-
-          //this.xvelocity=0;
-          //this.yvelocity=0;
-
-          $WIN.gameges.cargar_clase($root.level, 1, { x: this.x + _pact.x - 5, y: this.y + _pact.y - 5 });
+          
+          $WIN.gameges.cargar_clase($root.level, 1, { x: this.x+_xypolvo_plus[0], y: this.y+_xypolvo_plus[1]});
           this.remove();
         }
 

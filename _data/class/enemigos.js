@@ -2,42 +2,16 @@
 //============================
 //CREADO VIA  cargar_script();
 //=============================
+
+
 document.currentScript.class =
 
 {
 
-
   LOAD:
   {
     modo: 'vacio',
-    canvas_id: 2,
-
-    child:
-    {
-      LOAD:
-      {
-        id: 7,
-        canvas_id: 2,
-        modo: 'sprite',
-        animdata: GAME.crear_animdata({ master: { wt: 32, ht: 32, ll: 30 } },
-
-          //0->9=oerro
-          { ll: 10, flip: [1, 0], buf: [[0, 0], [0, 1]] },
-          { ll: 10, flip: [0, 0], buf: [[0, 0], [0, 1]] },
-          { ll: 10, flip: [1, 0], buf: [[0, 0], [0, 1]] },
-          { ll: 10, flip: [0, 0], buf: [[0, 0], [0, 1]] },
-          { ll: 10, flip: [1, 0], buf: [[0, 0], [0, 1]] },
-          { ll: 10, flip: [0, 0], buf: [[0, 0], [0, 1]] },
-          { ll: 10, flip: [1, 0], buf: [[0, 0], [0, 1]] },
-          { ll: 10, flip: [0, 0], buf: [[0, 0], [0, 1]] },
-          { ll: 10, flip: [1, 0], buf: [[0, 0], [0, 1]] },
-          { ll: 10, flip: [0, 0], buf: [[0, 0], [0, 1]] },
-
-
-        ),
-      },
-
-    },
+    canvas_id: 1,
   },
   mapdata: {}, //x,y
 
@@ -51,6 +25,7 @@ document.currentScript.class =
 
   draw_color: "",
 
+  estado_h:0,
   estado: 0,
   anim: '',
 
@@ -59,17 +34,55 @@ document.currentScript.class =
   {
     _padre: '',
     hp: [10, 10],
+    damage:2,
     sound_id:0,
-
-    on_hit(f_quien, f_data) {
+    
+    estado:0,
+    blink_tt:[0,2],
+                            //player, bullet
+    on_hit(f_quien, f_data, f_modo) {
 
       if (game.editor.estado == 1) return;
 
-      AUDIO.play_sample($WIN.LIB.SOUNDS[this.sound_id],0);
+      this.estado=1;
+
+      game.soundcon.play(this.sound_id);
+
+      let _htext = game.textoges.crear($root.level, {x:this._padre.x,y:this._padre.y-5, texto: '-'+f_data.damage})
+          _htext.tt=[0,30];
+          _htext.enterframe=()=>
+               {
+                _htext.tt[0]++;
+                if(_htext.tt[0]>_htext.tt[1])
+                  _htext.remove();
+                _htext.y-=0.5;
+               }
+
       this.hp[0] -= f_data.damage;
       if (this.hp[0] <= 0) {
+      
+      $WIN.gameges.cargar_clase($root.level, 1, {anim_id:2, x: this._padre.x, y: this._padre.y});
+
         this._padre.remove();
       }
+
+       return(1);
+
+    },
+    run()
+    {
+       if(this.estado==1)
+       {
+        this._padre.anim.visible=false;
+        this.blink_tt[0]++;
+        if(this.blink_tt[0]>this.blink_tt[1])
+        {
+          this._padre.anim.visible=true;
+          this.blink_tt[0]=0;
+          this.estado=0;
+        }
+       }
+
 
     },
 
@@ -185,14 +198,31 @@ document.currentScript.class =
   modos:
   {
     'perro': {
+      animdata:[
+          { master: { wt: 16, ht: 16, ll: 30 } },
+
+          { wt:32,  ht:32, ll: 10, flip: [1, 0], buf: [[0, 0], [0, 1]] },
+          { wt:32,  ht:32, ll: 10, flip: [0, 0], buf: [[0, 0], [0, 1]] },
+          { wt:32,  ht:32, ll: 10, flip: [1, 0], buf: [[0, 0], [0, 1]] },
+          { wt:32,  ht:32, ll: 10, flip: [0, 0], buf: [[0, 0], [0, 1]] },
+          { wt:32,  ht:32, ll: 10, flip: [1, 0], buf: [[0, 0], [0, 1]] },
+
+            ],
+
+
       w: 16,
       h: 16,
       offset: [-7, -16],
       hitcon: {
+        
         hp: [12, 12],
         sound_id:0,
       },
       loadframe() {
+        console.log(this.anim.animdata.animations);
+      
+        this.estado=this.direccion;
+        this.estado_h = this.estado;
 
       },
       enterframe() {
@@ -209,64 +239,245 @@ document.currentScript.class =
             this.estado = 0;
         }
 
-
         this.yvelocity += 0.5;
         if (this.yvelocity > 3.5)
           this.yvelocity = 3.5;
 
+        this.estado_h = this.estado;
 
       },
 
+    },//perro
 
-    }
+   'perro_2': {
+    animdata:[
+          { master: { wt: 16, ht: 16, ll: 30 } },
+
+          { wt:16,  ht:32, ll: 5, flip: [0, 0], buf: [[2, 0] ] },
+          { wt:16,  ht:32, ll: 2, flip: [0, 0], buf: [[2, 1],[2, 2],[2, 1] ] },
+          { wt:16,  ht:32, ll: 5, flip: [0, 0], buf: [[2, 0], [2, 1]] },
+          { wt:16,  ht:32, ll: 5, flip: [0, 0], buf: [[2, 0], [2, 1]] },
+          { wt:16,  ht:32, ll: 10, flip: [0, 0], buf: [[2, 0], [2, 1]] },
+          { wt:16,  ht:32, ll: 10, flip: [0, 0], buf: [[2, 0], [2, 1]] },
+          { wt:16,  ht:32, ll: 10, flip: [0, 0], buf: [[2, 0], [2, 1]] },
+          { wt:16,  ht:32, ll: 10, flip: [0, 0], buf: [[2, 0], [2, 1]] },
+          { wt:16,  ht:32, ll: 10, flip: [0, 0], buf: [[2, 0], [2, 1]] },
+          { wt:16,  ht:32, ll: 10, flip: [0, 0], buf: [[2, 0], [2, 1]] },
+
+            ],
+      autoflip:1, //horientacion x a jugador
+      w: 16,
+      h: 16,
+      petro:0,
+      offset: [0, -16],
+      hitcon: {
+        
+        hp: [12, 12],
+        sound_id:0,
+      },
+      j_yvel:-7,
+      tt:[0,10],
+      loadframe() {
+
+        this.estado=this.direccion;
+        this.estado_h = this.estado;
+
+      },
+      enterframe() {
+        let _col = this.col_check(); //[n,n,n,n] relativo a tile
+
+
+       
+
+        if(this.estado==0)
+        {
+        this.yvelocity += 0.4;
+        if (this.yvelocity > 3.5)
+          this.yvelocity = 3.5;
+        
+          if(_col[1])
+          {
+          this.yvelocity=0;
+          this.estado=1;
+          }
+        }  
+
+        if(this.estado==1)
+        {
+          this.tt[0]++;
+          if(this.tt[0]>this.tt[1])
+          {
+            this.tt[0]=0;
+            this.estado=0;
+            this.yvelocity=this.j_yvel;
+          }
+        }  
+
+         
+
+
+        this.estado_h = this.estado;
+
+      },
+
+    },//perro_2
+
+   'completo': {
+    animdata:[
+          { master: { wt: 16, ht: 16, ll: 30 } },
+
+          { ll: 5, flip: [1, 0], buf: [[0, 10] ] },
+          
+            ],
+
+      w: 16,
+      h: 16,
+      offset: [0, 0],
+      hitcon: {
+        
+        on_hit(f_quien, f_data, f_modo)
+        {
+          if (game.editor.estado == 1) return;
+
+          if(f_modo=='player')
+          {
+          this._padre.remove();
+          }
+
+          return(0);
+        },
+        hp: [12, 12],
+        sound_id:0,
+      },
+      
+      loadframe() {
+        console.log('load completo')
+       this.estado_h=0;
+
+      },
+      enterframe() {
+        let _col = this.col_check(); //[n,n,n,n] relativo a tile
+         this.yvelocity+=0.01;
+
+        this.estado_h = 0;
+
+      },
+
+    },//completo
+
+   'w_mapoint': {
+    animdata:[
+          { master: { wt: 16, ht: 16, ll: 30 } },
+
+          { ll: 5, flip: [0, 0], buf: [[0, 11] ] },
+          
+            ],
+
+      w: 16,
+      h: 16,
+      offset: [0, 0],
+      hitcon: {
+        
+        on_hit(f_quien, f_data, f_modo)
+        {
+          if(f_modo=='player')
+          {
+          this._padre.remove();
+          }
+
+          return(0);
+        },
+        hp: [12, 12],
+        sound_id:0,
+      },
+      
+      loadframe() {
+
+       this.estado_h=0;
+
+      },
+      enterframe() {
+        let _col = this.col_check(); //[n,n,n,n] relativo a tile
+         
+
+        this.estado_h = 0;
+
+      },
+
+    },//w_mapoint
+
+
+
 
   },
 
 
   on_remove() {
-    console.log('perro ELIMINADO')
     game.remove_obj(this);
-    let _mapdata = this.mapdata;
-
-    if (this.hitcon.hp[0] > 0) {
-      this.mapdata.in = 0;
-      //$tileges.tilemaps_all[3][_mapdata.y][_mapdata.x]=_mapdata;  
-    }
 
 
 
   },
 
   loadframe() {
+
+     //_class.animdata = _class.LOAD.animdata;
+ 
     this.hitcon._padre = this;
     this.xprev = this.x;
     this.yprev = this.y;
     this.anim = this.hijos_clip[0];
-    this.offset = this.modos[this.id].offset;
-    this.w = this.modos[this.id].w;
-    this.h = this.modos[this.id].h;
 
-    this.hitcon = setloop_prop(this.hitcon, this.modos[this.id].hitcon);
+    let _modo = this.modos[this.id];
 
-    bindear_(this.modos[this.id].loadframe, this)();
+    this.anim = WIN.gameges.crear_sprite(this, 7, 1, {animdata: GAME.crear_animdata(..._modo.animdata)  });
+
+    for(var i in _modo)
+    {
+      if(i=='loadframe'||i=='enterframe')
+        continue;
+
+      if(get_type(_modo[i])=='object' && this[i]!==undefined )
+       setloop_prop(this[i], _modo[i]);        
+
+      else
+      this[i] = _modo[i];
+    }
+
+    bindear_(_modo.loadframe, this)();
+
+    
 
   },
 
   enterframe() {
+    
+
+   this.hitcon.run();
+
+   let _modo = this.modos[this.id];
 
     let _level = $root.level;
     if (game.editor.estado == 0) {
       this.x = this.x + this.xvelocity;
       this.y = this.y + this.yvelocity;
 
-      bindear_(this.modos[this.id].enterframe, this)();
+      bindear_(_modo.enterframe, this)();
 
     }
 
-    let _estado_h = this.estado;
     this.anim.x = this.offset[0];
     this.anim.y = this.offset[1];
-    this.anim.animdata.set_anim(_estado_h);
+    this.anim.animdata.set_anim(this.estado_h);
+
+    if(this.autoflip)
+    {
+      if(this.x<_level.jugador.x)
+        this.anim.animdata.force.flip=[1,0];
+      if(this.x>_level.jugador.x)
+        this.anim.animdata.force.flip=[0,0];  
+    }
+    
 
     this.xprev = this.x;
     this.yprev = this.y;
@@ -274,7 +485,14 @@ document.currentScript.class =
 
     if (this.x < _level.x * -1 - 32 || this.x > (_level.x * -1) + _level.w + 32 ||
       this.y < _level.y * -1 - 32 || this.y > (_level.y * -1) + _level.h + 32)
-      this.remove();
+    {
+    this.remove();
+    this.mapdata.in = 0;
+      
+
+
+    }
+    
 
   },
 }

@@ -10,7 +10,7 @@ document.currentScript.class =
   LOAD:
   {
     modo: 'vacio',
-    canvas_id: 2,
+    canvas_id: 1,
 
 
     child: [
@@ -19,14 +19,14 @@ document.currentScript.class =
         LOAD:
         {
           id: 8,
-          canvas_id: 2,
+          canvas_id: 1,
           modo: 'sprite',
           animdata: GAME.crear_animdata({ master: { wt: 32, ht: 32, ll: 30 } },
 
             { ll: 30, flip: [1, 0], offset: [-10, -2], buf: [[0, 0, 16, 32]] },
             { ll: 30, flip: [0, 0], offset: [-16, -5], buf: [[0, 32, 32, 16]] },
 
-            { ll: 30, flip: [0, 0], offset: [0, -2], buf: [[0, 0, 16, 32]] },
+            { ll: 30, flip: [0, 0], offset: [0, -2],   buf: [[0, 0, 16, 32]] },
             { ll: 30, flip: [0, 1], offset: [-16, 10], buf: [[0, 32, 32, 16]] },
 
           ),
@@ -39,21 +39,27 @@ document.currentScript.class =
         LOAD:
         {
           id: 2,
-          canvas_id: 2,
+          canvas_id: 1,
           modo: 'sprite',
           animdata: GAME.crear_animdata({ master: { wt: 32, ht: 32, ll: 30 } },
 
+            //quieto
             { ll: 30, flip: [1, 0], buf: [[0, 0], [0, 1]] },
             { ll: 30, flip: [0, 0], buf: [[0, 0], [0, 1]] },
 
-            { ll: 10, flip: [1, 0], buf: [[1, 0], [1, 1], [1, 2], [1, 3], [1, 2], [1, 1]] },
-            { ll: 10, flip: [0, 0], buf: [[1, 0], [1, 1], [1, 2], [1, 3], [1, 2], [1, 1]] },
+            //caminar
+            { ll: 10, flip: [1, 0], buf: [[0, 4], [0, 5], [0, 6], [0, 7], [0, 6], [0, 5]] },
+            { ll: 10, flip: [0, 0], buf: [[0, 4], [0, 5], [0, 6], [0, 7], [0, 6], [0, 5]] },
 
-            { ll: 10, flip: [1, 0], buf: [[1, 0], [1, 1], [1, 2], [1, 3], [1, 2], [1, 1]] },
-            { ll: 10, flip: [0, 0], buf: [[1, 0], [1, 1], [1, 2], [1, 3], [1, 2], [1, 1]] },
+            //correr
+            { ll: 10, flip: [1, 0], buf: [[9, 0], [1, 1], [1, 2], [1, 3], [1, 2], [1, 1]] },
+            { ll: 10, flip: [0, 0], buf: [[0, 0], [1, 1], [1, 2], [1, 3], [1, 2], [1, 1]] },
 
-            { ll: 20, flip: [1, 0], buf: [[0, 0], [0, 1]] },
-            { ll: 20, flip: [0, 0], buf: [[0, 0], [0, 1]] },
+            //salto up down
+            { ll: 10, flip: [1, 0], buf: [[0, 12]]},
+            { ll: 10, flip: [0, 0], buf: [[0, 12]]},
+            { ll: 10, flip: [1, 0], buf: [[0, 13]]},
+            { ll: 10, flip: [0, 0], buf: [[0, 13]]},
 
           ),
         },
@@ -103,8 +109,11 @@ document.currentScript.class =
     //blink_tt
     hit(_enem) {
 
+
+      game.particon.data.stats.set(_enem.hitcon.damage, 'hp', '-');
+
       let _padre = this._padre;
-      _enem.hitcon.on_hit(_padre, { damage: 6 })
+      
       this.estado = 1;
       this.tt[0] = 0;
       this.tt[2] = 0;
@@ -158,8 +167,11 @@ document.currentScript.class =
 
       if (this.estado == 0) {
         for (var u of game.objs) {
-          if (game.simple_hit_test(this._padre, u)) {
+          if (game.simple_hit_test(this._padre, u) &&
+              u.hitcon.on_hit(this, { damage: 6 },'player')     ) {
+
             this.hit(u);
+            
             break;
 
           }
@@ -336,10 +348,10 @@ document.currentScript.class =
           this.tt = 0;
           if (this.padre.en_suelo_tt >= 3) {
             if (this.padre.estado == 0 || this.padre.estado == 2) {
-              $WIN.gameges.cargar_clase($root.level, 1, { x: this.padre.x + 7, y: this.padre.y + 16 });
+              $WIN.gameges.cargar_clase($root.level, 1, { x: this.padre.x + 7, y: this.padre.y + 16,anim_id:0 });
             }
             if (this.padre.estado == 1 || this.padre.estado == 3) {
-              $WIN.gameges.cargar_clase($root.level, 1, { x: this.padre.x - 5, y: this.padre.y + 18 });
+              $WIN.gameges.cargar_clase($root.level, 1, { x: this.padre.x - 5, y: this.padre.y + 18, anim_id:0 });
             }
           }
         }
@@ -393,7 +405,7 @@ document.currentScript.class =
       this.en_suelo_tt = 0;
       this.salto_estado = 1;
       this.yvelocity = (-this.movedata.yvel_salto);
-      AUDIO.play_sample($WIN.LIB.SOUNDS[2]);
+      game.soundcon.play(2);
     }
     if (this.salto_estado == 1 && $WIN.teclado.get('z') == 0) {
       this.salto_estado = 2;
@@ -519,13 +531,15 @@ document.currentScript.class =
 
     let estado_h = this.estado;
 
-    if (this.yvelocity < 0) {
+    if (this.en_suelo_tt<=0) {
       if (this.estado == 0 || this.estado == 2) {
         estado_h = 6;
       }
       if (this.estado == 1 || this.estado == 3) {
         estado_h = 7;
       }
+      if(this.yvelocity>0)
+        estado_h+=2;
     }
 
     if (this.x < 0) {
@@ -541,8 +555,8 @@ document.currentScript.class =
     this.xprevious = this.x;
     this.yprevious = this.y;
 
-    $root.level.x = (this.x * -1) - this.w / 2 + $root.w / 2;
-    $root.level.y = (this.y * -1) - this.h / 2 + $root.h / 2;
+    $root.level.x = fl((this.x * -1) - this.w / 2 + $root.w / 2);
+    $root.level.y = fl((this.y * -1) - this.h / 2 + $root.h / 2);
 
     if ($root.level.x > 0) {
       $root.level.x = 0;

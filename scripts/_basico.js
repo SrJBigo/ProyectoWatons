@@ -3404,9 +3404,11 @@ var _BASICO =
       _text.padre = f_donde;
       _text.obj.style.position = 'absolute';
       _text.obj.style.left = _data.x + "px";
-      _text.obj.style.top = _data.y + "px";
-      _text.obj.style.width = _data.w;
-      _text.obj.style.height = _data.h;
+      _text.obj.style.top  = _data.y + "px";
+
+      _text.obj.style.width  = _data.w +'px';
+      _text.obj.style.height = _data.h + "px";
+      
       _text.obj.style.resize = "none"; // true = 'both'
 
 
