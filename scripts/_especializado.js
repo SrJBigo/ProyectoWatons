@@ -985,6 +985,7 @@ var _ESPECIALIZADO =
 
     //|$
     _root.set_$(_clip);
+    window['$enterload'] = _clip;
 
 
     if (_clip.loadframe_state != 1 && _clip.loadframe != undefined) //ejecutar loadframe si no se ha iniciado

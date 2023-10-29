@@ -3,10 +3,8 @@
 //CREADO VIA  cargar_script();
 //=============================
 document.currentScript.class =
-
 {
-
-
+  
   LOAD:
   {
     modo: 'vacio',
@@ -23,11 +21,12 @@ document.currentScript.class =
           modo: 'sprite',
           animdata: GAME.crear_animdata({ master: { wt: 32, ht: 32, ll: 30 } },
 
-            { ll: 30, flip: [1, 0], offset: [-10, -2], buf: [[0, 0, 16, 32]] },
-            { ll: 30, flip: [0, 0], offset: [-16, -5], buf: [[0, 32, 32, 16]] },
+            { ll: 30, flip: [1, 0], offset: [-10, -2], buf: [[0, 0,  16, 32]]  },
+            { ll: 30, flip: [0, 0], offset: [-16, -5], buf: [[0, 32, 32, 16]]  },
+            { ll: 30, flip: [0, 0], offset: [0,   -2], buf: [[0, 0,  16, 32]]  },
+            { ll: 30, flip: [0, 1], offset: [-16, 10], buf: [[0, 32, 32, 16]]  },
 
-            { ll: 30, flip: [0, 0], offset: [0, -2],   buf: [[0, 0, 16, 32]] },
-            { ll: 30, flip: [0, 1], offset: [-16, 10], buf: [[0, 32, 32, 16]] },
+            
 
           ),
         },
@@ -61,6 +60,11 @@ document.currentScript.class =
             { ll: 10, flip: [1, 0], buf: [[0, 13]]},
             { ll: 10, flip: [0, 0], buf: [[0, 13]]},
 
+            //escalera
+            { ll: 30, flip: [0, 0], buf: [[0, 18]]  },
+            { ll: 5, flip: [0, 0], buf: [[0, 19],[0, 18],[0, 17],[0, 18]]  },
+            { ll: 5, flip: [0, 0], buf: [[0, 17],[0, 18],[0, 19],[0, 18]]  },
+
           ),
         },
 
@@ -79,24 +83,245 @@ document.currentScript.class =
 
   draw_color: "",
 
-  fondo_tt: [0, 25, 0],
-  estado_arma: 0,
+  xvelocity:0,
+  yvelocity:0,
+  xprev:0,
+  yprev:0,
+  
   orientacion: 1, //0,1 -> izquierda, derecha
-  update_fondos() {
-    this.fondo_tt[0]++;
-    if (this.fondo_tt[0] > this.fondo_tt[1]) {
-      this.fondo_tt[0] = 0;
-      this.fondo_tt[2] += 1;
-    }
-    $gameges.fondoges.fondos[0].x = ($root.level.x / 7);
-    $gameges.fondoges.fondos[0].y = ($root.level.y) - 10;
-    $gameges.fondoges.fondos[1].x = ($root.level.x / 3) - this.fondo_tt[2];
-    $gameges.fondoges.fondos[1].y = ($root.level.y) - 25;
-    $gameges.fondoges.fondos[2].x = ($root.level.x / 3);
-    $gameges.fondoges.fondos[2].y = ($root.level.y) - 25;
 
+  gravedad:0.3,
+  suelo_y:0,//def enterframe
+
+  //|armacon
+  armacon:
+  {
+     _padre:'',
+     estado:1,  //0 = inactivo[invisible]; | = activo [visible]
+     orientacion:0, //0,1 = izquierda,derecha
+     angulo:0, //0,1,2,3
+     anim:'',
+     act:'', //objeto modo actual
+     set(f_modo)
+     {
+      this.act = this.modos[f_modo];
+     },
+     modos:
+     {
+      _padre:'',
+       arco:
+          {
+           _padre:'',
+           vel:5.5,
+           
+           xyni:[5,10],
+           xy:  [[-1,0],[0,-1],[1,0],[0,1]], //empleado en XYvel de flecha
+           xy2 :[[-1,1],[0,0], [1,1],[0,1]], //empleado en xy 'caprichoso' de flecha
+
+           shoot(f_angulo)
+           {
+
+               $WIN.gameges.cargar_clase($root.level, 4, {
+                  id: 'arrow',
+                  estado: f_angulo,
+                  x:         _clip.x + this.xyni[0]*this.xy2[f_angulo][0],
+                  y:         _clip.y + this.xyni[1]*this.xy2[f_angulo][1],
+                  xvelocity: this.vel*this.xy[f_angulo][0],
+                  yvelocity: this.vel*this.xy[f_angulo][1]
+                });
+
+           },
+           run()
+           {
+              
+           },
+
+
+          },//arco
+
+     },//modos
+     ini()
+     {
+       this.set('arco');
+       this.anim = _clip.anim_arma;
+       this.angulo=2;
+     },
+     run()
+     {
+      
+      if(this.estado==1 && this.act!=='' && _clip.modos.act.permitir_arma==1)
+      {
+      //angulo arma
+        if ($WIN.teclado.get('izq'))
+          this.angulo = 0;
+        if ($WIN.teclado.get('der'))
+          this.angulo = 2;
+        if ($WIN.teclado.get('arr'))
+          this.angulo = 1;
+        if ($WIN.teclado.get('aba'))
+          this.angulo = 3;
+
+        
+        if ($WIN.teclado.get('arr') == 0 && $WIN.teclado.get('aba') == 0)
+           {
+            let _a = _clip.orientacion;
+            if (_a == 1) _a++;
+            this.angulo = _a;
+           }
+
+       //disparar
+       if($WIN.teclado.get('x',2)==1)
+       {
+         this.act.shoot(this.angulo);
+       }
+
+      this.anim.visible=1;
+      this.anim.animdata.set_anim(this.angulo);
+      
+      }
+      else
+        this.anim.visible=0;
+
+     },
+  
+  },//armacon
+
+  //|fondocon
+  fondocon:
+  {
+    _padre:'',
+    tt: [0, 25, 0],
+    update_fondos()
+    {
+      this.tt[0]++;
+      if (this.tt[0] > this.tt[1]) 
+      {
+        this.tt[0] = 0;
+        this.tt[2] += 1;
+      }
+      $gameges.fondoges.fondos[0].x = ($root.level.x / 7);
+      $gameges.fondoges.fondos[0].y = ($root.level.y) - 10;
+      $gameges.fondoges.fondos[1].x = ($root.level.x / 3) - this.tt[2];
+      $gameges.fondoges.fondos[1].y = ($root.level.y) - 25;
+      $gameges.fondoges.fondos[2].x = ($root.level.x / 3);
+      $gameges.fondoges.fondos[2].y = ($root.level.y) - 25;
+    },
+
+  },//fondocon
+
+  update_nivel()
+  {
+    $root.level.x = fl((this.x * -1) - this.w / 2 + $root.w / 2);
+    $root.level.y = fl((this.y * -1) - this.h / 2 + $root.h / 2);
+
+    if ($root.level.x > 0) 
+      $root.level.x = 0;
+    
+    if ((-$root.level.x) + $gameges.tileges.xt_max * 16 > $gameges.tileges.xt_allmax * 16) 
+      $root.level.x = -($gameges.tileges.xt_allmax * 16 - $gameges.tileges.xt_max * 16);
+    
+    if ($root.level.y > 0) 
+      $root.level.y = 0;
+    
+    if ((-$root.level.y) + $gameges.tileges.yt_max * 16 > $gameges.tileges.yt_allmax * 16) 
+      $root.level.y = -($gameges.tileges.yt_allmax * 16 - $gameges.tileges.yt_max * 16);
+    
+    $gameges.tileges.x = $root.level.x * -1;
+    $gameges.tileges.y = $root.level.y * -1;
 
   },
+
+  col_check() {
+    let _x16 = fl(this.x / 16);
+    let _y16 = fl(this.y / 16);
+
+    let _tiledata = $gameges.tileges.tiledata.col;
+    let _p = this;
+    let _ret = [0, 0, 0, 0];
+
+    let _pos = [
+      [this.x, this.y], [this.x + this.w / 2, this.y], [this.x + this.w, this.y],
+      [this.x, this.y + this.h / 2], [this.x + this.w / 2, this.y + this.h / 2], [this.x + this.w, this.y + this.h / 2],
+      [this.x, this.y + this.h], [this.x + this.w / 2, this.y + this.h], [this.x + this.w, this.y + this.h],
+    ];
+
+    let _tilemap_1 = $tileges.tilemaps[1];
+    let _col = [];
+    for (var u of _pos) {
+      let _yt = fl((u[1]) / 16);
+      let _xt = fl((u[0]) / 16);
+
+      let _tile;
+      if (_tilemap_1[_yt] !== undefined)
+        _tile = _tilemap_1[_yt][_xt];
+
+      if (_tile > 0) {
+        _col.push({
+          id: _tile,
+          x: _xt * 16,
+          y: _yt * 16,
+          w: 16,
+          h: 16,
+          xt: _xt,
+          yt: _yt,
+
+        });
+      }
+    }
+
+    for (var u of _col) {
+
+      let _udata = _tiledata[u.id];
+
+      //arriba bajo
+      if (_p.x + _p.w > u.x && _p.x < u.x + u.w) {
+
+        if (_udata[1] == 1 &&
+          _tilemap_1[u.yt - 1] != undefined && _udata[_tilemap_1[u.yt - 1][u.xt]] != '1,1,1,1' &&
+          _p.yprev + _p.h <= u.y + 1 && _p.yvelocity > 0 && _p.y + _p.h > u.y) //colision arriba tile
+        {
+          _p.y = u.y - _p.h;
+          _p.yvelocity = 0;
+          _ret[1] = 1;
+        }
+
+
+        if (_udata[3] == 1 &&
+          _tilemap_1[u.yt + 1] != undefined && _udata[_tilemap_1[u.yt + 1][u.xt]] != '1,1,1,1' &&
+          _p.yprev >= u.y + u.h && _p.yvelocity < 0 && _p.y < u.y + u.h) //colision abajo tile
+        {
+          _p.y = u.y + u.h;
+
+          _p.yvelocity = 0.5;
+          _ret[3] = 1;
+        }
+
+      }
+
+
+      //izquieda derecha
+      if (_p.y < u.y + u.h && _p.y + _p.h > u.y) {
+        if (_udata[0] == 1 &&
+          _p.xprev + _p.w <= u.x && _p.xvelocity > 0 && _p.x + _p.w > u.x) // colision izquierda tile
+        {
+          _p.x = u.x - _p.w;
+          _p.xvelocity = 0;
+          _ret[0] = 1;
+        }
+
+        if (_udata[2] == 1 &&
+          _p.xprev >= u.x + u.w && _p.xvelocity < 0 && _p.x < u.x + u.w) // colosion derecha tile
+        {
+          _p.x = u.x + u.w;
+
+          _p.xvelocity = 0;
+          _ret[2] = 1;
+        }
+      }
+    }
+    return (_ret);
+
+  },//colcheck
 
   //|hitcon
   hitcon:
@@ -108,25 +333,33 @@ document.currentScript.class =
     tt: [0, 5, 0, 10, 0],
     //blink_tt
     hit(_enem) {
-
-
-      game.particon.data.stats.set(_enem.hitcon.damage, 'hp', '-');
-
-      let _padre = this._padre;
+     let _modo = _clip.modos.act;
       
-      this.estado = 1;
-      this.tt[0] = 0;
-      this.tt[2] = 0;
-      this.tt[4] = 0;
+      if(_modo.hitcon.detectar)
+      {
 
-      if (game.center_compare(_padre, _enem).x) {
-        _padre.xvelocity = 4;
-        _padre.yvelocity = -4;
-      }
-      else {
-        _padre.xvelocity = -4;
-        _padre.yvelocity = -4;
-      }
+          game.particon.data.stats.set(_enem.hitcon.damage, 'hp', '-');
+
+          let _padre = this._padre;
+          
+          this.estado = 1;
+          this.tt[0] = 0;
+          this.tt[2] = 0;
+          this.tt[4] = 0;
+
+          if(_modo.hitcon.rebotar)
+          {
+            if (game.center_compare(_padre, _enem).x) {
+            _padre.xvelocity = 4;
+            _padre.yvelocity = -4;
+            }
+            else {
+            _padre.xvelocity = -4;
+            _padre.yvelocity = -4;
+            }
+          }
+          _modo.hitcon.on_hit(_enem);
+      }  
 
     },
     run() {
@@ -134,8 +367,6 @@ document.currentScript.class =
 
       if (this.estado == 1)//golpeado transparencia
       {
-        //alpha
-        //if(!_padre.anim.filter) _padre.anim.filter={};
         _padre.anim.visible = true;
         _padre.anim_arma.visible = true;
         if (this.tt[4] == 1) {
@@ -183,305 +414,385 @@ document.currentScript.class =
 
   },//hitcon
 
+  loadframe() 
+  {
+    window['_clip'] = this;
+    padrear(this);
+    this.fondocon.update_fondos()
 
-
-  loadframe() {
-    this.update_fondos()
-
-    this.hitcon._padre = this;
     this.anim = this.hijos_clip[1];
     this.anim_arma = this.hijos_clip[0];
-
-    if (this.estado == 0)
-      this.estado_arma = 0;
-    else
-      this.estado_arma = 2;
-    //|col
-    this.col = {
-
-      padre: this,
-      apply() //efectos ante colision (detencion, etc)
-      {
-        let _u;
-        let _p = this.padre;
-
-        let _tiledata = $gameges.tileges.tiledata.col;
-        let _tilemap_1 = $gameges.tileges.tilemap_1;
-
-        for (var i in this.entes) {
-          _u = this.entes[i];
-          let _tiledata_u = _tiledata[_u.id];
-          //arriba bajo
-
-
-          if (_p.x + _p.w > _u.x && _p.x < _u.x + _u.w) {
-
-            if (_tiledata_u[1] == 1 &&
-              _tilemap_1[_u.y_simple - 1] != undefined && _tiledata[_tilemap_1[_u.y_simple - 1][_u.x_simple]] != '1,1,1,1' &&
-              _p.yprevious + _p.h <= _u.y && _p.yvelocity > 0 && _p.y + _p.h > _u.y) //colision arriba tile
-            {
-              _p.y = _u.y - _p.h;
-              _p.en_suelo_tt = 3;
-              _p.yvelocity = 0;
-            }
-
-            if (_tiledata_u[3] == 1 &&
-              _tilemap_1[_u.y_simple + 1] != undefined && _tiledata[_tilemap_1[_u.y_simple + 1][_u.x_simple]] != '1,1,1,1' &&
-              _p.yprevious >= _u.y + _u.h && _p.yvelocity < 0 && _p.y < _u.y + _u.h) //colision abajo tile
-            {
-              _p.y = _u.y + _u.h;
-
-              _p.yvelocity = 0.5;
-            }
-          }
-
-
-          //izquieda derecha
-          if (_p.y < _u.y + _u.h && _p.y + _p.h > _u.y) {
-            if (_tiledata_u[0] == 1 &&
-              _p.xprevious + _p.w <= _u.x && _p.xvelocity > 0 && _p.x + _p.w > _u.x) // colision izquierda tile
-            {
-              _p.x = _u.x - _p.w;
-              _p.xvelocity = 0;
-            }
-
-            if (_tiledata_u[2] == 1 &&
-              _p.xprevious >= _u.x + _u.w && _p.xvelocity < 0 && _p.x < _u.x + _u.w) // colosion derecha tile
-            {
-              _p.x = _u.x + _u.w;
-
-              _p.xvelocity = 0;
-            }
-
-
-          }
-
-
-
-        }
-
-
-
-      },
-      get() {
-        this.entes = [];
-
-        let _u;
-
-
-        for (var i in this.pos) {
-          _u = this.pos[i];
-
-
-          let _y16 = Math.floor((this.padre.y + _u.y) / 16);
-          let _x16 = Math.floor((this.padre.x + _u.x) / 16);
-
-          if ($gameges.tileges.tilemap_1[_y16] != undefined && $gameges.tileges.tilemap_1[_y16][_x16] > 0) {
-
-            let _ut = $gameges.tileges.tilemap_1[_y16][_x16];
-            this.entes.push({
-              id: _ut, x: _x16 * 16, y: _y16 * 16,
-              x_simple: _x16, y_simple: _y16,
-              w: 16, h: 16
-            });
-
-          }
-        }
-      },
-
-
-      entes: [],
-
-      pos: [
-        { x: 0, y: 0 },
-        { x: this.w / 2, y: 0 },
-        { x: this.w, y: 0 },
-
-        { x: 0, y: this.h / 2 },
-        { x: this.w / 2, y: this.h / 2 },
-        { x: this.w, y: this.h / 2 },
-
-        { x: 0, y: this.h },
-        { x: this.w / 2, y: this.h },
-        { x: this.w, y: this.h },
-
-
-      ],
-
-
-
-    };
-
-    this.estado = 1;
-    this.salto_estado = 0;
-    this.xvelocity = 0;
-    this.yvelocity = 0;
-
-    this.xprevious = 0;
-    this.yprevious = 0;
-    this.en_suelo_tt = 3;
-    this.gravedad = 0.3;
-    this.suelo_y = 0;//def enterframe
-
-    this.movedata =
-    {
-      xvel_max: 2,
-      xvel_impetu: 0.3,
-
-      yvel_salto: 4,
-
-    }
-
-    this.polvo =
-    {
-      tt: 0,
-      tt_max: 10,
-      padre: this,
-      reset() {
-        this.tt = 0;
-      },
-      run() {
-
-        this.tt++;
-
-        if (this.tt > this.tt_max) {
-          this.tt = 0;
-          if (this.padre.en_suelo_tt >= 3) {
-            if (this.padre.estado == 0 || this.padre.estado == 2) {
-              $WIN.gameges.cargar_clase($root.level, 1, { x: this.padre.x + 7, y: this.padre.y + 16,anim_id:0 });
-            }
-            if (this.padre.estado == 1 || this.padre.estado == 3) {
-              $WIN.gameges.cargar_clase($root.level, 1, { x: this.padre.x - 5, y: this.padre.y + 18, anim_id:0 });
-            }
-          }
-        }
-
-      }
-
-
-    }
-
-
-
-
-  },
-
-  enterframe() {
-
+    this.armacon.ini();
 
     this.suelo_y = $gameges.tileges.yt_allmax * 16;
 
+    //this.armacon.ini();
+
+    this.modos.set('normal',[]);
+
+  },
+
+  //|modos
+  modos:
+  {
+   _padre:'',
+   act:'',    //obj
+   estado:'', //string
+   set(f_modo='normal', f_arguments=[])
+   {
+   this.estado = f_modo;
+   this.act = this.modos[f_modo];
+   this.act.ini(...f_arguments);
+   },
+   run()
+   {
+     this.act.run();
+   },
+   //|modos jugador
+   modos:{
+         _padre:'',
+         //|normal (modos jugador)
+         normal:
+         {
+          name:'normal',
+          _padre:'',
+
+          hitcon:
+          {
+            detectar:1,
+            rebotar:1,
+            on_hit(f_enem)
+            {
+
+            }
+          },
+
+          permitir_arma:1,
+          suelo_tt:0,
+          salto_estado:0,
+          estado:0,
+
+          xvel_max: 2,
+          xvel_impetu: 0.3,
+          yvel_salto: 4,
+  
+          polvo:
+          {
+            _padre:'',
+            tt: [0,10],
+            reset() {
+              this.tt[0] = 0;
+            },
+
+            run() {
+              let _padre = this._padre;
+
+              this.tt[0]++;
+              if (this.tt[0] > this.tt[1]) {
+                this.tt[0] = 0;
+                  if (_padre.suelo_tt >= 3)
+                  {
+                    if(_padre.estado == 0 || _padre.estado == 2)  
+                      $WIN.gameges.cargar_clase($root.level, 1, { x: _clip.x + 7, y: _clip.y + 16,anim_id:0 });
+                  
+                    if (_padre.estado == 1 || _padre.estado == 3) 
+                      $WIN.gameges.cargar_clase($root.level, 1, { x: _clip.x - 5, y: _clip.y + 18, anim_id:0 });
+                      
+                 }
+                }
+              }
+            
+          },//polvo
+
+           ini()
+           {
+           this.estado=1;
+           },
+           run()
+           {
+            let _padre        = this._padre;
+            let _tileges      = $gameges.tileges;
+            let _tilemaps_all = _tileges.tilemaps_all;
+
+            let _xt = fl(_clip.x/16);
+            let _yt = fl(_clip.y/16);
+
+            this.suelo_tt--;
+            _clip.yvelocity += _clip.gravedad;
+
+            let _col = _clip.col_check();
+            if(_col[1])
+            {
+              _clip.yvelocity=0;
+              this.suelo_tt=3;
+            }
+            
+
+            
+           if($WIN.teclado.get('arr'))
+              {
+                if(_clip.modos.modos.escalera.check()) 
+                return;
+             }
+              
+
+              //salto
+
+              if (this.suelo_tt > 0 && $WIN.teclado.get('z') == 1) 
+              {
+                $WIN.teclado.get('z', 2)
+                this.suelo_tt = 0;
+                this.salto_estado = 1;
+                _clip.yvelocity = (-this.yvel_salto);
+                game.soundcon.play(2);
+              }
+              if (this.salto_estado == 1 && $WIN.teclado.get('z') == 0) 
+              {
+                this.salto_estado = 2;
+                if (_clip.yvelocity < 0) 
+                  _clip.yvelocity = _clip.yvelocity / 2; 
+              }
+
+              
+              if (this.estado == 0 || this.estado == 1) 
+              {
+                _clip.orientacion = this.estado;
+
+                this.polvo.tt[0] = this.polvo.tt[1] - 1;
+
+                _clip.xvelocity += (0 - _clip.xvelocity) / 5;
+                if ($WIN.teclado.get("izq"))
+                  this.estado = 2;
+                if ($WIN.teclado.get("der"))
+                  this.estado = 3;
+              }
+
+              //caminar izquierda
+              if (this.estado == 2)
+               {
+                _clip.orientacion = 0;
+                this.polvo.run();
+                _clip.xvelocity -= this.xvel_impetu;
+                if (_clip.xvelocity < (-this.xvel_max)) 
+                    _clip.xvelocity = (-this.xvel_max);
+                
+                if ($WIN.teclado.get("izq") == 0) {
+                    this.estado = 0;
+                }
+              }
+
+              //caminar derecha
+              if (this.estado == 3) 
+              {
+                _clip.orientacion = 1;
+                this.polvo.run();
+                _clip.xvelocity += this.xvel_impetu;
+                if (_clip.xvelocity > this.xvel_max)
+                    _clip.xvelocity = this.xvel_max;
+                if ($WIN.teclado.get("der") == 0) 
+                  this.estado = 1;
+              }
+
+              _clip.estado_h = this.estado;
+
+              if (this.suelo_tt<=0) 
+              {
+                if (this.estado == 0 || this.estado == 2) 
+                  _clip.estado_h = 6;
+                if (this.estado == 1 || this.estado == 3) 
+                  _clip.estado_h = 7;
+                if(_clip.yvelocity>0)
+                  _clip.estado_h+=2;
+              }
+
+              if (_clip.x < 0) 
+                _clip.x = 0;
+
+
+           },
+
+         },  //normal
+         //|escalera
+        escalera:
+         {
+          name:'escalera',
+          hitcon:
+          {
+            detectar:1,
+            rebotar:0,
+            on_hit(f_enem)
+            {
+
+            }
+          },
+          permitir_arma:0,
+          xt:0,
+          yt:0,
+          id_escalera:[39,49],
+
+          ytmax:['',''],//arriba, abajo
+          xdes:0,
+
+          yvel:[0.3,1.5], //suma, maximo
+          estado:0,
+
+          check() //llamado en modo normal al presionar 'arr'
+          {
+              let _tilemap = $gameges.tileges.tilemaps_all[1];
+              let _xt = fl((_clip.x+_clip.w/2)/16);
+              let _yt = fl((_clip.y+_clip.h/2)/16);
+
+              if(_tilemap[_yt] && this.id_escalera.includes(_tilemap[_yt][_xt]) )
+              {
+              _clip.modos.set('escalera',[_xt, _yt]);
+              return (true);
+              }
+
+
+          },
+
+          ini(_xt, _yt)
+          {
+          this.estado=0;
+          this.xt=_xt;
+          this.yt=_yt;
+          this.xdes=(_xt*16)+5;
+
+           _clip.xvelocity=0;
+           _clip.yvelocity=0;
+
+           this.ytmax=['',''];
+
+           //identificar extremos verticales escalera
+           let _tilemap = $gameges.tileges.tilemaps_all[1];
+           for(var i =0;i<100;i++)
+           {
+             if(this.ytmax[0]==='' && this.id_escalera.includes(_tilemap[_yt-i][_xt])==false )
+              this.ytmax[0]=(_yt-(i-1));
+             
+             if(this.ytmax[1]==='' && this.id_escalera.includes(_tilemap[_yt+i][_xt])==false )
+              this.ytmax[1]=(_yt+(i-1));
+             
+             if(this.ytmax[0]!==''&&this.ytmax[1]!=='')
+              break;
+           }
+
+
+          },
+          
+          run()
+          {
+            
+           let _xt   = this.xt;
+           let _yt   = this.yt;
+           let _xdes = this.xdes;
+
+           let _col = _clip.col_check();
+
+           //centrar horizontalmente el jugador
+           if(this.estado==0)
+           {
+           _clip.estado_h=10;
+            _clip.x += (_xdes-_clip.x)/5;
+             if(_clip.x>_xdes-1&&_clip.x<_xdes+1)
+             {
+              _clip.x=_xdes;
+              this.estado=1;
+             }
+
+           }
+           //al estar centrado
+           if(this.estado==1)
+           {
+           _clip.estado_h=10;
+              _clip.yvelocity += (0-_clip.yvelocity)/10;
+               if ($WIN.teclado.get("arr")) 
+                this.estado=2;
+               
+               else if ($WIN.teclado.get("aba")) 
+                this.estado=3;
+
+
+
+           }
+           //subiendo
+           if(this.estado==2)
+           {
+            _clip.estado_h=11;
+            _clip.yvelocity-=this.yvel[0];
+            if(_clip.yvelocity<-this.yvel[1])
+              _clip.yvelocity=-this.yvel[1];
+
+              if ($WIN.teclado.get("arr")==0)
+              this.estado=1; 
+
+           }
+
+           //bajando
+           if(this.estado==3)
+           {
+            _clip.estado_h=12;
+            _clip.yvelocity+=this.yvel[0];
+            if(_clip.yvelocity>this.yvel[1])
+              _clip.yvelocity=this.yvel[1];
+
+              if ($WIN.teclado.get("aba")==0)
+              this.estado=1; 
+
+            //regresar a modo normal al tocar suelo
+             if(_col[1])
+             {
+              _clip.modos.set('normal');
+             }
+           }
+
+           //salto
+           if($WIN.teclado.get('z',2)==1)
+           {
+            _clip.modos.set('normal',[]);
+            _clip.yvelocity= -_clip.modos.modos.normal.yvel_salto;
+                              _clip.modos.modos.normal.suelo_tt = 0;
+                              _clip.modos.modos.normal.salto_estado = 1;
+           }
+
+
+           //limites de movimiento verticales
+           if(_clip.y<this.ytmax[0]*16)
+              _clip.y=this.ytmax[0]*16;
+
+           if(_clip.y>this.ytmax[1]*16)
+              _clip.y=this.ytmax[1]*16;
+
+
+          }
+         }//escalera
+     }//modos
+
+  },//modos
+
+  enterframe() {
+
+    let _tileges = $gameges.tileges;
+    let _tilemaps_all = _tileges.tilemaps_all;
+    window['_clip'] = this;
+
     this.x = this.x + this.xvelocity;
     this.y = this.y + this.yvelocity;
-
-    this.en_suelo_tt--;
-
-    //apliacion gravedad
-    this.yvelocity += this.gravedad;
-
-    //suelo
-
-    this.col.get();
-    this.col.apply();
+    let _xt = fl(this.x/16);
+    let _yt = fl(this.y/16);
 
 
-
-
-    if (game.editor.estado && this.y + this.h > this.suelo_y) {
-
+    if (game.editor.estado && this.y + this.h > this.suelo_y) 
+    {
       this.y = this.suelo_y - this.h;
       this.yvelocity = 0;
-      this.en_suelo_tt = 3;
-
+      this.suelo_tt = 3;
     }
 
-    if (game.editor.estado == 0 && this.y - 32 > this.suelo_y) {
-      game.reiniciar();
+    if (game.editor.estado == 0 && this.y - 32 > this.suelo_y) 
+    {
+     game.reiniciar();
     }
-
-    if (this.en_suelo_tt > 0 && $WIN.teclado.get('z') == 1) {
-
-      $WIN.teclado.get('z', 2)
-      this.en_suelo_tt = 0;
-      this.salto_estado = 1;
-      this.yvelocity = (-this.movedata.yvel_salto);
-      game.soundcon.play(2);
-    }
-    if (this.salto_estado == 1 && $WIN.teclado.get('z') == 0) {
-      this.salto_estado = 2;
-      if (this.yvelocity < 0) {
-        this.yvelocity = this.yvelocity / 2;
-      }
-    }
-
-
-    this.hitcon.run();
-
-    if ($WIN.teclado.get('x', 2) == 1) {
-
-      let _vel = 5.5;
-      let _a = [{
-        x: -5,
-        y: 9,
-        xvel: -_vel,
-        yvel: 0,
-        estado: 0,
-      },
-      {
-        x: 0,
-        y: 0,
-        xvel: 0,
-        yvel: -_vel,
-        estado: 1,
-      },
-      {
-        x: 5,
-        y: 9,
-        xvel: _vel,
-        yvel: 0,
-        estado: 2,
-      },
-      {
-        x: 0,
-        y: 10,
-        xvel: 0,
-        yvel: _vel,
-        estado: 3,
-      },
-
-      ];
-
-      let _e = _a[this.estado_arma];
-      $WIN.gameges.cargar_clase($root.level, 4, {
-        id: 'arrow',
-        estado: _e.estado,
-        x: this.x + _e.x,
-        y: this.y + _e.y,
-        xvelocity: _e.xvel,
-        yvelocity: _e.yvel
-      });
-    }
-
-
-    //angulo arma
-    if ($WIN.teclado.get('izq'))
-      this.estado_arma = 0;
-    if ($WIN.teclado.get('der'))
-      this.estado_arma = 2;
-    if ($WIN.teclado.get('arr'))
-      this.estado_arma = 1;
-    if ($WIN.teclado.get('aba'))
-      this.estado_arma = 3;
-
-    if ($WIN.teclado.get('arr') == 0 && $WIN.teclado.get('aba') == 0) {
-      let _a = this.orientacion;
-      if (_a == 1) _a++;
-      this.estado_arma = _a;
-
-    }
-
-
-
 
     //workarround editor                      
     if ($WIN.teclado.get("lshift")) {
@@ -492,99 +803,24 @@ document.currentScript.class =
         this.x += 50;
     }
 
-    if (this.estado == 0 || this.estado == 1) {
-      this.orientacion = this.estado;
+   this.hitcon.run();
+   this.modos.run();
 
-      this.polvo.tt = this.polvo.tt_max - 1;
-      this.xvelocity += (0 - this.xvelocity) / 5;
-      if ($WIN.teclado.get("izq"))
-        this.estado = 2;
-      if ($WIN.teclado.get("der"))
-        this.estado = 3;
-    }
 
-    //caminar izquieda
-    if (this.estado == 2) {
-      this.orientacion = 0;
-      this.polvo.run();
-      this.xvelocity -= this.movedata.xvel_impetu;
-      if (this.xvelocity < (-this.movedata.xvel_max)) {
-        this.xvelocity = (-this.movedata.xvel_max);
-      }
-      if ($WIN.teclado.get("izq") == 0) {
-        this.estado = 0;
-      }
-    }
+    this.anim.animdata.set_anim(this.estado_h);
 
-    //caminar derecha
-    if (this.estado == 3) {
-      this.orientacion = 1;
-      this.polvo.run();
-      this.xvelocity += this.movedata.xvel_impetu;
-      if (this.xvelocity > this.movedata.xvel_max) {
-        this.xvelocity = this.movedata.xvel_max;
-      }
-      if ($WIN.teclado.get("der") == 0) {
-        this.estado = 1;
-      }
-    }
+    this.armacon.run();
+    this.update_nivel();
+    this.fondocon.update_fondos();
 
-    let estado_h = this.estado;
-
-    if (this.en_suelo_tt<=0) {
-      if (this.estado == 0 || this.estado == 2) {
-        estado_h = 6;
-      }
-      if (this.estado == 1 || this.estado == 3) {
-        estado_h = 7;
-      }
-      if(this.yvelocity>0)
-        estado_h+=2;
-    }
-
-    if (this.x < 0) {
-      this.x = 0;
-    }
-
-    this.anim_arma.animdata.set_anim(this.estado_arma);
-
-    this.anim.animdata.set_anim(estado_h);
+    //$gameges.fondoges.fondos[0].id = 0;
 
     this.anim.x = -13;
     this.anim.y = -5;
-    this.xprevious = this.x;
-    this.yprevious = this.y;
 
-    $root.level.x = fl((this.x * -1) - this.w / 2 + $root.w / 2);
-    $root.level.y = fl((this.y * -1) - this.h / 2 + $root.h / 2);
+    this.xprev = this.x;
+    this.yprev = this.y;
 
-    if ($root.level.x > 0) {
-      $root.level.x = 0;
-    }
-
-
-    if ((-$root.level.x) + $gameges.tileges.xt_max * 16 > $gameges.tileges.xt_allmax * 16) {
-      $root.level.x = -($gameges.tileges.xt_allmax * 16 - $gameges.tileges.xt_max * 16);
-    }
-
-    if ($root.level.y > 0) {
-      $root.level.y = 0;
-    }
-
-    if ((-$root.level.y) + $gameges.tileges.yt_max * 16 > $gameges.tileges.yt_allmax * 16) {
-      $root.level.y = -($gameges.tileges.yt_allmax * 16 - $gameges.tileges.yt_max * 16);
-    }
-
-
-
-    $gameges.tileges.x = $root.level.x * -1;
-    $gameges.tileges.y = $root.level.y * -1;
-
-    $gameges.fondoges.fondos[0].id = 0;
-
-
-
-    this.update_fondos();
 
   },
 
