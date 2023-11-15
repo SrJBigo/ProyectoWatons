@@ -29,10 +29,13 @@ document.currentScript.class =
   estado: 0,
   anim: '',
 
+  offscreen_dis: 32,
+
   //|hitcon
   hitcon:
   {
     _padre: '',
+    rebotar:1,
     hp: [10, 10],
     damage:2,
     sound_id:0,
@@ -215,11 +218,11 @@ document.currentScript.class =
       offset: [-7, -16],
       hitcon: {
         
-        hp: [12, 12],
+        hp: [10, 10],
         sound_id:0,
       },
       loadframe() {
-        console.log(this.anim.animdata.animations);
+        //console.log(this.anim.animdata.animations);
       
         this.estado=this.direccion;
         this.estado_h = this.estado;
@@ -407,6 +410,198 @@ document.currentScript.class =
     },//w_mapoint
 
 
+    'npc': {
+    animdata:[
+          { master: { offset:[-8,-16],wt: 32, ht: 32, ll: 30 } },
+
+          //quieto
+          { ll: 5, flip: [0, 0], buf: [[0, 0] ] },
+          { ll: 5, flip: [1, 0], buf: [[0, 0] ] },
+
+          //caminando
+          { ll: 10, flip: [0, 0], buf: [[0, 1],[0, 2] ] },
+          { ll: 10, flip: [1, 0], buf: [[0, 1],[0, 2] ] },
+          
+            ],
+      w: 16,
+      h: 16,
+      offscreen_dis: 100,
+      //id_npc
+      hitcon: {
+        on_hit(f_quien, f_data, f_modo)
+        {
+          return(0);
+        },
+        hp: [12, 12],
+        sound_id:0,
+      },
+      
+      loadframe() {
+
+        
+        
+
+        //cambiar buf de animacion de acuerdo a id_npc
+        let _animations = this.anim.animdata.animations;
+        for(var u of _animations )
+        {
+             for(var _u of u.buf)
+             {
+              _u[0]+=this.id_npc;
+             }
+        }
+        
+        this.anim.image=$LIB.IMAGES[22]; //22 = imagen de npcs
+        this.draw_color='';
+        this.estado_h=0;
+        this.estado=2;
+
+
+        this.x_ini = this.x;
+        this.y_ini = this.y;
+
+        if(this.overdialogos.length>0)
+        {
+        this.overdialogo_con.textos = this.overdialogos;
+        this.overdialogo_con.ini();  
+        }
+        
+
+      },
+
+      overdialogo_con:
+      {
+       tt:[0,100,100],
+       estado:0,
+       texto:'',
+       textos:[],
+       ini()
+       {
+        this.texto = game.textoges.crear($enterload.anim, {x:0,y:0-25, texto: 'Insuficiente!'})
+        this.texto.visible=false;
+        this.texto.image.onload= ()=>
+        {
+         this.estado=1;
+         this.texto.x-=this.texto.image.width/2-5;  
+         //this.texto.visible=false;
+        }
+
+
+       },
+       run()
+       {
+        if(this.estado==1)
+        {
+          
+          this.tt[0]++;
+          if(this.tt[0]>this.tt[1])
+          {
+            this.tt[0]=0;
+            if(this.texto.visible==false)
+            {
+              this.texto._onload = ()=>{
+              this.texto.visible=true;
+              this.texto.x=-(this.texto.image.width/2)+4;  
+              }
+              this.texto.set_text( random_from_array(this.textos) );
+
+              
+            }
+            else
+              this.texto.visible=false;
+
+          }
+        }
+
+
+       },
+
+      },
+
+      enterframe() {
+        let _col = this.col_check(); //[n,n,n,n] relativo a tile
+         
+         this.overdialogo_con.run();
+
+         this.yvelocity+=0.5;
+
+          if(this.id_move=='deambular')
+          {
+         if(this.x<this.x_ini-50||_col[2])
+            this.estado=3;
+         
+         if(this.x>this.x_ini+50||_col[0])
+            this.estado=2;
+         
+         if(this.estado==0||this.estado==1)
+            this.xvelocity=0;
+          
+         if(this.estado==2)
+            this.xvelocity=-0.7;
+          
+         if(this.estado==3)
+            this.xvelocity=0.7;
+          }
+
+          if(this.id_move=='quieto')
+          {
+             if($root.level.jugador.x+$root.level.jugador.w/2<this.x-7)
+              this.estado=0;
+            if($root.level.jugador.x+$root.level.jugador.w/2>this.x+this.w+7)
+              this.estado=1;
+
+          }
+
+
+          
+          this.estado_h = this.estado;
+
+        
+
+      },
+
+    },//npc
+
+
+   'puerta': {
+    animdata:[
+          { master: { wt: 16, ht: 32, ll: 30 } },
+
+          { ll: 5, flip: [0, 0], buf: [ [0, 4] ] },
+          
+            ],
+
+      w: 16,
+      h: 16,
+      offset: [0, -16],
+      hitcon: {
+        
+        on_hit(f_quien, f_data, f_modo)
+        {
+          
+
+          return(0);
+        },
+        hp: [12, 12],
+        sound_id:0,
+      },
+      
+      loadframe() {
+
+       this.estado_h=0;
+
+      },
+      enterframe() {
+        let _col = this.col_check(); //[n,n,n,n] relativo a tile
+         
+
+        this.estado_h = 0;
+
+      },
+
+    },//puerta
+
+
 
 
   },
@@ -482,9 +677,9 @@ document.currentScript.class =
     this.xprev = this.x;
     this.yprev = this.y;
 
-
-    if (this.x < _level.x * -1 - 32 || this.x > (_level.x * -1) + _level.w + 32 ||
-      this.y < _level.y * -1 - 32 || this.y > (_level.y * -1) + _level.h + 32)
+    let _off = this.offscreen_dis;
+    if (this.x < _level.x * -1 - _off || this.x > (_level.x * -1) + _level.w + _off ||
+      this.y < _level.y * -1 - _off || this.y > (_level.y * -1) + _level.h + _off)
     {
     this.remove();
     this.mapdata.in = 0;

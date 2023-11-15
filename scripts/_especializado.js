@@ -1082,8 +1082,8 @@ var _ESPECIALIZADO =
 
     f_donde.propagar_enterframe = f_propagar;
 
-    if (f_donde.escenario != undefined)
-      f_donde.propagar_enterframe = 0;
+    //if (f_donde.escenario != undefined)
+    //  f_donde.propagar_enterframe = 0;
 
 
 
@@ -7390,7 +7390,27 @@ var _ESPECIALIZADO =
                  in: 0,
                  json:'{"mapa":0}'//nunca referenciado en tilemaps[3]
                  
+                 },
+
+               101:{
+                 _id:'', //index ids(automatico)
+
+                 id: 'npc',
+                 in: 0,
+                 json:'{"id_npc":0, "id_move": "deambular", "overdialogos":[],  "dialogo":"_"}'//nunca referenciado en tilemaps[3]
+                 
+                 },
+
+               102:{
+                 _id:'', //index ids(automatico)
+
+                 id: 'puerta',
+                 in: 0,
+                 json:'{"tag":"A", "destino": [0,"A" ] }'//nunca referenciado en tilemaps[3]
+                 
                  }
+
+
              },
             set(fx, fy) //actualizar selector textarea (solo llamado click obj gamearea)
             {
@@ -7609,6 +7629,9 @@ var _ESPECIALIZADO =
                 this.save_map();
 
               },
+              'Load map'(){
+                this.mapcon.file_load();
+              },
 
               'Log map'() {
                 console.log(this.get_map({}, 0));
@@ -7683,6 +7706,40 @@ var _ESPECIALIZADO =
           },//END MENU
 
 
+          //|mapcon editor
+          mapcon:
+          {
+           _padre:'',
+           act:'',
+
+                on_load(_map)
+                {
+                this.set(_map);
+                },
+                
+                set(_map)
+                {
+                this.act = _map;
+                let _tilemaps = _map.tilemaps;
+                this._padre.tileges.update_tilemaps(_tilemaps[0], _tilemaps[1], _tilemaps[2], _tilemaps[3]); 
+                },
+
+                file_load()
+                {
+                   FORMS.cargar_txt( (f_file, f_name)=>{ 
+
+                       let _map = JSON.parse(f_file);
+
+                       this.on_load(_map);
+
+
+                                         
+                                        });
+                },
+
+          },//mapcon
+
+          
           save_map(f_nombre = "map.json", f_data) {
             save_txt(f_nombre, this.get_map(f_data, 1));
           },
@@ -7704,13 +7761,16 @@ var _ESPECIALIZADO =
             return (f_obj);
           },
 
-          get_map(f_data, to_string = 1) {
+          
+          saveloop_objtile(_tilemap = this.tileges.tilemaps_all[3])
+          {
+          
+          let _tilemap_obj = clone_array(_tilemap);
 
-            //temporal; 04-10-2023 
-            let _tilemap_obj = clone_array(this.tileges.tilemap_obj);
-
-            for (var i = 0; i < _tilemap_obj.length; i++) {
-              for (var j = 0; j < _tilemap_obj[i].length; j++) {
+            for (var i = 0; i < _tilemap_obj.length; i++) 
+            {
+              for (var j = 0; j < _tilemap_obj[i].length; j++) 
+              {
 
                 if (_tilemap_obj[i][j] == undefined)
                   _tilemap_obj[i][j] = 0;
@@ -7720,22 +7780,44 @@ var _ESPECIALIZADO =
               }
             }
 
+            return(_tilemap_obj);
 
-            let _data = setloop_prop(
-              {
-                nombre: 'nuevo_mapa',
-                descripcion: "",
-                maps: [...this.tileges.tilemaps, _tilemap_obj], //temporal?
-              },
-              f_data
-            )
 
+          },
+
+          on_get_map(f_data)
+          {
+
+          let _tilemap_obj = this.saveloop_objtile(this.tileges.tilemaps_all[3]);
+
+             let _data = setloop_prop(
+                  {
+                   nombre: 'nuevo_mapa',
+                   descripcion: "",
+                   tilemaps: [...this.tileges.tilemaps, _tilemap_obj], //temporal?
+                  },
+                  f_data
+                  
+                  )
+
+
+              return(_data);
+             
+
+
+          },
+
+          get_map(f_data, to_string = 1) {
+
+           
+           let _data = this.on_get_map(f_data);
+             
+          
             if (to_string == 0)
               return (_data)
 
             else
               return (JSON.stringify(_data))
-
 
           },
 
@@ -7752,8 +7834,6 @@ var _ESPECIALIZADO =
             
             this.canvas.clear();
             this.canvas.ctx.drawImage(_img, 0, 0)
-
-            
 
             //supliir tiledatas incompletos segun altura de imagen
             let _wt_total = _img.naturalHeight / this.th;

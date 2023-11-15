@@ -10,8 +10,8 @@ document.currentScript.class =
   LOAD:
   {
     modo: 'vacio',
-    canvas_id: 2,
-
+    canvas_id: 1,
+    
 
     child: [
 
@@ -19,7 +19,7 @@ document.currentScript.class =
         LOAD:
         {
           id: 14,
-          canvas_id: 2,
+          canvas_id: 1,
           modo: 'sprite',
           animdata: GAME.crear_animdata({ master: { wt: 16, ht: 16, ll: 30 } },
 
@@ -30,6 +30,9 @@ document.currentScript.class =
             { ll: 10, flip: [0, 0], buf: [[2, 0], [2, 1], [2, 2], [2, 1]] },
             { ll: 10, flip: [0, 0], buf: [[0, 0], [0, 1], [0, 2], [0, 1]] },
 
+            { ll: 30, flip: [1, 0], buf: [[0, 0], [0, 1], [0, 2], [0, 1]] },
+
+            
             { ll: 30, flip: [1, 0], buf: [[0, 3]  ] },
 
 
@@ -50,10 +53,10 @@ current_mapoint:0,
 mapstart_tt:[0,60],
   w: 16,
   h: 16,
+  _z:10,
   tile_des: { x: 0, y: 0 },
 
   draw_color: '',
-
 
 
   update_fondos() { },
@@ -335,18 +338,18 @@ mapstart_tt:[0,60],
     let _vel = 1.6;
 
     let _to = _tilemaps[3][_y16][_x16];
+      
         
-    if(this.estado==5)//load tt
+    if(this.estado==6)//load tt
     {
       this.mapstart_tt[0]++;
       if(this.mapstart_tt[0]==this.mapstart_tt[1])
       {
       game.escenario.act.on_mapoint_start(_to);
       }
-      
-
 
     }
+    
 
     if (this.estado == 0)//quieto
     {
@@ -361,8 +364,8 @@ mapstart_tt:[0,60],
 
         if(get_type(_to)=='object' && _to.id=='w_mapoint')
         {
-           
-           this.estado=5;
+           game.escenario.act.on_mapoint_openselect(_to);  
+           this.estado=5; //esperando en seleccion de personaje
         }
       }
         

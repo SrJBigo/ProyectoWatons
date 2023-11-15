@@ -116,6 +116,7 @@ var RPG =
          
          _img.onload=()=>{
           this.image = _img;	
+          if(this._onload!==undefined)this._onload();
          }
          
          
