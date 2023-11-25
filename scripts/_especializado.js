@@ -1077,50 +1077,65 @@ var _ESPECIALIZADO =
   //                         se comparte con
   //                           escenario
   // |enterframe
-  crear_enterframe(f_donde, f_this_referencia, f_enterframe, f_propagar = 1) {
+  crear_enterframe(f_donde, f_this_referencia, f_enterframe, f_propagar = 1, f_framerate=60) {
 
-
+  
+    
     f_donde.propagar_enterframe = f_propagar;
 
     //if (f_donde.escenario != undefined)
     //  f_donde.propagar_enterframe = 0;
 
 
-
     let BIND = f_enterframe.bind(f_this_referencia);
     f_donde.enterframe_desbind = f_enterframe;
 
     //si [f_this_referencia] es ""; -> referencia 'window'
-    if (f_this_referencia == "") {
+    if (f_this_referencia == "") 
       BIND = f_enterframe;
-    }
+    
 
     f_donde.enterframe = BIND;
 
-    f_donde.tt_enterframe = [0, 0];
-    f_donde._enterframe = function () {
-      let _tt = f_donde.tt_enterframe;
 
 
-      //EJECUTAR load;enterframe de HIJOS
+    f_donde.framecon = 
+    {
+      fps:f_framerate,
+      prev:0,
+    }
+    
 
-      if (_tt[0] >= _tt[1]) {
-        _tt[0] = -1;
+
+    f_donde._enterframe = function (_time) {
+
+        let _framecon = f_donde.framecon;
+
+        if (f_donde.KILL_ENTERFRAME !== 1) { 
+        
+        window.requestAnimationFrame(f_donde._enterframe);
+        //let _now = Math.round(_framecon.fps*Date.now()/1000 );
+        //let _now = Math.round(_framecon.fps*Date.now()/1000 );
+        let _now = Math.round(_framecon.fps*Date.now()/1000 );
+        if(_now == _framecon.prev) {
+               
+                return
+              };
+        _framecon.prev = _now;
+
+        
+    
+      }
+
 
         enterload(f_donde);
 
-        if (f_donde.propagar_enterframe == 1) {
+      if (f_donde.propagar_enterframe == 1) 
           enterframe_recursivo(f_donde);
-        }
+        
 
 
-      }
-      _tt[0]++;
-
-
-      if (f_donde.KILL_ENTERFRAME !== 1) {
-        window.requestAnimationFrame(f_donde._enterframe);
-      }
+      
 
       f_donde.KILL_ENTERFRAME = 0;
 
@@ -1128,7 +1143,7 @@ var _ESPECIALIZADO =
 
 
     //inicializador enterframe
-
+//    window.setTimeout(f_donde._enterframe,1000/f_donde.framecon.framerate);
     return (window.requestAnimationFrame(f_donde._enterframe));
 
 
@@ -5391,7 +5406,7 @@ var _ESPECIALIZADO =
   MENU:
   {
 
-    interpretar_elem(f_elem, f_this = window) {
+    interpretar_elem(f_elem, f_this = window,  f_menuclick) {
 
       let _type = get_type(f_elem);
 
@@ -5403,7 +5418,7 @@ var _ESPECIALIZADO =
 
 
       if (_type == 'function')
-        bindear_(f_elem, f_this)();
+        bindear_(f_elem, f_this)(f_menuclick);
 
       if (_type == 'array') //evitar cerrar al click
         return ("nothing")
@@ -5669,7 +5684,7 @@ var _ESPECIALIZADO =
           },
           onmousedown() {
 
-            if (MENU.interpretar_elem(this.elem, this.macro_padre.this) == 'no_object') {
+            if (MENU.interpretar_elem(this.elem, this.macro_padre.this,  this) == 'no_object') {
               this.macro_padre.close();
             }
 
@@ -5936,7 +5951,7 @@ var _ESPECIALIZADO =
 
 
 
-                      if (MENU.interpretar_elem(this.elem, this.this) == 'object') {
+                      if (MENU.interpretar_elem(this.elem, this.this, this) == 'object') {
                         this.odiv.set_style([this.style.macro, this.style.click]);
 
 
@@ -7107,6 +7122,7 @@ var _ESPECIALIZADO =
                //modo objetos
               if(this._padre.modo==1)
               {
+
               let _odiv = this.odiv = crear_odiv(this._padre.win._bloque, this.x, this.y, this.w, 300)
               this.forms.id    = FORM.crear_textarea(_odiv, { titulo: "ID", centro:60, value: "", titulo_style:{paddingLeft:'4px'}, y: 0, h:21, onwrite() { }, onenter() { } })
               this.forms.name  = FORM.crear_textarea(_odiv, { titulo: "Name" , centro:60, value: "", titulo_style:{paddingLeft:'4px'}, y: 20,h:21, onwrite() { }, onenter() { } })
@@ -7317,6 +7333,7 @@ var _ESPECIALIZADO =
             let _select = this.select;
             if(_select!=='')
             {
+
               let _value = this._padre.tileprop.forms.json.get_value();
               let _json = JSON.parse(_value);
               for(var i in _json)
@@ -7408,6 +7425,16 @@ var _ESPECIALIZADO =
                  in: 0,
                  json:'{"tag":"A", "destino": [0,"A" ] }'//nunca referenciado en tilemaps[3]
                  
+                 },
+
+
+               110:{
+                 _id:'', //index ids(automatico)
+
+                 id: 'start_point',
+                 in: 0,
+                 json:'{"direccion":0}'//nunca referenciado en tilemaps[3]
+                 
                  }
 
 
@@ -7429,7 +7456,12 @@ var _ESPECIALIZADO =
                    _obj[i] = _json_array[i];
                 }
 
+                 
+                //this._padre.tileprop.forms.name?.set_value(_json_array.id);  
+                //this._padre.tileprop.forms.id?.set_value(100)
+
                 this._padre.tileprop.forms.json.set_value( JSON.stringify(_obj, this.json_sanitizador) );
+              
               }
             }
 

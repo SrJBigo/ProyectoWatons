@@ -562,6 +562,37 @@ document.currentScript.class =
 
     },//npc
 
+    'start_point': {
+    animdata:[
+          { master: { wt: 16, ht: 16, ll: 30 } },
+
+          { ll: 5, flip: [0, 0], buf: [[1, 11] ] },
+          
+            ],
+      w: 16,
+      h: 16,
+      offset: [0, 0],
+      hitcon: {
+        on_hit(f_quien, f_data, f_modo)
+        {
+          return(0);
+        },
+        hp: [12, 12],
+        sound_id:0,
+      },
+      
+      loadframe() {
+       this.estado_h=0;
+      },
+      enterframe() {
+        //let _col = this.col_check(); //[n,n,n,n] relativo a tile
+         
+        this.estado_h = 0;
+
+      },
+
+    },//start_point
+
 
    'puerta': {
     animdata:[

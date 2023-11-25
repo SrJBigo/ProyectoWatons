@@ -707,6 +707,9 @@ document.currentScript.class =
               {
                 if(_clip.modos.modos.escalera.check()) 
                 return;
+
+                if(_clip.modos.modos.puerta.check()) 
+                return;
              }
               
 
@@ -851,6 +854,102 @@ document.currentScript.class =
           }
 
          },
+
+
+        //|puerta
+         puerta:
+         {
+          name:'puerta',
+          tt:[0,10],
+          puerta:0, //otile
+          hitcon:
+          {
+            detectar:1,
+            rebotar:0,
+            on_hit(f_enem)
+            {
+
+            }
+          },
+
+          check()
+          {
+             
+             let _tilemap = $gameges.tileges.tilemaps_all[3];
+             let _xt = fl((_clip.x+_clip.w/2)/16);
+             let _yt = fl((_clip.y+_clip.h/2)/16);
+
+              if(_tilemap[_yt][_xt].id=='puerta' && _clip.modos.modos.normal.suelo_tt>0)
+              {
+                this.puerta = _tilemap[_yt][_xt];
+                let _des = this.puerta.destino;
+                
+
+                _clip.modos.set('puerta',[_xt, _yt]);
+                
+                return (true);
+              }
+
+          },
+
+          ini()
+          {
+             this.tt[0]=0;
+
+             _clip.yvelocity=0;
+             _clip.xvelocity=0;
+
+          },
+          run()
+          {
+
+             _clip.estado_h=_clip.orientacion;
+
+             let _tt = this.tt;
+             _tt[0]++;
+             if(_tt[0]==_tt[1])
+             {
+               game.fadecon.set('oscurecer',   ()=>{
+
+                        let _des = this.puerta.destino; //[submap_id, tag]
+                        game.mapcon.set_submap(_des[0]);
+                        let _tilemap_3 =game.mapcon.submap.tilemaps[3];
+                        //buscar tag
+                          for(var i in _tilemap_3)
+                          {
+                            for(var j in _tilemap_3[i])
+                            {
+                              let u = _tilemap_3[i][j];
+                              if(u.tag=='A')
+                              {
+                                $root.level.jugador.x = u.x*16;
+                                $root.level.jugador.y = u.y*16;
+                                
+                                break;
+                              }
+                            }
+                          }
+                        
+                        
+                        
+                         game.fadecon.set('aclarar',   ()=>{
+                          _clip.modos.set('normal');
+                          _clip.modos.modos.normal.estado = _clip.orientacion;
+
+
+                         });
+
+                          });
+
+
+             }
+
+
+          }
+
+         },
+
+
 
 
          //|escalera

@@ -14,7 +14,7 @@
   ini_root();
 
   //relativo a dispositivos moviles
-  set_viewport({ width: 400, height: "", user_scalable: 0 });
+  set_viewport({ width: 32*14+7, height: "", user_scalable: 0 });
 
   
 
@@ -161,6 +161,16 @@
        map:'',        //mapa    en curso
        submap:'',     //submapa en curso
        
+      reset(_hard=0, _submap_id=0) 
+      {
+       if(_hard==0)
+       game.mapcon.set_submap(_submap_id);
+       
+       else
+       game.mapcon.set(this.map_master, _submap_id);
+
+      },
+
        on_get_map()//empleado al guardar mapa; loguear
        {
        
@@ -219,16 +229,59 @@
 
        },//on_get_map
 
+       update_menu_submaps()
+       {
+         let _menu = game.editor.tile_editor.win.menu;
+         _menu.Submaps['Submaps->'] = {};
+
+        for(var i in this.map.submaps)
+        {
+         
+          _menu.Submaps['Submaps->'][i]=(_menuclick)=>{
+                                          
+                                           game.mapcon.set_submap(_menuclick.nombre);
+
+                                            };
+
+        }
+
+       },
+
        set_submap(f_id)
        {
-       
+
          this.submap = this.map.submaps[f_id];
          game.editor.tile_editor.mapcon.set(this.submap); 
+
+         for(var i of this.submap.tilemaps[3])
+         {
+          for(var j of i)
+          {
+            if(j!==0)
+            {
+              j.in=0;
+            }
+          }
+         }
+
+        game.first_draw=1;
+        $root.hijos_clip = [];
+        game.objs = [];
+
+           
+        var _level = WIN.gameges.crear_vacio($root, {w: fl(WIN._bloque.wr / 2), h: fl(WIN._bloque.hr / 2) });
+        $root.level = _level;
+        game.editor.tile_editor.offset_obj = _level;
+
+
+        if(game.escenario.act.on_submapset)
+        game.escenario.act.on_submapset();
+
        
        },
        set(_map=game.mapcon.map)
        {
-        this.map_master = clone_object(_map);
+        
         _map            = clone_object(_map);
 
         if(_map.submaps==undefined)
@@ -238,27 +291,20 @@
                  submaps: [_map]
                  };
         }
+        for(var i in _map.submaps)
+           _map.submaps[i].id = i;
+
         this.map = _map;
-
-        game.first_draw=1;
-
-        $root.hijos_clip = [];
-        game.objs = [];
+        this.map_master = clone_object(_map);
 
 
-   //     game.editor.tile_editor.mapcon.set(_map);
 
-           
-        var _level = WIN.gameges.crear_vacio($root, {w: fl(WIN._bloque.wr / 2), h: fl(WIN._bloque.hr / 2) });
-        $root.level = _level;
-        game.editor.tile_editor.offset_obj = _level;
+        this.update_menu_submaps();
 
 
         this.set_submap(this.map.ini_submap);
 
 
-        if(game.escenario.act.on_submapset)
-        game.escenario.act.on_submapset(_map);
 
 
 
@@ -321,12 +367,6 @@
     
     },
 
-    set_map()//atajo
-    {
-     if(game.escenario.act.set_map!==undefined)
-        game.escenario.act.set_map(...arguments);
-       
-    },
 
     //|particon
     particon:
@@ -533,6 +573,7 @@
           game.editor.cerrar();
         }
 
+
         if (this.act.editor?.tiledata_id != undefined) {
           GES.tileges.tiledatas.set(this.act.editor.tiledata_id);
         }
@@ -541,7 +582,6 @@
 
         if (this.act.editor && $root.level)
           game.editor.tile_editor.offset_obj = $root.level;
-
 
 
       },
@@ -752,7 +792,7 @@
                cut_cords: { x: 0 * 16, y: 2 * 16, w: 10 * 16, h: 6 * 16 } });
 
            
-           this.textos.presstart = game.textoges.crear($root, {x:50+23,y:90, texto:'PRESS Z'},'tn10x18_b')
+           this.textos.presstart = game.textoges.crear($root, {x:50,y:90, texto:'PRESS START'},'tn10x18_b')
            
 
           },
@@ -1091,8 +1131,6 @@
             game.mapcon.set(_map,0);
 
 
-
-
           },
 
           on_submapset()
@@ -1105,7 +1143,7 @@
           },
 
           enterframe() {
-            //$WIN.set_x($WIN.x+1)
+            
             this.mapcon.savepos.x = fl($root.level.jugador.x / 16);//provisorio
             this.mapcon.savepos.y = fl($root.level.jugador.y / 16);//provisorio
             this.hudbottom.run();
@@ -1159,7 +1197,7 @@
            this._padre.hud.hudbarras[f_obj.name].set(f_obj.value[0], 'set');
            if(f_obj.name=='hp'&&f_obj.value[0]<=0)
            {
-             game.reiniciar();
+             game.mapcon.reset();
              game.particon.data.perfiles.refill();
              //game.escenario.set('wmap');
              this.update_hudbarras();
@@ -1308,7 +1346,7 @@
        game.escenario.enterframe(); 
       });
 
-      game.escenario.set('intro_0');
+      game.escenario.set('play_0');
 
 
     },//ini
@@ -1325,7 +1363,7 @@
             if (_k.key == 'Escape' && _MODO_DESARROLLO) 
             {
             game.first_draw=1;
-            this.set(swap_bin(this.estado) );
+            this.set(swap_bin(this.estado),1 );
             }
          }
 
@@ -1404,29 +1442,38 @@
 
         }        
       },
-
-        set(f_n = this.estado)//cambio estado
+ 
+        set(f_n = this.estado, f_mapupdate=0)//cambio estado
         {
           console.log("set editor: "+f_n);
           this.estado = f_n;
           this.tile_editor.estado = f_n;
 
           this.tile_editor.set_capa_act(); //forzar actualizacion titulo ventanaeditor
-          if (this.estado == 1) {
+          if (this.estado == 1) { //activar
             this.grab.clear();
             WIN.macrobloque.header.titulo.obj.style.background = 'gray';
             let _jugador = $root.level.jugador;
             let _psave = { x: _jugador.x, y: _jugador.y };
 
 
-            //game.set_map();
-            game.reiniciar();
-
+            if(f_mapupdate)
+            {
+            game.mapcon.map.submaps[game.mapcon.submap.id]=clone_object(game.mapcon.map_master.submaps[game.mapcon.submap.id]);
+            game.mapcon.reset(0, game.mapcon.submap.id);
+            }
 
             $root.level.jugador.x = _psave.x;
             $root.level.jugador.y = _psave.y;
           }
-          else {
+          else { //editor to 9
+            
+            if(f_mapupdate)
+            {
+
+            game.mapcon.map_master.submaps[game.mapcon.submap.id]=clone_object(game.mapcon.map.submaps[game.mapcon.submap.id]);
+            //game.mapcon.map_master.submaps[game.mapcon.submap.id]=clone_object(game.mapcon.map.submaps[game.mapcon.submap.id]);
+            }
 
             this.grab.clear();
             WIN.macrobloque.header.titulo.obj.style.background = 'lightgray';
@@ -1447,14 +1494,14 @@
       cerrar() { //llamado al cambiar a una escena sin editor
         if(this.tile_editor !== '') {
           this.set(0);
-          console.log('editor eliminado')
+
           this.tile_editor.win.cerrar();
           this.tile_editor = '';
           this.estado=-1;
         }
 
       },          //{image_url:'' }
-      iniset(f_data = {})
+      iniset(f_data = {}) //llamado escenario->set
       {
         if (this.tile_editor !== '') 
         {
@@ -1475,11 +1522,8 @@
                 odiv_des: WIN._bloque,
                 cursor_des: WIN.cursor_bloque,
 
-                tileges: $tileges,
-
+                tileges: $tileges,                
                 
-                //get_map:game.mapcon.save_map,
-
                 on_get_map: game.mapcon.on_get_map,
                 
 
@@ -1534,6 +1578,11 @@
                     console.log(game.mapcon.map.submaps)
 
                    },
+                   'Submaps->':
+                   {
+                      
+
+                   }
                  }//submaps
                 },
 
@@ -1574,7 +1623,7 @@
             })//creacion editor
         }
         this.set(0);
-        //_root.set_$(WIN);
+
         WIN.obj.focus();
 
 
@@ -1619,10 +1668,7 @@
       }
 
     },
-    reiniciar() {
-      game.mapcon.set(game.mapcon.map_master, 0);
-
-    },
+    
 
     remove_all_obj() {
       for(var i = this.objs.length-1; i>=0;i--)
@@ -1769,10 +1815,22 @@
       x: 0, y: 0, w: 32*14, h: 32*12, teclado: 1, titulo: "", grab: 1, resize: 0,literal:1,
       menu: {
         Juego: {
-          Reiniciar() {
-            game.reiniciar();
+          'Reiniciar->':
+          {
+
+          'Hard mapa'() 
+          {
+            
 
           },
+          'Soft submapa'() {
+            game.mapcon.reset(0, game.mapcon.sub);
+
+          },
+
+
+          }
+          
         },
         Opciones: { Controles: 'Proximamente' },
         Escenas: {
