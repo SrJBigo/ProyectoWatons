@@ -456,6 +456,7 @@ mapstart_tt:[0,60],
     this.anim.x = 0;
     this.anim.y = 0;
 
+    game.center_nivel(this.x+this.w/2,this.y+this.h/2  );
 
 
 

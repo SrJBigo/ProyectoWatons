@@ -3053,9 +3053,8 @@ var _ESPECIALIZADO =
 
               add(f_tiledata = this.default, f_set = 0) {
                 let _data = setloop_prop(
-                  clone_object(this.default),
-                  f_tiledata
-                )
+                                     clone_object(this.default),
+                                     f_tiledata);
 
 
                 this.tiledatas.push(_data);
@@ -3066,6 +3065,7 @@ var _ESPECIALIZADO =
 
               },
               set(f_data) {
+
                 if (get_type(f_data) == 'number')
                   this.act = this.tiledatas[f_data];
 
@@ -3073,7 +3073,6 @@ var _ESPECIALIZADO =
                   this.act = f_data;
 
                 this._padre.tiledata = this.act;
-
 
               },
 
@@ -7685,17 +7684,12 @@ var _ESPECIALIZADO =
                 console.log(this.get_tiledata())
 
               },
-              'Log tiledatas'() {
-                console.log(this.get_tiledatas())
-
-              },
+              
               $LINE: [],
               'Save tiledata'() {
                 this.save_tiledata();
               },
-              'Save tiledatas'() {
-                this.save_tiledatas();
-              },
+              
             },
 
 
@@ -7779,15 +7773,11 @@ var _ESPECIALIZADO =
           get_tiledata() {
             return (this.tileges.tiledata.get_json())
           },
-          get_tiledatas() {
-            return (this.tileges.tiledatas.get_json())
-          },
+          
           save_tiledata(f_nombre = "config.json") {
             save_txt(f_nombre, this.get_tiledata());
           },
-          save_tiledatas(f_nombre = "config.json") {
-            save_txt(f_nombre, this.get_tiledatas());
-          },
+          
 
           on_save_objtile(f_obj) {
             return (f_obj);

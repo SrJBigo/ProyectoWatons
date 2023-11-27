@@ -574,9 +574,12 @@
         }
 
 
-        if (this.act.editor?.tiledata_id != undefined) {
-          GES.tileges.tiledatas.set(this.act.editor.tiledata_id);
-        }
+ 
+
+        if (this.act.editor?.tiledata_id != undefined) 
+          {
+            GES.tileges.tiledatas.set(this.act.editor.tiledata_id);
+          }
 
         this.act.load();
 
@@ -759,7 +762,7 @@
         //|menu_0
         menu_0: {
           name: 'menu_0',
-          //editor: { img_id: [5,17], tiledata_id: 1 },
+          editor: { img_id: [5,17], tiledata_id: 1 },
           textos:{},
           estado:0,
           estado_2:0,
@@ -950,7 +953,7 @@
           },
           on_mapoint_leave(f_obj)
           {
-            this.hud.update_level_titulo('');
+            //this.hud.update_level_titulo('');
              console.log('mapoint leave')
           },
 
@@ -1297,8 +1300,10 @@
         }
       );
       GES.tileges.estado = 0;
-      GES.tileges.tiledatas.add($LIB.CLASES[6], 1);//main game
+      
+      GES.tileges.tiledatas.tiledatas=[];
       GES.tileges.tiledatas.add($LIB.CLASES[10], 0);//worldmap
+      GES.tileges.tiledatas.add($LIB.CLASES[6], 1);//main game
 
 
       GES.tileges.on_draw_stroke = function (_modo) {
@@ -1668,6 +1673,32 @@
       }
 
     },
+
+
+  center_nivel(f_x, f_y)
+  {
+
+    $root.level.x = fl((f_x * -1)  + $root.w / 2);
+    $root.level.y = fl((f_y * -1)  + $root.h / 2);
+
+    if ($root.level.x > 0) 
+      $root.level.x = 0;
+    
+    if ((-$root.level.x) + $gameges.tileges.xt_max * 16 > $gameges.tileges.xt_allmax * 16) 
+      $root.level.x = -($gameges.tileges.xt_allmax * 16 - $gameges.tileges.xt_max * 16);
+    
+    if ($root.level.y > 0) 
+      $root.level.y = 0;
+    
+    if ((-$root.level.y) + $gameges.tileges.yt_max * 16 > $gameges.tileges.yt_allmax * 16) 
+      $root.level.y = -($gameges.tileges.yt_allmax * 16 - $gameges.tileges.yt_max * 16);
+    
+    $gameges.tileges.x = $root.level.x * -1;
+    $gameges.tileges.y = $root.level.y * -1;
+
+  },
+
+
     
 
     remove_all_obj() {

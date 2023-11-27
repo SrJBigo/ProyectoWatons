@@ -367,29 +367,7 @@ document.currentScript.class =
 
   },//fondocon
 
-  center_nivel(f_x, f_y)
-  {
-
-    $root.level.x = fl((f_x * -1)  + $root.w / 2);
-    $root.level.y = fl((f_y * -1)  + $root.h / 2);
-
-    if ($root.level.x > 0) 
-      $root.level.x = 0;
-    
-    if ((-$root.level.x) + $gameges.tileges.xt_max * 16 > $gameges.tileges.xt_allmax * 16) 
-      $root.level.x = -($gameges.tileges.xt_allmax * 16 - $gameges.tileges.xt_max * 16);
-    
-    if ($root.level.y > 0) 
-      $root.level.y = 0;
-    
-    if ((-$root.level.y) + $gameges.tileges.yt_max * 16 > $gameges.tileges.yt_allmax * 16) 
-      $root.level.y = -($gameges.tileges.yt_allmax * 16 - $gameges.tileges.yt_max * 16);
-    
-    $gameges.tileges.x = $root.level.x * -1;
-    $gameges.tileges.y = $root.level.y * -1;
-
-  },
-
+  
  //|colcheck
   col_check() {
     let _x16 = fl(this.x / 16);
@@ -491,7 +469,7 @@ document.currentScript.class =
     //          ll_act, ll_max   bin
     //          / /              /
     tt: [0, 5, 0, 10, 0],
-    //blink_tt
+    
     hit(_enem) {
      let _modo = _clip.modos.act;
       
@@ -527,12 +505,11 @@ document.currentScript.class =
 
       if (this.estado == 1)//golpeado transparencia
       {
-
         _padre.anim.visible = true;
         
-        if (this.tt[4] == 1) {
+        if (this.tt[4] == 1) 
           _padre.anim.visible = false;
-        }
+        
 
         this.tt[0]++;
         if (this.tt[0] > this.tt[1]) {
@@ -557,20 +534,21 @@ document.currentScript.class =
       }
 
       if (this.estado == 0) {
-        for (var u of game.objs) {
-          if (game.simple_hit_test(this._padre, u) &&
-              u.hitcon.on_hit(this, { damage: 6 },'player')     ) {
+        for (var u of game.objs) 
+        {
+          if (game.simple_hit_test(this._padre, u) && 
+              game.editor.estado==0 && u.hitcon.estado==1 ) 
+          {
 
-            this.hit(u);
-            
+            u.hitcon.on_hit(this, { damage: 6 },'player');
+            this.hit(u); 
             break;
-
           }
 
         }
       }
 
-    },
+    }, //run
 
   },//hitcon
 
@@ -1141,8 +1119,7 @@ document.currentScript.class =
 
     this.armacon.run();
 
-    this.center_nivel(this.x+this.w/2,this.y+this.h/2  );
-
+    game.center_nivel(this.x+this.w/2,this.y+this.h/2  );
     this.fondocon.update_fondos();
 
     //$gameges.fondoges.fondos[0].id = 0;

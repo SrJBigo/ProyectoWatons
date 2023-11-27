@@ -35,22 +35,40 @@ document.currentScript.class =
   hitcon:
   {
     _padre: '',
-    rebotar:1,
-    hp: [10, 10],
-    damage:2,
-    sound_id:0,
     
-    estado:0,
+    estado:0, // 0=inactivo; 1 = activo
+
+    rebotar:1,
+    hp: '',
+    damage:2,
+    sound_id:-1,
+    id_efecto_d:-1,
+    
+    b_estado:0, //blink_estado
     blink_tt:[0,2],
+
+    texto_flotante:'DAMAGE',
+
+    on_kill(f_data){
+
+    },
+
+
+    
+    _on_hit(){ },
                             //player, bullet
     on_hit(f_quien, f_data, f_modo) {
 
       if (game.editor.estado == 1) return;
 
-      this.estado=1;
+      this.b_estado=1;
 
+      if(this.sound_id>=0)
       game.soundcon.play(this.sound_id);
 
+
+      if(this.texto_flotante=='DAMAGE')
+        this.texto_flotante="";
       let _htext = game.textoges.crear($root.level, {x:this._padre.x,y:this._padre.y-5, texto: '-'+f_data.damage})
           _htext.tt=[0,30];
           _htext.enterframe=()=>
@@ -61,20 +79,27 @@ document.currentScript.class =
                 _htext.y-=0.5;
                }
 
-      this.hp[0] -= f_data.damage;
-      if (this.hp[0] <= 0) {
-      
-      $WIN.gameges.cargar_clase($root.level, 1, {anim_id:2, x: this._padre.x, y: this._padre.y});
 
-        this._padre.remove();
-      }
+       this._on_hit(f_quien, f_data, f_modo);
 
-       return(1);
+        if(this.hp!=='')
+        {
+          this.hp[0] -= f_data.damage;
+          if (this.hp[0] <= 0) 
+          {
+          //efecto destruccion
+          if(this.id_efecto_d>=0)
+          $WIN.gameges.cargar_clase($root.level, 1, {anim_id:this.id_efecto_d, x: this._padre.x, y: this._padre.y});
+          this.on_kill(f_data);
+          this._padre.remove();
+          }
+        }  
+
 
     },
     run()
     {
-       if(this.estado==1)
+       if(this.estado==1 && this.b_estado==1)
        {
         this._padre.anim.visible=false;
         this.blink_tt[0]++;
@@ -82,10 +107,9 @@ document.currentScript.class =
         {
           this._padre.anim.visible=true;
           this.blink_tt[0]=0;
-          this.estado=0;
+          this.b_estado=0;
         }
        }
-
 
     },
 
@@ -217,7 +241,8 @@ document.currentScript.class =
       h: 16,
       offset: [-7, -16],
       hitcon: {
-        
+      
+        estado:1,  
         hp: [10, 10],
         sound_id:0,
       },
@@ -274,7 +299,7 @@ document.currentScript.class =
       petro:0,
       offset: [0, -16],
       hitcon: {
-        
+        estado:1,  
         hp: [12, 12],
         sound_id:0,
       },
