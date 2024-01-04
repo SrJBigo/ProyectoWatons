@@ -467,7 +467,7 @@ var _ESPECIALIZADO =
 
             xb: {
               style: { background: 'white', border: 'none' },
-              x: 0, y: 0, w: 30, h: 30, img: "/scripts/bx.png",
+              x: 0, y: 0, w: 30, h: 30, img: "bx.png",
             },
 
 
