@@ -145,13 +145,34 @@
 
     },//fadecon
 
+   //|soundcon
     soundcon:
     {
     estado:1,
+
+      temacon:
+      {
+        _padre:'',
+        act:'',
+         play(f_id, f_gain=1, f_pitch=0, f_loop=0)
+        {
+          if(this.act!=='')
+          {
+            this.act.stop();
+          }
+
+        this.act = AUDIO.play_sample($WIN.LIB.SOUNDS[f_id], f_gain, f_pitch, f_loop);
+
+        },
+
+      },
+
       play(f_id, f_gain=1, f_pitch=0, f_loop=0)
       {
+
         if(this.estado)
         AUDIO.play_sample($WIN.LIB.SOUNDS[f_id], f_gain, f_pitch, f_loop);
+
       },
 
     },
@@ -1151,6 +1172,8 @@
 
             let _map = clone_object($LIB.CLASES[9]);
 
+            game.soundcon.temacon.play(6, 0.3, 0,0);
+
             
             game.mapcon.set(_map,0);
 
@@ -1293,7 +1316,7 @@
 
            load()  //play
            {
-            game.soundcon.play(5,0.3,0,1);
+            game.soundcon.temacon.play(5,0.2,0,1);
 
             this.hud._padre = this;
             this.vidalost_con._padre = this;
@@ -1362,9 +1385,9 @@
       WIN.cursor.add_mousemove(bindear_(game.on_mousemove, game));
 
       var ARR_CAN = [crear_canvas(this._bloque, 2, 0, 0, [0,0], [0,0]),
-      crear_canvas(this._bloque, 2, 0, 0, [0,0], [0,0]),
-      crear_canvas(this._bloque, 2, 0, 0, [0,0], [0,0]),
-      crear_canvas(this._bloque, 2, 0, 0, [0,0], [0,0]),
+                     crear_canvas(this._bloque, 2, 0, 0, [0,0], [0,0]),
+                     crear_canvas(this._bloque, 2, 0, 0, [0,0], [0,0]),
+                     crear_canvas(this._bloque, 2, 0, 0, [0,0], [0,0]),
       ];
 
       window['GES'] = GAME.crear_gestor(WIN, ARR_CAN,
@@ -2057,7 +2080,8 @@
     "_data/sounds/jump_1.wav",
     "_data/sounds/jump_2.wav",
 
-    "_data/sounds/tema_0.wav",
+    "_data/sounds/tema_0.wav",//5
+    "_data/sounds/tema.wav",
     
      ],
 

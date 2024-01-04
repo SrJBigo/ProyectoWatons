@@ -1836,6 +1836,7 @@ var _ESPECIALIZADO =
 
       _buffer.start();
 
+    return(_buffer);
 
 
     },
@@ -2891,6 +2892,7 @@ getWavHeader(options) {
 
                     let _ctx = _canvas.buffers[0].ctx;
                     let _image = this.image;
+
 
                     let _cw = (_canvas.wr / 2);
                     let _ch = (_canvas.hr / 2);
