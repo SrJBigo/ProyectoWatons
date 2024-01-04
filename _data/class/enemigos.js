@@ -24,12 +24,15 @@ document.currentScript.class =
   offset: [0, 0],
 
   draw_color: "",
+  visible_estados:[1,1],
 
   estado_h:0,
   estado: 0,
   anim: '',
 
   offscreen_dis: 32,
+
+  visible_editor:1,
 
   //|hitcon
   hitcon:
@@ -350,6 +353,42 @@ document.currentScript.class =
 
     },//perro_2
 
+
+   'hormiga': {
+    animdata:[
+          { master: { wt: 32, ht: 32, ll: 30 } },
+
+          { ll: 5, flip: [1, 0], buf: [[3, 0] ] },
+          
+            ],
+
+      autoflip:1, //horientacion x a jugador
+      w: 32,
+      h: 32,
+      offset: [0, 0],
+      hitcon: {
+         estado:1,
+        
+        hp: [32, 32],
+        sound_id:0,
+      },
+      
+      loadframe() {
+       this.estado_h=0;
+      },
+      enterframe() {
+        let _col = this.col_check(); //[n,n,n,n] relativo a tile
+         this.yvelocity+=0.01;
+
+        this.estado_h = 0;
+
+      },
+
+    },//hormiga
+
+
+
+
    'completo': {
     animdata:[
           { master: { wt: 16, ht: 16, ll: 30 } },
@@ -394,6 +433,7 @@ document.currentScript.class =
     },//completo
 
    'w_mapoint': {
+    visible_estados:[0,1],
     animdata:[
           { master: { wt: 16, ht: 16, ll: 30 } },
 
@@ -588,6 +628,7 @@ document.currentScript.class =
     },//npc
 
     'start_point': {
+      visible_estados:[0,1],
     animdata:[
           { master: { wt: 16, ht: 16, ll: 30 } },
 
@@ -670,6 +711,8 @@ document.currentScript.class =
 
   },
 
+
+  //|load
   loadframe() {
 
      //_class.animdata = _class.LOAD.animdata;
@@ -695,6 +738,7 @@ document.currentScript.class =
       this[i] = _modo[i];
     }
 
+
     bindear_(_modo.loadframe, this)();
 
     
@@ -702,6 +746,19 @@ document.currentScript.class =
   },
 
   enterframe() {
+
+
+    if(game.editor.estado==1)
+    {
+      this.draw_color='rgba(0, 0, 255, 0.3)';
+      
+    }
+    else
+    {
+      this.draw_color='';
+    }
+    this.visible=this.visible_estados[game.editor.estado];
+    this.anim.visible=this.visible_estados[game.editor.estado];
     
 
    this.hitcon.run();

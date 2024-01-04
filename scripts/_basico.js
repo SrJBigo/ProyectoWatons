@@ -1072,7 +1072,7 @@ var _BASICO =
 
     _foo.fill = function (f_color) {
       this.ctx.fillStyle = f_color;
-      this.ctx.fillRect(0, 0, this.w, this.h);
+      this.ctx.fillRect(0, 0, this.wr, this.hr);
     }
     _foo.clear = function () {
       
@@ -1088,14 +1088,18 @@ var _BASICO =
       _padre: _foo,                      //borde fondo
       square(f_x, f_y, f_w, f_h, f_color = ['blue', ''], f_size = 1) {
 
-        if (get_type(f_color) !== 'array') {
+          f_color = clone_array(f_color);
+
+        if (get_type(f_color) !== 'array') 
           f_color = [f_color, ''];
-        }
-        if (get_type(f_color) == 'array' && f_color[1] == undefined) {
-          f_color[1] = '';
-        }
 
 
+        if(get_type(f_color[0])=='array' )
+          f_color[0]=arr_to_rgba(f_color[0]);
+
+        if(get_type(f_color[1])=='array' )
+          f_color[1]=arr_to_rgba(f_color[1]);
+        
 
         let _ctx = this._padre.ctx;
 
@@ -1108,14 +1112,59 @@ var _BASICO =
 
         _ctx.beginPath();
 
-
-
         _ctx.lineWidth = f_size;
         _ctx.strokeStyle = f_color[0];
         _ctx.rect(f_x, f_y, f_w, f_h);
         _ctx.stroke();
 
       },//square
+
+
+         //[[x,y],[x,y], ....]
+     shape(_pos,  f_color = ['blue', ''],  f_size = 1) {
+
+       
+       f_color = clone_array(f_color);
+       
+        
+       if (get_type(f_color) !== 'array') 
+          f_color = [f_color, ''];
+
+
+        if(get_type(f_color[0])=='array' )
+          f_color[0]=arr_to_rgba(f_color[0]);
+
+        if(get_type(f_color[1])=='array' )
+          f_color[1]=arr_to_rgba(f_color[1]);
+
+
+
+
+
+        let _ctx = this._padre.ctx;
+
+
+        _ctx.beginPath();
+        _ctx.lineWidth = f_size;
+
+        _ctx.strokeStyle = f_color[0];
+        _ctx.fillStyle   = f_color[1];
+
+        _ctx.moveTo(_pos[0][0], _pos[0][1]);
+        for(var i = 1; i<_pos.length;i++)
+        {
+           let u = _pos[i];
+
+           _ctx.lineTo(_pos[i][0], _pos[i][1]);
+
+        }
+        _ctx.fill();
+        _ctx.closePath();
+        _ctx.stroke();
+        
+
+      },//rectangle
+
 
       line(x, y, _x, _y, f_color = 'blue', f_size = 1) {
 
@@ -2016,6 +2065,13 @@ var _BASICO =
       f_quien[arr_name_then[0]] = arr_name_then[1];
     }
 
+  },
+
+
+  is_numeric(str) {
+  if (typeof str != "string") return false // we only process strings!  
+  return !isNaN(str) && // use type coercion to parse the _entirety_ of the string (`parseFloat` alone does not do this)...
+         !isNaN(parseFloat(str)) // ...and ensure strings of whitespace fail
   },
 
 
@@ -3061,6 +3117,34 @@ var _BASICO =
   },
 
 
+  arr_to_rgba(f_arr=[0,0,0,0])
+  {
+   f_arr = clone_array(f_arr);
+
+   if(f_arr.length ==3)
+    f_arr.push(1);
+
+
+   let _end = 'rgba(';
+
+   let u;
+   for(var i =0;i< f_arr.length;i++)
+   {
+    u = f_arr[i];
+
+    _end += u;
+    if(i<3)
+      _end +=',';
+    if(i==3)
+      _end +=')'
+   }
+
+   return(_end);
+
+},
+
+
+
   random_rgb(f_rgb_func = 0) {
     let _r = fl(Math.random() * 255);
     let _g = fl(Math.random() * 255);
@@ -3243,6 +3327,23 @@ var _BASICO =
     document.body.removeChild(_element);
   },
 
+  remove_lastspace_string(_str)
+  {
+
+          let _foo = '';
+              for(var i = _str.length;i--;i>0)
+                   {
+                    let u = _str.charAt(i);
+                    if(_foo === '' && u ==' ')
+                      continue;
+                    _foo = u+_foo;
+
+                   }
+
+           return(_foo);        
+
+  },
+
 
 
   flip_12(f_n) {
@@ -3374,6 +3475,266 @@ var _BASICO =
 
   },
 
+
+
+  //nuevo_form
+  _FORM:
+  {
+
+    crear_text(f_donde, f_data={})
+    {
+
+      let _data = setloop_prop(
+                              {
+                               x:0,
+                               y:0,
+                               w:100,
+                               h:20,
+                               texto:'_',
+                               odiv:'',
+                               set_text(f_text=this.texto)
+                               {
+                                this.odiv.obj.innerHTML = f_text;
+
+                               },
+                               style:
+                                 {
+                                   border:'1px solid red',
+                                   textAlign:'center',
+                                   background:'none',
+                                   whiteSpace:'nowrap',
+
+                                 },
+
+                                 ini()
+                                 {
+                                    let _odiv = this.odiv = crear_odiv(f_donde, this.x, this.y, this.w, this.h, this.style);
+                                    this.set_text(this.texto);
+
+
+                                 }
+                              },
+                               f_data
+                              )
+
+          _data.ini();
+
+
+       return(_data);
+
+    },
+   
+    crear_input(f_donde, f_data={})
+    {
+        let _data = setloop_prop(
+                                  {
+                                   x:0,
+                                   y:0,
+                                   w:100,
+                                   h:20,
+                                   on_enter(){},
+                                   outline:'none', //borde focus
+                                   max_char: 10,
+                                   multiline:0,
+                                   paste:1,
+                                   oinput:'', 
+                                   set_value(f_string='')
+                                   {
+                                     this.oinput.obj.value = f_string;
+                                   },
+                                   get_value()
+                                   {
+                                    return (this.oinput.obj.value);
+                                   },
+                                      
+                                   ini()
+                                   {
+                                      //fix dimensiones inexactas input
+                                      if(get_type(this.h)=='number' )this.h-=5;
+                                      if(get_type(this.h)=='array' )this.h[1]+=5;
+                                      if(get_type(this.w)=='number' )this.w-=5;
+                                      if(get_type(this.w)=='array' )this.w[1]+=5;
+
+                                      let _input = this.oinput = crear_odiv_hueco(this.x, this.y, this.w, this.h);
+                                          _input.obj = crear('textarea', f_donde.obj);
+                                          _input.obj.style.outline= this.outline;
+                                          _input.obj.maxLength    = this.max_char;
+
+
+                                      _input.padre = f_donde;
+                                      _input.obj.style.position = 'absolute';
+                                      
+
+                                      _input.obj.style.resize   = "none"; // true = 'both'
+                                      _input.update();
+
+                                      if(this.paste==0) //evitar pegar texto
+                                      {
+                                          _input.obj.onpaste = function (e) 
+                                          {
+                                          e.preventDefault();
+                                          }
+                                      }
+
+                                     _input.obj.onkeydown = (e)=>
+                                     {
+                                        if (e.key == "Enter") 
+                                        {
+                                          
+                                          this.on_enter();
+
+                                          if(this.multiline==0)
+                                          e.preventDefault();
+
+                                        }
+
+                                      }
+
+                                      
+
+                                     
+                                      return (_input);
+
+                                   },
+
+                                  },
+                                  f_data
+                                );
+
+      _data.ini();
+
+
+      return(_data);
+
+    },
+
+
+    //{mousedown=>al hacer click}
+    crear_boton(f_donde, f_data={})
+    {
+
+       let _data = setloop_prop(
+                               {
+                                  _padre:f_donde,
+                                  odiv:'',
+                                  x:0,
+                                  y:0,
+                                  w:100,
+                                  h:25,
+
+                                  texto:'',
+                                  styles:[{
+                                            background:'none',
+                                            border:'1px solid black',
+                                            textAlign:'center',
+                                          },
+                                          {
+                                            background:'lightgray',
+                                            border:'1px solid black',
+                                          }
+                                         ],
+                                   
+                                  mousedown()
+                                  {
+                                     
+
+                                  },
+
+                                  _mousedown()
+                                  {
+
+                                     this.mousedown();
+
+                                  },
+
+                                  mouseenter()
+                                  {
+                                    this.odiv.set_style(this.styles[1]);
+
+                                  },
+                                  mouseleave()
+                                  {
+                                    this.odiv.set_style(this.styles[0]);
+
+                                  },
+
+                                  ini()
+                                  {
+                                     this.odiv = crear_odiv(f_donde, this.x, this.y, this.w, this.h, this.styles[0]);
+                                     this.odiv.obj.innerHTML = this.texto;
+                                     this.odiv.obj.addEventListener('pointerenter', bindear_(this.mouseenter, this) );
+                                     this.odiv.obj.addEventListener('pointerleave', bindear_(this.mouseleave, this) );
+                                     this.odiv.obj.addEventListener('pointerdown', bindear_(this._mousedown, this) );
+
+
+                                  }
+                               },
+                               f_data
+
+                               )
+
+          _data.ini();
+
+       return(_data);
+
+    },
+
+
+   crear_categoria(f_donde, f_data={})
+   {
+    //atajos
+    if(f_data.texto)
+    {
+      if(!f_data.titulo)f_data.titulo={texto:f_data.texto};
+      else f_data.titulo = f_data.texto;
+    }
+
+
+    let _data = setloop_prop(
+                    {
+                     odiv:'',
+                     x:0,
+                     y:0,
+                     w:100,
+                     h:100,
+                     style:{background:f_donde.obj.style.background, border: '1px solid gray', overflow:'visible'},
+                     titulo:{
+                            odiv:'',
+                            x:5,
+                            y:-10,
+                            h:20,
+                            style:{background:f_donde.obj.style.background, border:'none', paddingLeft:'5px'},
+                            texto:'abc',
+                            },
+                     set_title(f_title='')
+                     {
+                     
+                     this.titulo.texto = f_title;
+                     this.titulo.odiv.set_html_maxwidth(f_title,5);
+                     },
+                     ini()
+                     {
+                      this.odiv        = crear_odiv(f_donde, this.x, this.y, this.w, this.h, this.style);                
+                      this.titulo.odiv = crear_odiv(this.odiv, this.titulo.x, this.titulo.y, this.titulo.w, this.titulo.h, this.titulo.style);                
+                      this.set_title(this.titulo.texto);
+                       
+                     },
+                    },
+                     f_data);
+                
+          _data.ini();
+
+
+          return(_data);
+
+   },//crear_categoria
+
+
+
+  },
+
+
+
   //|forms
 
   FORMS: //botoenes, etc...
@@ -3450,11 +3811,11 @@ var _BASICO =
 
     //<-
     //(texto, filename)
-    cargar_txt(f_callback) {
+    cargar_txt(f_callback, f_accept= 'image') {
 
 
 
-      FORMS.cargar_fileinput({ accept: 'image', type: 'file' }, function (e) {
+      FORMS.cargar_fileinput({ accept: f_accept, type: 'file' }, function (e) {
 
 
         let _txt = e.target.files[0];
@@ -3476,6 +3837,32 @@ var _BASICO =
 
     },
 
+    cargar_wav_buffer(f_callback, f_accept= 'image') {
+
+
+      FORMS.cargar_fileinput({ accept: f_accept, type: 'file' }, function (e) {
+
+              let _reader = new FileReader();
+              _reader.onload = function(){
+
+                  let _arrayBuffer = _reader.result;
+                  
+                  
+                 // f_callback(_arrayBuffer)
+                  AUDIO.ctx.decodeAudioData(_arrayBuffer, f_callback);
+
+                };
+
+                _reader.readAsArrayBuffer(e.target.files[0]);
+
+
+
+
+
+      })
+
+    },
+
 
 
 
@@ -3484,7 +3871,8 @@ var _BASICO =
       let _data = setloop_prop(
         {
           accept: 'image',
-          type: 'file',
+          type:   'file',
+         // file_extension:'.jpg',
         },
         f_data
       );
@@ -3495,6 +3883,8 @@ var _BASICO =
 
       _foo.obj.accept = _data.accept;
       _foo.obj.type = _data.type;
+      //_foo.obj.file_extension = _data.file_extension;
+
       _foo.obj.style.background = "green";
 
 

@@ -79,6 +79,9 @@
            {
            this.tt=[0,5];
            this.c=1;
+           GES.canvasses[3].clear();
+           GES.canvasses[3].fill('rgba(0, 0, 0, '+this.c+')'); 
+
            },
            run() //retornar 1 = finalizado
            {
@@ -95,7 +98,7 @@
                 return(1);
                }
                GES.canvasses[3].clear();
-             GES.canvasses[3].fill('rgba(0, 0, 0, '+this.c+')'); 
+               GES.canvasses[3].fill('rgba(0, 0, 0, '+this.c+')'); 
                 
              }
              
@@ -144,11 +147,11 @@
 
     soundcon:
     {
-    estado:0,
-      play(f_id)
+    estado:1,
+      play(f_id, f_gain=1, f_pitch=0, f_loop=0)
       {
         if(this.estado)
-        AUDIO.play_sample($WIN.LIB.SOUNDS[f_id],0);
+        AUDIO.play_sample($WIN.LIB.SOUNDS[f_id], f_gain, f_pitch, f_loop);
       },
 
     },
@@ -298,9 +301,7 @@
         this.map_master = clone_object(_map);
 
 
-
         this.update_menu_submaps();
-
 
         this.set_submap(this.map.ini_submap);
 
@@ -555,7 +556,14 @@
 
 
         for (var u of GES.canvasses)
-          u.no_clear = 0;
+        {
+             u.no_clear = 0;
+             for(var b of u.buffers)
+             {
+              b.clear();
+             }
+        }
+          
 
         GES.tileges.refresh.force();
 
@@ -588,14 +596,17 @@
 
 
       },
+      //|enterframe
       enterframe() {
 
-        WIN.set_title('Watons, legend of pipi [' + game.escenario.act.name + ']');
+        if(WIN.get_title()!== 'Watons, legend of pipi [' + game.escenario.act.name + ']' )
+           WIN.set_title('Watons, legend of pipi [' + game.escenario.act.name + ']');
+        
 
         if (this.act !== '') {
           this.act.enterframe();
 
-
+              //|optimizacion
                if($root?.level)
                {
                   $root.level.hijos_clip.sort(function(a,b){
@@ -778,8 +789,8 @@
 
             GES.fondoges.fondos = [];
             GES.fondoges.ini(0, { image: 9, x: 0, y: 0 });  //canvasses gameges pintado
-            GES.fondoges.ini(1, { image: 10, x: 0, y: 0 }); //canvasses gameges pintado
-            GES.fondoges.ini(1, { image: 11, x: 0, y: 0 }); //canvasses gameges pintado
+            GES.fondoges.ini(0, { image: 10, x: 0, y: 0 }); //canvasses gameges pintado
+            GES.fondoges.ini(0, { image: 11, x: 0, y: 0 }); //canvasses gameges pintado
 
             GES.tileges.tilemaps[0][0][0]=1;
             let _map = $LIB.CLASES[11];
@@ -1000,7 +1011,7 @@
                   draw_color: 'black'
                 });
 
-              this.textos.level_titulo = game.textoges.crear(_hud, {x:0,y:0, texto:' '})
+              this.textos.level_titulo = game.textoges.crear(_hud, {x:2,y:4, texto:' '})
               this.update_level_titulo('')
 
             },
@@ -1023,10 +1034,13 @@
               caras:[],
               id:'',
               selector:'', //obj
+              blink_tt:[0,10],
               set(f_id)
               {
                this.id=f_id;
 
+               this.blink_tt[0]=-10;
+               this.selector.visible=1;
                this.selector.x = this.caras[this.id].x;
                
                game.particon.data.perfiles.set(this.id);
@@ -1059,6 +1073,12 @@
                   if(this._padre.estado==2)
                   {
                     
+                    this.blink_tt[0]++;
+                    if(this.blink_tt[0]==this.blink_tt[1])
+                    {
+                      this.selector.visible=swap_bin(this.selector.visible);
+                      this.blink_tt[0]=0;
+                    }
 
                     if(WIN.teclado.get('izq',2)==1 && this.id>0)
                     this.set(this.id-1);
@@ -1070,6 +1090,7 @@
                     {
                     $root.level.jugador.estado=6;
                     this._padre.estado=3;  
+                    this.selector.visible=1;
                     }
 
                  } 
@@ -1124,8 +1145,8 @@
 
             GES.fondoges.fondos = [];
             GES.fondoges.ini(0, { image: 9, x: 0, y: 0 });  //canvasses gameges pintado
-            GES.fondoges.ini(1, { image: 10, x: 0, y: 0 }); //canvasses gameges pintado
-            GES.fondoges.ini(1, { image: 11, x: 0, y: 0 }); //canvasses gameges pintado
+            GES.fondoges.ini(0, { image: 10, x: 0, y: 0 }); //canvasses gameges pintado
+            GES.fondoges.ini(0, { image: 11, x: 0, y: 0 }); //canvasses gameges pintado
             GES.fondoges.estado = 1;
 
             let _map = clone_object($LIB.CLASES[9]);
@@ -1140,7 +1161,10 @@
           {
           let _savepos = this.mapcon.savepos;
           WIN.gameges.cargar_clase($root.level, 8, { x: _savepos.x * 16, y: _savepos.y * 16, nombre: 'jugador' }); //jugador
-           
+          
+          game.center_nivel($root.level.jugador);
+ 
+
           this.hud.ini();
           this.hudbottom.ini();
           },
@@ -1150,6 +1174,7 @@
             this.mapcon.savepos.x = fl($root.level.jugador.x / 16);//provisorio
             this.mapcon.savepos.y = fl($root.level.jugador.y / 16);//provisorio
             this.hudbottom.run();
+            game.center_nivel($root.level.jugador);
             //GES.canvasses[2].no_clear=1;
             //GES._enterframe=()=>{GES.canvasses[2].draw.line(0,0,100,100);}
 
@@ -1168,7 +1193,7 @@
 
           map:'',
                           //{value, name, modo}
-          
+          tt_dead:[0,0], //def en ini
           hud:
           {
             _padre: '',
@@ -1177,6 +1202,7 @@
             textos:{},
 
             ini() {
+              this._padre.tt_dead=[0,60];
               let _hud = this.hud = WIN.gameges.crear_vacio($root, 2,
                 {
                   w: fl(WIN._bloque.wr / 2),
@@ -1194,16 +1220,19 @@
 
               
             },
+          
 
           on_stats_update(f_obj)
           {
            this._padre.hud.hudbarras[f_obj.name].set(f_obj.value[0], 'set');
            if(f_obj.name=='hp'&&f_obj.value[0]<=0)
            {
-             game.mapcon.reset();
-             game.particon.data.perfiles.refill();
-             //game.escenario.set('wmap');
-             this.update_hudbarras();
+             //game.mapcon.reset();
+            
+             game.escenario.escenas.play_0.vidalost_con.on_vidalost();
+             
+             
+             //this.update_hudbarras();
            }
 
           },
@@ -1219,9 +1248,57 @@
           },
 
           },//hud
+
+          vidalost_con:
+          {
+            _padre:'',
+           tt:[0,60],
+           estado:0,
+           ini()
+           {
+             this.tt[0]=0;
+             this.estado=0;
+           },
+           run()
+           {
+              if(this.estado)
+              {
+                this.tt[0]++;
+                if(this.tt[0]==this.tt[1])
+                {
+
+                  this.estado=0;
+                  this.tt[0]=0;
+
+                 game.fadecon.set('oscurecer',   ()=>{
+                 game.particon.data.perfiles.refill(); 
+                 game.escenario.set('wmap');
+                 game.fadecon.set('aclarar',   ()=>{});
+
+                 });
+
+
+                }
+              }
+           },
+              on_vidalost()
+              {
+                this.estado=1;
+                 
+
+              },
+
+          },//vidalost_con
+          
+
            load()  //play
            {
+            game.soundcon.play(5,0.3,0,1);
+
             this.hud._padre = this;
+            this.vidalost_con._padre = this;
+
+             this.vidalost_con.ini();
 
             game.particon._check_debug_partidanueva();
             if(this.map == '') //por precaucion
@@ -1234,6 +1311,7 @@
             GES.fondoges.ini(0, { image: 9, x: 0, y: 0 });  //canvasses gameges pintado
             GES.fondoges.ini(0, { image: 10, x: 0, y: 0 }); //canvasses gameges pintado
             GES.fondoges.ini(0, { image: 11, x: 0, y: 0 }); //canvasses gameges pintado
+            //|optimizacion            
             GES.fondoges.estado = 1;
             
             game.mapcon.set(this.map, 0);
@@ -1242,16 +1320,25 @@
 
           on_submapset()
           {
-          WIN.gameges.cargar_clase($root.level, 0, { x: 2 * 16, y: 4 * 16, nombre: 'jugador' }); //jugador
+          let _startpoint = game.find_in_obj_layer('id','start_point');
+          if(!_startpoint)
+            _startpoint={x:3,y:3, direccion:1};
+
+          WIN.gameges.cargar_clase($root.level, 0, { x: _startpoint.x * 16, y: _startpoint.y * 16, nombre: 'jugador'}); //jugador
+          $root.level.jugador.modos.modos.normal.estado=_startpoint.direccion;
+
+
           this.hud.ini();
 
           },
 
           enterframe() {
+                                  
+          this.vidalost_con.run();
+          let _jugador = $root.level.jugador;
           
-                        
-
-
+          game.center_nivel(_jugador);
+          //game.center_nivel(_jugador.x+_jugador.w/2,_jugador.y+_jugador.h/2  );
 
 
             //GES.canvasses[2].no_clear=1;
@@ -1274,10 +1361,10 @@
       WIN.cursor.add_mouseup(bindear_(game.on_mouseup, game));
       WIN.cursor.add_mousemove(bindear_(game.on_mousemove, game));
 
-      var ARR_CAN = [crear_canvas(this._bloque, 2, 0, 0, this._bloque.wr, this._bloque.hr),
-      crear_canvas(this._bloque, 2, 0, 0, this._bloque.wr, this._bloque.hr),
-      crear_canvas(this._bloque, 2, 0, 0, this._bloque.wr, this._bloque.hr),
-      crear_canvas(this._bloque, 2, 0, 0, this._bloque.wr, this._bloque.hr),
+      var ARR_CAN = [crear_canvas(this._bloque, 2, 0, 0, [0,0], [0,0]),
+      crear_canvas(this._bloque, 2, 0, 0, [0,0], [0,0]),
+      crear_canvas(this._bloque, 2, 0, 0, [0,0], [0,0]),
+      crear_canvas(this._bloque, 2, 0, 0, [0,0], [0,0]),
       ];
 
       window['GES'] = GAME.crear_gestor(WIN, ARR_CAN,
@@ -1381,9 +1468,10 @@
           for (var u of game.objs) {
             if (game.simple_hit_test(u, { x: _xm, y: _ym, w: 1, h: 1 })) {
               
-
+              
               this.tile_editor.estado_tiledraw = 0;
-              this.tile_editor.objcon.set(fl(_xm/16), fl(_ym/16));
+              //this.tile_editor.objcon.set(fl(_xm/16), fl(_ym/16));
+              this.tile_editor.objcon.set(u.mapdata.x, u.mapdata.y);
 
               this.grab.obj = u;
               this.grab.plus[0] = u.x - _xm;
@@ -1394,7 +1482,7 @@
              let _mapdata = _obj.mapdata;
 
              game.mapcon.submap.tilemaps[3][_mapdata.y][_mapdata.x] = 0;
-             
+             break;
 
              }
           }
@@ -1429,6 +1517,8 @@
           let _mapdata = _obj.mapdata;
           let _xt = fl(((e.offsetX / 2) - $root.level.x + this.grab.plus[0] + _obj.w / 2) / 16);
           let _yt = fl(((e.offsetY / 2) - $root.level.y + this.grab.plus[1] + _obj.h / 2) / 16);
+          _obj.x = _xt * 16;
+          _obj.y = _yt * 16;
               if(_xt<0) _xt=0;
               if(_yt<0) _yt=0;
           
@@ -1673,13 +1763,42 @@
       }
 
     },
+    find_in_obj_layer(_a, _b)
+    {
+        let _tilemap = $tileges.tilemaps_all[3];
+       for(var i in _tilemap)
+          {
+             for(var j in _tilemap[i])
+             {
+               let u = _tilemap[i][j];
+
+               if(u[_a]==_b)
+               {
+                return(u);
+               }
+
+             }
+
+          }
+
+    },
 
 
   center_nivel(f_x, f_y)
   {
 
-    $root.level.x = fl((f_x * -1)  + $root.w / 2);
-    $root.level.y = fl((f_y * -1)  + $root.h / 2);
+    if(get_type(f_x)=='object') //centrar a objeto
+    {
+      let   _u = f_x;
+      f_x = _u.x+_u.w/2;
+      f_y = _u.y+_u.h/2;
+    }
+
+    
+    //$root.level.x = fl((f_x * -1)  + $root.w / 2);
+    //$root.level.y = fl((f_y * -1)  + $root.h / 2);
+    $root.level.x = ((f_x * -1)  + $root.w / 2);
+    $root.level.y = ((f_y * -1)  + $root.h / 2);
 
     if ($root.level.x > 0) 
       $root.level.x = 0;
@@ -1843,7 +1962,7 @@
   var WIN = ventana.crear_ventana(_root,
     //400   400
     {
-      x: 0, y: 0, w: 32*14, h: 32*12, teclado: 1, titulo: "", grab: 1, resize: 0,literal:1,
+      x: 0, y: 0, w: 32*14, h: 32*12, teclado: 1, titulo: "", grab: 1, resize: 1,literal:1,
       menu: {
         Juego: {
           'Reiniciar->':
@@ -1931,13 +2050,15 @@
   ],
 
     [
-    /*"_data/sounds/hit_0.wav",
+    
+    "_data/sounds/hit_0.wav",
     "_data/sounds/hit_1.wav",
-
     "_data/sounds/jump_0.wav",
     "_data/sounds/jump_1.wav",
     "_data/sounds/jump_2.wav",
-    */
+
+    "_data/sounds/tema_0.wav",
+    
      ],
 
     ["_data/class/player.js",

@@ -59,61 +59,35 @@ mapstart_tt:[0,60],
   draw_color: '',
 
 
-  update_fondos() { },
 
 
-  movecon:
-  {
-    _padre: '',
-    run() {
+  
 
-    }
-
-  },
-
+                //0=quieto, 1 = izquierda, 2=arriba...
   check_tile_ini(f_estado) {
+
+    let _estado_xyplus = [[-1,0],[0,-1],[1,0],[0,1]];
+    
+
     let _tilemaps = $gameges.tileges.tilemaps_all;
-    let _xyc = this.get_c16();
+    let _xy      = this.get_c16();//x,y,id
+    let _xyd     = {
+                   x:  _xy.x + _estado_xyplus[f_estado-1][0], 
+                   y:  _xy.y + _estado_xyplus[f_estado-1][1]
+                   }
 
-    let _movedata =
+    if(this.propagar.check_join(_xy.x, _xy.y, _xyd.x, _xyd.y))
     {
-      1: {
-        2: 1,
-        1: 1,
-        21: 1,
-        xy: [-1, 0],
-      },
-      2: {
-        11: 1,
-        1: 1,
-        3: 1,
-        xy: [0, -1],
-      },
-      3: {
-        2: 1,
-        3: 1,
-        23: 1,
-        xy: [1, 0],
-      },
-      4: {
-        11: 1,
-        21: 1,
-        23: 1,
-        xy: [0, 1],
-      }
-    }
-    let _m = _movedata[f_estado];
-
-    if (_m[_tilemaps[1][_xyc.y + _m.xy[1]][_xyc.x + _m.xy[0]]] === 1) {
       this.estado = f_estado;
-      this.tile_des.x += _m.xy[0];
-      this.tile_des.y += _m.xy[1];
+
+      this.tile_des.x += _estado_xyplus[f_estado-1][0];
+      this.tile_des.y += _estado_xyplus[f_estado-1][1];
 
     }
 
   },
 
-  //propagar
+  //|propagar
   propagar:
   {
     _padre: '',
@@ -156,7 +130,7 @@ mapstart_tt:[0,60],
     },
     //        centro, circundante
     //         / /      / /
-    check_join(_x, _y, _xx, _yy) {
+    check_join(_x, _y, _xx, _yy, _des_id=1) {
       let _tilemaps = $gameges.tileges.tilemaps_all;
       let _id = _tilemaps[1][_y][_x];
       let _id2 = _tilemaps[1][_yy][_xx];
@@ -166,10 +140,10 @@ mapstart_tt:[0,60],
       if (_a == undefined || _b == undefined)
         return (0)
 
-      if (_a[0] && _b[2] && _y == _yy && _x > _xx ||
-        _a[1] && _b[3] && _x == _xx && _y > _yy ||
-        _a[2] && _b[0] && _y == _yy && _x < _xx ||
-        _a[3] && _b[1] && _x == _xx && _y < _yy) {
+      if (_a[0] && _b[2]==_des_id && _y == _yy && _x > _xx ||
+          _a[1] && _b[3]==_des_id && _x == _xx && _y > _yy ||
+          _a[2] && _b[0]==_des_id && _y == _yy && _x < _xx ||
+          _a[3] && _b[1]==_des_id && _x == _xx && _y < _yy) {
         return (1)
       }
 
@@ -179,20 +153,27 @@ mapstart_tt:[0,60],
     },
     tiles_infolado: //definicion de 'salidas' de tiles camino
     {
-      0: [1, 1, 1, 1], 61: [1, 1, 1, 1],
-      1: [0, 0, 1, 1], 5: [0, 0, 1, 1],
-      2: [1, 0, 1, 0], 6: [1, 0, 1, 0],
-      3: [1, 0, 0, 1], 7: [1, 0, 0, 1],
+      0: [0, 0, 0, 0],
 
-      11: [0, 1, 0, 1], 15: [0, 1, 0, 1],
-      21: [0, 1, 1, 0], 25: [0, 1, 1, 0],
-      23: [1, 1, 0, 0], 27: [1, 1, 0, 0],
+      //bloques nivel
+      30: [1, 1, 1, 1],    34: [2, 2, 2, 2],
+      40: [1, 1, 1, 1],
 
-      32: [1, 0, 1, 1], 36: [1, 0, 9, 1],
-      41: [0, 1, 1, 1], 45: [0, 1, 1, 1],
-      42: [1, 1, 1, 1], 46: [1, 1, 1, 1],
-      43: [1, 1, 0, 1], 47: [1, 1, 0, 1],
-      52: [1, 1, 1, 0], 56: [1, 1, 1, 0]
+      61: [1, 1, 1, 1],63: [1, 1, 1, 1],64: [1, 1, 1, 1],
+
+      1: [0, 0, 1, 1], 5: [0, 0, 2, 2],
+      2: [1, 0, 1, 0], 6: [2, 0, 2, 0],
+      3: [1, 0, 0, 1], 7: [2, 0, 0, 2],
+
+      11: [0, 1, 0, 1], 15: [0, 2, 0, 2],
+      21: [0, 1, 1, 0], 25: [0, 2, 2, 0],
+      23: [1, 1, 0, 0], 27: [2, 2, 0, 0],
+
+      32: [1, 0, 1, 1], 36: [2, 0, 9, 2],
+      41: [0, 1, 1, 1], 45: [0, 2, 2, 2],
+      42: [1, 1, 1, 1], 46: [2, 2, 2, 2],
+      43: [1, 1, 0, 1], 47: [2, 2, 0, 2],
+      52: [1, 1, 1, 0], 56: [2, 2, 1, 0]
 
     },
 
@@ -201,10 +182,10 @@ mapstart_tt:[0,60],
       let _id_ini = _tilemaps[1][_yt][_xt];
 
       let _xy = [[-1, 0],
-      [0, -1],
-      [1, 0],
-      [0, 1]
-      ];
+                 [0, -1],
+                 [1, 0],
+                 [0, 1]
+                ];
 
       for (var u of _xy) {
         let _x = _xt + u[0];
@@ -218,13 +199,20 @@ mapstart_tt:[0,60],
           _id_dig.unshift(0);
 
 
-        if (_id_dig[1] >= 5 && _id_dig[1] <= 7 &&
-          _id_dig[0] >= 0 && _id_dig[0] <= 5 &&
-          this.check_join(_xt, _yt, _x, _y)
+        if (_id_dig[1] >= 4 && _id_dig[1] <= 7 &&
+            _id_dig[0] >= 0 && _id_dig[0] <= 5 &&
+           this.check_join(_xt, _yt, _x, _y,  2)
         ) {
 
-          _tilemaps[1][_y][_x] -= 4;
-          this.puntos.push({ x: _x, y: _y })
+           _tilemaps[1][_y][_x] -= 4;
+
+           if(_id==34)
+           {
+            return;
+           }
+            
+           this.puntos.push({ x: _x, y: _y })
+
 
         }
 
@@ -237,7 +225,7 @@ mapstart_tt:[0,60],
 
   },//propagar
 
-  check_tile_nextmove() {
+  check_tile_nextmove() { //empleado movimiento automatico
     let _tilemaps = $gameges.tileges.tilemaps_all;
 
     let _id = this.get_c16().id;
@@ -288,10 +276,10 @@ mapstart_tt:[0,60],
 
   },
 
-  get_c16() {
+  get_c16(_tilemap_id=1) {
     let _x = fl((this.x + 8) / 16);
     let _y = fl((this.y + 8) / 16);
-    let _id = $gameges.tileges.tilemaps_all[1][_y][_x];
+    let _id = $gameges.tileges.tilemaps_all[_tilemap_id][_y][_x];
 
     return ({
       x: _x,
@@ -302,10 +290,10 @@ mapstart_tt:[0,60],
 
 
   loadframe() {
-    this.movecon._padre = this;
+    
     this.propagar._padre = this;
 
-    this.update_fondos()
+    //this.update_fondos()
 
 
     this.anim = this.hijos_clip[0];
@@ -333,7 +321,6 @@ mapstart_tt:[0,60],
     let _estado_h = this.estado;
 
 
-    this.movecon.run();
     this.propagar.run();
     let _vel = 1.6;
 
@@ -351,7 +338,7 @@ mapstart_tt:[0,60],
     }
     
 
-    if (this.estado == 0)//quieto
+    if (this.estado == 0 &&   this.propagar.estado==0)//quieto
     {
 
         if(this.current_mapoint !== _to && get_type(_to)=='object' && _to.id=='w_mapoint')
@@ -454,13 +441,13 @@ mapstart_tt:[0,60],
 
 
     this.anim.x = 0;
-    this.anim.y = 0;
+    this.anim.y = -5;
 
-    game.center_nivel(this.x+this.w/2,this.y+this.h/2  );
+//    game.center_nivel(this.x+this.w/2,this.y+this.h/2  );
 
 
 
-    this.update_fondos();
+    //this.update_fondos();
 
   },
 

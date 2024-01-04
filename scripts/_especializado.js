@@ -1101,8 +1101,8 @@ var _ESPECIALIZADO =
 
     f_donde.framecon = 
     {
-      fps:f_framerate,
-      prev:0,
+      fps:  f_framerate,
+      prev: 0,
     }
     
 
@@ -1114,9 +1114,12 @@ var _ESPECIALIZADO =
         if (f_donde.KILL_ENTERFRAME !== 1) { 
         
         window.requestAnimationFrame(f_donde._enterframe);
+        
+
         //let _now = Math.round(_framecon.fps*Date.now()/1000 );
-        //let _now = Math.round(_framecon.fps*Date.now()/1000 );
-        let _now = Math.round(_framecon.fps*Date.now()/1000 );
+        //console.log(Date.now()/1000)
+        let _now = Math.round(_framecon.fps*_time/1000 );
+
         if(_now == _framecon.prev) {
                
                 return
@@ -1676,7 +1679,6 @@ var _ESPECIALIZADO =
       this.ctx = new AudioContext;
       this.mastergain = this.ctx.createGain();
       this.limitador = this.crear_limitador(this.ctx);
-
       this.mastergain.gain.setValueAtTime(-0.4, this.ctx.currentTime);
 
 
@@ -1712,104 +1714,72 @@ var _ESPECIALIZADO =
 
       let _data = setloop_prop(
         {
+          time:undefined,
+          offset:[0,undefined],
+
           pitch: 1,
           pitch_x: 100,
+          loop:0,
+          raw:[0],
         },
         f_data
       )
+      if(get_type(f_data.offset) == 'number' )
+         f_data.offset=[f_data.offset, undefined];
 
-      //duracion                //
-      let _raw = this.ctx.createBuffer(1, this.ctx.sampleRate * 3, this.ctx.sampleRate);
+      
 
-      let _buffer = this.ctx.createBufferSource();
+                            //sample rate = 48000 = length
+                            // audio needs to be in [-1.0; 1.0]
+                                                           //1=sec
+      //let _raw = this.ctx.createBuffer(1, this.ctx.sampleRate*1, this.ctx.sampleRate);
+
+      let _raw = this.ctx.createBuffer(1, _data.raw.length, this.ctx.sampleRate);
 
       let _channel = _raw.getChannelData(0);
 
-      //  console.log(this.ctx.currentTime)
+        _channel.set(_data.raw);
+     //for(var i =0;i<_data.raw.length;i++)
+     //{
+     //   _channel[i]=_data.raw[i];
+     //}
 
-      let _mosmeic =
-      {
-        a:
-        {
-          u: [-1, 1, 40],
-          tt: 0,
-
-          put: [0, [1, 0, 0, 0, 0, 0, 0, 0]],
-        },
-
-        b:
-        {
-          u: [-1, 1, 50],
-          tt: 0,
-
-          put: [0, [1, 0, 0, 1, 0, 0, 0, 1]],
-        },
-
-        c:
-        {
-          u: [-1, 1, 60],
-          tt: 0,
-
-          put: [0, [0, 0, 0, 1, 0, 0, 0, 0]],
-        }
-
-      }
-
-
-      for (var i = 0; i < _channel.length; i++) {
-        for (var u in _mosmeic) {
-          u = _mosmeic[u];
-          u.u[0] += (u.u[1] - u.u[0]) / u.u[2];
-          u.tt++;
-          if (u.tt > u.u[2]) {
-            u.tt = 0;
-            u.u[1] = u.u[1] * -1;
-          }
-
-          if (u.put[1][u.put[0]])
-            _channel[i] = u.u[0];
-
-          u.put[0]++;
-          if (u.put[0] > u.put[1].length - 1) {
-            u.put[0] = 0;
-          }
-
-
-
-        }
-
-
-
-      }
-
-
-
-
-      //  console.log(_channel)
+      let _buffer = this.ctx.createBufferSource();
       _buffer.buffer = _raw;
 
+  _buffer.connect(this.ctx.destination);
 
+/*
       let _gain = this.ctx.createGain();
 
       _gain.gain.value = 0;
       _gain.gain.setValueCurveAtTime([0, 1], this.ctx.currentTime, 0.1);
 
-
-      // this.limitador.connect(_gain);
-
+      
       _buffer.connect(_gain);
       _buffer.gain = _gain;
 
+      //12-29-2023
+      //_gain.connect(this.mastergain);
+
+
+//      _buffer.detune.value = _data.pitch * _data.pitch_x;
+      _buffer.loop = _data.loop;
+*/
+
+     //_buffer.connect(this.limitador);
+
+      _buffer.start(_data.time,  _data.offset[0],_data.offset[1]);
+
+
       // this.limitador.connect(_gain);
-      _gain.connect(this.mastergain);
+
+
+      // this.limitador.connect(_gain);
 
 
 
 
-      _buffer.detune.value = _data.pitch * _data.pitch_x;
-
-      _buffer.loop = 1;
-      _buffer.start();
 
 
 
@@ -1817,8 +1787,12 @@ var _ESPECIALIZADO =
       return (_buffer)
     },
 
-    play_sample(f_buffer, f_pitch = 0, f_loop = 0) {
+    play_sample(f_buffer, f_gain=1, f_pitch = 0, f_loop = 0) {
       let _ctx = this.ctx;
+
+
+
+
 
 
       let _buffer = _ctx.createBufferSource();
@@ -1830,11 +1804,33 @@ var _ESPECIALIZADO =
       _buffer.detune.value = f_pitch * 100;
 
 
+
       // _buffer.playbackRate.value = f_pitch;
       //  _buffer.onended=function(){console.log("a")}
 
-      _buffer.connect(this.limitador);
-      //_buffer.loop = 1;
+
+      let _gain = this.ctx.createGain();
+      _gain.gain.value = 0;
+      _gain.gain.setValueCurveAtTime([0, f_gain], this.ctx.currentTime, 0.1);
+
+      
+      _buffer.connect(_gain);
+      //_buffer.gain = _gain;
+
+      //_gain.connect(this.mastergain);
+
+
+
+
+//      _buffer.connect(this.limitador);
+
+      _gain.connect(this.limitador);
+      _buffer.loop = f_loop;
+
+
+
+
+
       //_buffer.loopStart=1;
       //_buffer.loopEnd=1.1;
 
@@ -1856,7 +1852,77 @@ var _ESPECIALIZADO =
       _limitador.release.setValueAtTime(0.1, _ctx.currentTime); // Time is seconds
 
       return (_limitador)
+    },
+
+
+   //misc
+   // Returns Uint8Array of WAV bytes
+  getWavBytes(buffer, options) {
+  const type = options.isFloat ? Float32Array : Uint16Array
+  const numFrames = buffer.byteLength / type.BYTES_PER_ELEMENT
+
+  const headerBytes = AUDIO.getWavHeader(Object.assign({}, options, { numFrames }))
+  const wavBytes = new Uint8Array(headerBytes.length + buffer.byteLength);
+
+  // prepend header, then add pcmBytes
+  wavBytes.set(headerBytes, 0)
+  wavBytes.set(new Uint8Array(buffer), headerBytes.length)
+
+  return wavBytes
+},
+
+// adapted from https://gist.github.com/also/900023
+// returns Uint8Array of WAV header bytes
+getWavHeader(options) {
+  const numFrames =      options.numFrames
+  const numChannels =    options.numChannels || 2
+  const sampleRate =     options.sampleRate || 44100
+  const bytesPerSample = options.isFloat? 4 : 2
+  const format =         options.isFloat? 3 : 1
+
+  const blockAlign = numChannels * bytesPerSample
+  const byteRate = sampleRate * blockAlign
+  const dataSize = numFrames * blockAlign
+
+  const buffer = new ArrayBuffer(44)
+  const dv = new DataView(buffer)
+
+  let p = 0
+
+  function writeString(s) {
+    for (let i = 0; i < s.length; i++) {
+      dv.setUint8(p + i, s.charCodeAt(i))
     }
+    p += s.length
+  }
+
+  function writeUint32(d) {
+    dv.setUint32(p, d, true)
+    p += 4
+  }
+
+  function writeUint16(d) {
+    dv.setUint16(p, d, true)
+    p += 2
+  }
+
+  writeString('RIFF')              // ChunkID
+  writeUint32(dataSize + 36)       // ChunkSize
+  writeString('WAVE')              // Format
+  writeString('fmt ')              // Subchunk1ID
+  writeUint32(16)                  // Subchunk1Size
+  writeUint16(format)              // AudioFormat https://i.stack.imgur.com/BuSmb.png
+  writeUint16(numChannels)         // NumChannels
+  writeUint32(sampleRate)          // SampleRate
+  writeUint32(byteRate)            // ByteRate
+  writeUint16(blockAlign)          // BlockAlign
+  writeUint16(bytesPerSample * 8)  // BitsPerSample
+  writeString('data')              // Subchunk2ID
+  writeUint32(dataSize)            // Subchunk2Size
+
+  return new Uint8Array(buffer)
+}
+
 
 
   },
@@ -2688,24 +2754,17 @@ var _ESPECIALIZADO =
 
           this.clear_all();
        
-          //ejecutar modulos
 
           if (this.fondoges.estado == 1 && this.fondoges.id !== "") {
             this.fondoges.run();
 
-
             if (get_type(this.fondoges.after_draw) == "function")
               this.fondoges.after_draw();
-
           }
 
-          if (this.tileges.estado == 1) {
-
+          if (this.tileges.estado == 1) 
             this.tileges.run();
           
-
-
-            //end ejecutar modulos
 
             //pintado final
             for (var i = 0; i < this.canvasses.length; i++) {
@@ -2715,6 +2774,7 @@ var _ESPECIALIZADO =
               for (var j = 0; j < _u.buffers.length; j++) {
                 let _j = _u.buffers[j];
                 let _cords = _j.drawcords;
+
                 if (_cords)//workaround
                 {
                   _u.ctx.drawImage(_j.obj,
@@ -2722,7 +2782,7 @@ var _ESPECIALIZADO =
                 }
               }
              }
-          }
+          
 
           this._enterframe();
         },//fin enterframe
@@ -2740,17 +2800,16 @@ var _ESPECIALIZADO =
 
           run() //main function
           {
-
             if (this.estado == 1) {
               for (var u of this.fondos) {
-                u.run();
+                   u.run();
               }
             }
 
           },
 
 
-          ini(f_canvas, f_data, f_estado = 1) //buffer o canvas directo
+          ini(fn_canvas, f_data, f_estado = 1) //buffer o canvas directo
           {
 
             this.estado = f_estado;
@@ -2759,6 +2818,17 @@ var _ESPECIALIZADO =
 
               f_data.image = this.padre.LIB_IMAGES[f_data.image];
             }
+            let _canvas = this.padre.canvasses[fn_canvas];
+
+            if(_canvas.buffers.length==0)
+            {
+              let _wr = _canvas.wr;
+              let _hr = _canvas.hr;
+                _canvas.crear_buffer(_wr, _hr);
+                _canvas.buffers[0].drawcords=[0,0,_wr,_hr, 0,0,_wr,_hr];
+            }
+
+
 
 
             let _fondo =
@@ -2772,23 +2842,18 @@ var _ESPECIALIZADO =
                   x: 0, y: 0,
                   _x: 0, _y: 0, //alterada por diferencia
                   xprev: 0, yprev: 0,
-                  canvas: this.padre.canvasses[f_canvas],
+                  canvas: this.padre.canvasses[fn_canvas],
 
 
                   run() {
 
-
+                    let _image = this.image;
                     this._x += Math.floor(this.x) - Math.floor(this.xprev);
-
                     this._y += Math.floor(this.y) - Math.floor(this.yprev);
 
 
-
-
                     //if(this.image!=="" &&  !(this.x==this.xprev && this.y==this.yprev)  )
-                    if (this.image !== "") {
-
-                      let _image = this.image;
+                    if (_image !== "") {
 
 
                       if (this._x + _image.naturalWidth < 0) {
@@ -2798,7 +2863,6 @@ var _ESPECIALIZADO =
 
                         this._x -= _image.naturalWidth;
                       }
-
 
 
                       if (this._y + _image.naturalHeight < 0) {
@@ -2823,8 +2887,9 @@ var _ESPECIALIZADO =
 
 
                     let _canvas = this.canvas;
+                    
 
-                    let _ctx = _canvas.ctx;
+                    let _ctx = _canvas.buffers[0].ctx;
                     let _image = this.image;
 
                     let _cw = (_canvas.wr / 2);
@@ -2847,6 +2912,10 @@ var _ESPECIALIZADO =
 
                       _h -= (((-_y) + _h) - _image.naturalHeight);
                     }
+
+              //let _u = this.canvasses[i];
+              //for (var j = 0; j < _u.buffers.length; j++) {
+
 
                     _ctx.drawImage(_image,
                       -_x, -_y, _w, _h,
@@ -2987,9 +3056,9 @@ var _ESPECIALIZADO =
 
 
 
-            this.tilemap_0 = crear_multiarray(_empty_map_yt, _empty_map_xt, 0);
-            this.tilemap_1 = crear_multiarray(_empty_map_yt, _empty_map_xt, 0);//clone_array(this.tilemap_0);
-            this.tilemap_2 = crear_multiarray(_empty_map_yt, _empty_map_xt, 0); //clone_array(this.tilemap_0);
+            this.tilemap_0   = crear_multiarray(_empty_map_yt, _empty_map_xt, 0);
+            this.tilemap_1   = crear_multiarray(_empty_map_yt, _empty_map_xt, 0);//clone_array(this.tilemap_0);
+            this.tilemap_2   = crear_multiarray(_empty_map_yt, _empty_map_xt, 0); //clone_array(this.tilemap_0);
             this.tilemap_obj = crear_multiarray(_empty_map_yt, _empty_map_xt, 0); //clone_array(this.tilemap_0);
 
 
@@ -4374,6 +4443,8 @@ var _ESPECIALIZADO =
             //desbloquear padre si es ventana anidada
             if (esundempty(_ven.padre_ventana) == 0) {
 
+               setTimeout(()=>{_ven.padre_ventana.obj.focus()},10);
+
               _ven.padre_ventana.hijos_ventanas.splice(_ven.hijo_ventana_id, 1);
               _ven.padre_ventana.__update_hijoventana_ids();
 
@@ -4565,6 +4636,10 @@ var _ESPECIALIZADO =
             this.$.TECLADO = this.teclado;
             this.$.CURSOR = this.cursor;
             this.$.CURSOR_BLOQUE = this.cursor_bloque;
+          },
+          get_title()
+          {
+           return(_ven.macrobloque.header.titulo.texto.obj.innerHTML);
           },
 
           set_title(f_data) {
@@ -5407,17 +5482,29 @@ var _ESPECIALIZADO =
 
     interpretar_elem(f_elem, f_this = window,  f_menuclick) {
 
+      
+      
+      
+
+
       let _type = get_type(f_elem);
 
       if (_type == 'object')
         return ('object');
 
       if (_type == 'string' || _type == 'number')
+      {
+        setTimeout(()=>{ if(f_this.obj)f_this.obj.focus() },10 )//workaround regresar focus ventana
+
         alert(f_elem)
+      }
 
 
       if (_type == 'function')
+      {
+        setTimeout(()=>{ if(f_this.obj)f_this.obj.focus() },10 ) //workaround regresar focus ventana
         bindear_(f_elem, f_this)(f_menuclick);
+      }
 
       if (_type == 'array') //evitar cerrar al click
         return ("nothing")
@@ -5541,7 +5628,7 @@ var _ESPECIALIZADO =
                 break;
               }
             }
-            console.log(_inside)
+            //console.log(_inside)
 
             if (_inside == 0) {
               this.close();
@@ -7391,6 +7478,15 @@ var _ESPECIALIZADO =
                  json:'{"direccion":0}'//nunca referenciado en tilemaps[3]
                  
                  },
+
+              2:{
+                 _id:'', //index ids(automatico)
+
+                 id: 'hormiga',
+                 in: 0,
+                 json:'{"direccion":0}'//nunca referenciado en tilemaps[3]
+                 
+                 },
               50:{
                  _id:'', //index ids(automatico)
 
@@ -7422,7 +7518,7 @@ var _ESPECIALIZADO =
 
                  id: 'puerta',
                  in: 0,
-                 json:'{"tag":"A", "destino": [0,"A" ] }'//nunca referenciado en tilemaps[3]
+                 json:'{"tag":"A", "destino": [0,"A" ], "direccion":1 }'//nunca referenciado en tilemaps[3]
                  
                  },
 

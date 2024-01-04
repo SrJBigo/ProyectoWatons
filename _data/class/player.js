@@ -119,12 +119,14 @@ document.currentScript.class =
        },
        start()
        {
-        _clip.modos.set('muerto');
+        _clip.hitcon.hit( {hitcon:{rebotar:0, damage:4} });
+         let _salud = game.particon.data.perfiles.act.hp[0];
+         
+         if(_salud>0)
+        _clip.modos.set('muerto', [0]);
+         else
+         _clip.modos.set('muerto',[1])
         
-        //_clip.x=this.x;
-        //_clip.y=this.y;
-           _clip.hitcon.hit( {hitcon:{rebotar:0, damage:4} });
-
        },
        end()
        {
@@ -477,6 +479,15 @@ document.currentScript.class =
       {
 
           game.particon.data.perfiles.set_var(_enem.hitcon.damage, 'hp', '-');
+          let _salud = game.particon.data.perfiles.act.hp[0];
+          if(_salud<=0)
+          {
+          _clip.modos.set('muerto',[2])
+          return;  
+          }
+          
+        
+        
 
           let _padre = this._padre;
           
@@ -613,7 +624,7 @@ document.currentScript.class =
           permitir_arma:1,
           suelo_tt:0,
           salto_estado:0,
-          estado:0,
+          estado:'',
 
           yvel_max:7,
           xvel_max: 2,
@@ -652,7 +663,10 @@ document.currentScript.class =
 
            ini()
            {
-           this.estado=1;
+
+           if(this.estado==='') 
+              this.estado=1;
+
            },
            run()
            {
@@ -661,8 +675,12 @@ document.currentScript.class =
             let _tilemaps_all = _tileges.tilemaps_all;
             let _perfil = game.particon.data.perfiles.act;
 
+            _clip.suelo_y = $gameges.tileges.yt_allmax * 16;
+
             let _xt = fl(_clip.x/16);
             let _yt = fl(_clip.y/16);
+
+            
 
             this.suelo_tt--;
             _clip.yvelocity += _clip.gravedad;
@@ -738,7 +756,7 @@ document.currentScript.class =
               if (this.estado == 2)
                {
                 _clip.orientacion = 0;
-                this.polvo.run();
+                //this.polvo.run();
                 _clip.xvelocity -= this.xvel_impetu;
                 if (_clip.xvelocity < (-this.xvel_max)) 
                     _clip.xvelocity = (-this.xvel_max);
@@ -752,7 +770,7 @@ document.currentScript.class =
               if (this.estado == 3) 
               {
                 _clip.orientacion = 1;
-                this.polvo.run();
+                //this.polvo.run();
                 _clip.xvelocity += this.xvel_impetu;
                 if (_clip.xvelocity > this.xvel_max)
                     _clip.xvelocity = this.xvel_max;
@@ -776,7 +794,7 @@ document.currentScript.class =
                 _clip.x = 0;
 
 
-              if (game.editor.estado && _clip.y + _clip.h > _clip.suelo_y) 
+              if (game.editor.estado && _clip.y + _clip.h > _clip.suelo_y && _clip.yvelocity>0)
                 {
                   _clip.y = _clip.suelo_y - _clip.h;
                   _clip.yvelocity = 0;
@@ -786,8 +804,6 @@ document.currentScript.class =
                 if (game.editor.estado == 0 && _clip.y - 32 > _clip.suelo_y) 
                 {
                   _clip.spawn_fall.start();
-               
-                // game.reiniciar();
                 
                 }
 
@@ -800,6 +816,7 @@ document.currentScript.class =
          muerto:
          {
           name:'muerto',
+          estado:0, //0:regresar pos, 1:perdida vida
           hitcon:
           {
             detectar:1,
@@ -810,8 +827,9 @@ document.currentScript.class =
             }
           },
 
-          ini()
+          ini(f_estado)
           {
+            this.estado=f_estado;
              _clip.yvelocity=0;
              _clip.xvelocity=0;
 
@@ -819,13 +837,25 @@ document.currentScript.class =
           run()
           {
                let _spawn = _clip.spawn_fall;
-               _clip.x += (_spawn.x-_clip.x)/20;
-               _clip.y += (_spawn.y-_clip.y)/20;
-               if(get_distance(_clip.x, _clip.y,
-                               _spawn.x, _spawn.y)<3  )
+
+               if(this.estado==0) //regresar ultima plataforma
                {
-                 _spawn.end();
-                 
+                   _clip.x += (_spawn.x-_clip.x)/20;
+                   _clip.y += (_spawn.y-_clip.y)/20;
+                   if(get_distance(_clip.x, _clip.y,
+                                   _spawn.x, _spawn.y)<3  )
+                   {
+                     _spawn.end();
+                     
+                   }
+               }
+               if(this.estado==1)//muerte precipicio
+               {
+                
+               }
+               if(this.estado==2)//muerte normal
+               {
+                  _clip.anim.visible=false;
                }
 
                 //_clip.estado_h=10;
@@ -857,7 +887,7 @@ document.currentScript.class =
              let _xt = fl((_clip.x+_clip.w/2)/16);
              let _yt = fl((_clip.y+_clip.h/2)/16);
 
-              if(_tilemap[_yt][_xt].id=='puerta' && _clip.modos.modos.normal.suelo_tt>0)
+              if(_tilemap[_yt] && _tilemap[_yt][_xt].id=='puerta' && _clip.modos.modos.normal.suelo_tt>0)
               {
                 this.puerta = _tilemap[_yt][_xt];
                 let _des = this.puerta.destino;
@@ -891,6 +921,7 @@ document.currentScript.class =
 
                         let _des = this.puerta.destino; //[submap_id, tag]
                         game.mapcon.set_submap(_des[0]);
+
                         let _tilemap_3 =game.mapcon.submap.tilemaps[3];
                         //buscar tag
                           for(var i in _tilemap_3)
@@ -898,22 +929,27 @@ document.currentScript.class =
                             for(var j in _tilemap_3[i])
                             {
                               let u = _tilemap_3[i][j];
-                              if(u.tag=='A')
+                              if(u.tag==_des[1])
                               {
+                                
+                                $root.level.jugador.modos.modos.normal.estado=u.direccion;
+
                                 $root.level.jugador.x = u.x*16;
                                 $root.level.jugador.y = u.y*16;
+
                                 
                                 break;
                               }
                             }
                           }
-                        
-                        
-                        
-                         game.fadecon.set('aclarar',   ()=>{
-                          _clip.modos.set('normal');
-                          _clip.modos.modos.normal.estado = _clip.orientacion;
+                         
 
+                         
+                         game.fadecon.set('aclarar',   ()=>{
+
+                          //_clip.modos.set('normal');
+
+                         // _clip.modos.modos.normal.estado = _clip.orientacion;
 
                          });
 
@@ -1075,8 +1111,8 @@ document.currentScript.class =
 
 
            //limites de movimiento verticales
-           if(_clip.y<this.ytmax[0]*16-9)
-              _clip.y=this.ytmax[0]*16-9;
+           if(_clip.y<this.ytmax[0]*16-14)
+              _clip.y=this.ytmax[0]*16-14;
 
            if(_clip.y>this.ytmax[1]*16)
               _clip.y=this.ytmax[1]*16;
@@ -1119,10 +1155,10 @@ document.currentScript.class =
 
     this.armacon.run();
 
-    game.center_nivel(this.x+this.w/2,this.y+this.h/2  );
+
+//   game.center_nivel(this.x+this.w/2,this.y+this.h/2  );
     this.fondocon.update_fondos();
 
-    //$gameges.fondoges.fondos[0].id = 0;
 
     this.anim.x = -13;
     this.anim.y = -5;
