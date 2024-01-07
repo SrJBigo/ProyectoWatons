@@ -349,6 +349,8 @@ return (_raw);
        'Acerca de...'()
        {
 
+           _editor.piano_con.playcon.stop();
+
           let _win = _editor.win;
 
           let _sub = _win.crear_subventana({x:190,y:50, w:300,h:360, titulo:'Acerca de...', grab:1} );
