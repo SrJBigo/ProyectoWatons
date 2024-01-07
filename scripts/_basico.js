@@ -750,6 +750,136 @@ var _BASICO =
 
 
 
+  set_canvas_misc(_foo)
+  {
+
+    //draw cosillines
+    _foo.draw =
+    {
+      _padre: _foo,                      //borde fondo
+      square(f_x, f_y, f_w, f_h, f_color = ['blue', ''], f_size = 1) {
+
+          f_color = clone_array(f_color);
+
+        if (get_type(f_color) !== 'array') 
+          f_color = [f_color, ''];
+
+
+        if(get_type(f_color[0])=='array' )
+          f_color[0]=arr_to_rgba(f_color[0]);
+
+        if(get_type(f_color[1])=='array' )
+          f_color[1]=arr_to_rgba(f_color[1]);
+        
+
+        let _ctx = this._padre.ctx;
+
+
+
+        if (f_color[1] !== '') {
+          _ctx.fillStyle = f_color[1];
+          _ctx.fillRect(f_x, f_y, f_w, f_h);
+        }
+
+        _ctx.beginPath();
+
+        _ctx.lineWidth = f_size;
+        _ctx.strokeStyle = f_color[0];
+        _ctx.rect(f_x, f_y, f_w, f_h);
+        _ctx.stroke();
+
+      },//square
+
+
+         //[[x,y],[x,y], ....]
+     shape(_pos,  f_color = ['blue', ''],  f_size = 1, _move=0) {
+
+       
+       f_color = clone_array(f_color);
+       
+        
+       if (get_type(f_color) !== 'array') 
+          f_color = [f_color, ''];
+
+
+        if(get_type(f_color[0])=='array' )
+          f_color[0]=arr_to_rgba(f_color[0]);
+
+        if(get_type(f_color[1])=='array' )
+          f_color[1]=arr_to_rgba(f_color[1]);
+
+
+
+
+
+        let _ctx = this._padre.ctx;
+
+
+        _ctx.beginPath();
+        _ctx.lineWidth = f_size;
+
+        _ctx.strokeStyle = f_color[0];
+        _ctx.fillStyle   = f_color[1];
+
+        let _m =0;
+        _ctx.moveTo(_pos[0][0], _pos[0][1]);
+        for(var i = 1; i<_pos.length;i++)
+        {
+           let u = _pos[i];
+   
+           if(_move>0)
+           {
+            _m++;
+            if(_m==_move)
+            {
+              _m=0;
+              _ctx.moveTo(_pos[i][0], _pos[i][1]);
+              continue;
+
+            }
+           }
+           _ctx.lineTo(_pos[i][0], _pos[i][1]);
+
+        }
+
+         if(f_color[1]!=='none')
+        _ctx.fill();
+
+        if(f_color[0]!=='none')
+        _ctx.stroke();
+        
+        
+        //_ctx.closePath();
+        
+
+      },//rectangle
+
+
+      line(x, y, _x, _y, f_color = 'blue', f_size = 1) {
+
+        let _ctx = this._padre.ctx;
+
+        _ctx.beginPath();
+        _ctx.lineWidth = f_size;
+        _ctx.strokeStyle = f_color;
+
+        _ctx.moveTo(x, y);
+        _ctx.lineTo(_x, _y);
+
+        // set line color
+        _ctx.closePath();
+        _ctx.stroke();
+
+
+      },//line
+
+    }
+
+
+
+  },
+
+
   //           //odiv
   crear_canvas(f_donde, f_size, f_x, f_y, f_w, f_h, f_style, f_esp) {
 
@@ -946,6 +1076,8 @@ var _BASICO =
 
       }
 
+      set_canvas_misc(_obj);
+
 
       _foo.buffers.push(_obj);
       return (_obj);
@@ -1080,112 +1212,8 @@ var _BASICO =
     }
     //
 
-
-
     //draw cosillines
-    _foo.draw =
-    {
-      _padre: _foo,                      //borde fondo
-      square(f_x, f_y, f_w, f_h, f_color = ['blue', ''], f_size = 1) {
-
-          f_color = clone_array(f_color);
-
-        if (get_type(f_color) !== 'array') 
-          f_color = [f_color, ''];
-
-
-        if(get_type(f_color[0])=='array' )
-          f_color[0]=arr_to_rgba(f_color[0]);
-
-        if(get_type(f_color[1])=='array' )
-          f_color[1]=arr_to_rgba(f_color[1]);
-        
-
-        let _ctx = this._padre.ctx;
-
-
-
-        if (f_color[1] !== '') {
-          _ctx.fillStyle = f_color[1];
-          _ctx.fillRect(f_x, f_y, f_w, f_h);
-        }
-
-        _ctx.beginPath();
-
-        _ctx.lineWidth = f_size;
-        _ctx.strokeStyle = f_color[0];
-        _ctx.rect(f_x, f_y, f_w, f_h);
-        _ctx.stroke();
-
-      },//square
-
-
-         //[[x,y],[x,y], ....]
-     shape(_pos,  f_color = ['blue', ''],  f_size = 1) {
-
-       
-       f_color = clone_array(f_color);
-       
-        
-       if (get_type(f_color) !== 'array') 
-          f_color = [f_color, ''];
-
-
-        if(get_type(f_color[0])=='array' )
-          f_color[0]=arr_to_rgba(f_color[0]);
-
-        if(get_type(f_color[1])=='array' )
-          f_color[1]=arr_to_rgba(f_color[1]);
-
-
-
-
-
-        let _ctx = this._padre.ctx;
-
-
-        _ctx.beginPath();
-        _ctx.lineWidth = f_size;
-
-        _ctx.strokeStyle = f_color[0];
-        _ctx.fillStyle   = f_color[1];
-
-        _ctx.moveTo(_pos[0][0], _pos[0][1]);
-        for(var i = 1; i<_pos.length;i++)
-        {
-           let u = _pos[i];
-
-           _ctx.lineTo(_pos[i][0], _pos[i][1]);
-
-        }
-        _ctx.fill();
-        _ctx.closePath();
-        _ctx.stroke();
-        
-
-      },//rectangle
-
-
-      line(x, y, _x, _y, f_color = 'blue', f_size = 1) {
-
-        let _ctx = this._padre.ctx;
-
-        _ctx.beginPath();
-        _ctx.lineWidth = f_size;
-        _ctx.strokeStyle = f_color;
-
-        _ctx.moveTo(x, y);
-        _ctx.lineTo(_x, _y);
-
-        // set line color
-        _ctx.closePath();
-        _ctx.stroke();
-
-
-      },//line
-
-
-    }
+    set_canvas_misc(_foo);
 
 
     return (_foo);
