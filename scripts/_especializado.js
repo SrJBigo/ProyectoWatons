@@ -522,7 +522,7 @@ var _ESPECIALIZADO =
             ],
 
             normal: { background: 'white' },
-            hover: { background: 'cyan' },
+            hover: { background: 'lightgray' },
 
             special:
             {
@@ -628,7 +628,7 @@ var _ESPECIALIZADO =
             ],
 
             normal: { background: 'white' },
-            hover: { background: 'cyan' },
+            hover: { background: 'lightgray' },
 
             special:
             {
@@ -737,7 +737,7 @@ var _ESPECIALIZADO =
             ],
 
             normal: { background: 'white' },
-            hover: { background: 'cyan' },
+            hover: { background: 'lightgray' },
 
             special:
             {

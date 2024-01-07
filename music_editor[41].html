@@ -14,11 +14,20 @@
 
   */
 
+var _BUILD =
+    {
+      nombre:'J editor',
+      version:'0.03 Beta',
+      fecha:'07/01/2024'
+    }
+
 
 
                                             //fade=desvanecer al final
 function get_rawpitch(_raw, _pitch, _vol=[1,1], _fade=0,       _master, _j,   _o=0)
 {
+
+//_editor.piano_con.playcon.raw_total[(48000/10)*2+1 ]
 
 
        let _sr      = 48000;
@@ -56,12 +65,14 @@ function get_rawpitch(_raw, _pitch, _vol=[1,1], _fade=0,       _master, _j,   _o
          _end = (_raw[ fl(_o) ]*_v);
 
          //desvanecer si es extremoderecho de tile
-         if(_fade && o>=4800-300)
+         let _d = 300;
+         let _dd = 50;
+         if(_fade && o>=4800-_d)
           {
-            if(o==4800-300)
+            if(o==4800-_d)
               _f = _end;
 
-            _end = _f += (0-_f)/50;
+            _end = _f += (0-_f)/_dd;
           }
 
  
@@ -286,7 +297,104 @@ return (_raw);
      menu:
       {
         
-       Archivo:{
+       $Ayuda:
+       {
+
+       'Ayuda rápida'()
+       {
+        _editor.piano_con.playcon.stop();
+
+        let _y = 1;
+        function _ct(_text="", _text2="")
+        {
+
+          _FORM.crear_text(_c.odiv, {texto: _text,  
+                              x:10,y:20*_y,w:200, h:60, style:{textAlign:'left',fontSize:'12px', border:'none', whiteSpace:'wrap'} });
+
+          _FORM.crear_text(_c.odiv, {texto: _text2,  
+                              x:10,y:20*_y,w:[0,5], h:60, style:{textAlign:'right',fontSize:'12px', border:'none', whiteSpace:'wrap'} });
+
+            _y++;
+        }
+
+        let _win = _editor.win;
+
+        let _sub = _win.crear_subventana({x:190,y:50, w:300,h:410, titulo:'Ayuda rápida', grab:1} );
+            
+        let _c = _FORM.crear_categoria(_sub._bloque, {texto:'Información útil :) ', x:0,y:0, w:[10,10], h:[10,10]});
+
+           _ct('Borrar notas seleccionadas:','Delete');
+           _ct('Borrar notas al clickear:','Space + Click');
+           _ct("'Estirar' notas:",'Ctrl + Click');
+           _ct("Editar volumen de notas [simple]:",'Z + Click');
+           _ct("Editar volumen de notas [doble]:",'[Z+X] + Click');
+           _ct('Mover escenario:','A,S,W,F');
+           _ct("Aumentar/alejar escenario:", ' [+],[-] ');
+           _ct("Reproducir:",'Enter');
+           _ct("Reproducir en bucle:",'Shift + Enter');
+           _ct("Deseleccionar notas/resetear play:",'Escape');
+           _ct("Seleccionar area:", 'Shift + Click');
+           _ct("Copiar:", 'Ctrl + C');
+           _ct("Pegar:", 'Ctrl + V');
+           _ct('Ocultar/mostrar panel Tileraws:','Backspace');
+           _ct("","");
+           _ct("Y otras cosas secretas!","");
+
+
+                    
+
+
+       },
+
+       'Acerca de...'()
+       {
+
+          let _win = _editor.win;
+
+          let _sub = _win.crear_subventana({x:190,y:50, w:300,h:360, titulo:'Acerca de...', grab:1} );
+            
+     let _marco = crear_odiv(_sub._bloque, 20,20, 60,60, {border:'1px solid gray',borderLeft:'1px solid lightgray',borderTop:'1px solid lightgray'} );
+
+           crear_odiv_image_(_marco, {url:'_data/images/music_icon_a.png', x:10,y:10, 
+                                                  style:{border:'none'}})
+
+          _FORM.crear_text(_sub._bloque, {
+                 texto: '<b><font size="4"><u>'+_BUILD.nombre +'</u></font></b> <br>para navegador web <br>'+
+             'Version ' + _BUILD.version + '<br><br>Ult. modificación: ' + _BUILD.fecha +
+                                                  '<br><hr>Copyright [C] 2024 Sr J. Bigo <br> Freeware' ,  
+                              x:140,y:20, w:[100,10], h:200, style:{lineHeight:'20px', textAlign:'left',fontSize:'14px', border:'none', whiteSpace:'nowrap'} });
+
+/*          _FORM.crear_text(_sub._bloque, 
+               {texto: 'E-mail: srjbigo8@gmail.com <br>'+
+                       'Sitio: <a href="https://j-explorer.neocities.org/">   j-explorer.neocities.org/</a>' ,  
+                              x:140,y:230, w:[10,10], h:100, style:{textAlign:'left',fontSize:'14px', border:'none', whiteSpace:'wrap'} });
+ */
+      _FORM.crear_text(_sub._bloque, 
+               {texto: 'E-mail: <br> Sitio:',  
+                              x:0,y:230, w:[10,10], h:100, style:{textAlign:'left',fontSize:'14px', border:'none', whiteSpace:'wrap'} });
+
+     _FORM.crear_text(_sub._bloque, 
+               {texto: 'E-mail: srjbigo8@gmail.com <br> <a target="_blank" href="https://j-explorer.neocities.org/">j-explorer.neocities.org/</a>',  
+                              x:0,y:230, w:[60,10], h:100, style:{textAlign:'left',fontSize:'14px', border:'none', whiteSpace:'wrap'} });
+
+
+
+
+      _FORM.crear_boton(_sub._bloque, {x:90, y:280, w:100,texto:'Ok', mousedown:()=>                      
+                      {
+                       _sub.cerrar();
+                      }});
+
+
+          //let _c = _FORM.crear_categoria(_sub._bloque, {texto:'Información útil :) ', x:0,y:0, w:[10,10], h:[10,10]});
+
+
+
+       }
+
+       },
+
+       Proyecto:{
         /*'Play_all'()
         {
 
@@ -304,12 +412,19 @@ return (_raw);
          _editor.piano_con.cancion_con.load();
 
         },
+        //'Cargar_fix'()
+       // {
+
+        // _editor.piano_con.cancion_con.load(1);
+
+        //},
+
         'Guardar'()
         {
          _editor.piano_con.cancion_con.save();
 
         },
-        'Configuracion'()
+        'Configuración'()
         {
 
           _editor.cargar_configuracion();
@@ -330,19 +445,17 @@ return (_raw);
         
 
        },
-       Edicion:
+       'Edición':
          {
 
-          'importar tileraw'()
+          'Importar tileraw'()
           {
-
+           
            _editor.piano_con.tilecon.rawcon.cargar_raw();
-
-
 
           },
 
-          'Borrar pista'()
+          'Borrar notas'()
           {
             _editor.piano_con.cancion_con.borrar_todo();
           }
@@ -448,7 +561,7 @@ return (_raw);
      set_title(f_title = '')
      {
 
-      this.win.set_title('Editor musical v0.02 ' + '['+ f_title + ']');
+      this.win.set_title(_BUILD.nombre + ' v' +_BUILD.version + ' ['+ f_title + ']');
 
      },
 
@@ -603,6 +716,7 @@ return (_raw);
              this.draw();
               
            },
+           
            mousedown(e)
            {
             let _tiles = this.tiles;
@@ -616,7 +730,7 @@ return (_raw);
                 _y = fl(  (_ym-_y*4) /this.ht  );
 
 
-            if(_x>this.tiles.length-1 || _y>this.tiles[0].length-1) return;
+            if(_x>this.tiles.length-1 || _y>this.tiles[0].length-1 | _y<0) return;
 
             let u = this.tilegrid[_x][_y];
 
@@ -745,6 +859,21 @@ return (_raw);
            },//draw
 
           },//tiles
+
+         _odiv_w_ini:90,
+
+           keydown(e)
+           {
+            
+              if(e.key=='Backspace')
+              {
+                if(this.odiv.wr==1)
+                  this.odiv.set_w(this._odiv_w_ini)
+
+                 else
+                this.odiv.set_w(1)
+              }
+           },
           
            mousedown(e)
            {
@@ -756,10 +885,12 @@ return (_raw);
           {
 
             let _win = this._padre._padre.win;
-            let _odiv = this.odiv = crear_odiv(_win.macrobloque, 0,0, 90,[52,100], 
+            let _odiv = this.odiv = crear_odiv(_win.macrobloque, 0,0, this._odiv_w_ini,[52,100], 
            // let _odiv = this.odiv = crear_odiv(_win.macrobloque, 0,0, 1,[52,100], 
 
                                 {border:'none', borderLeft:'2px solid black',borderRight:'1px solid gray'},{x_orientacion:'der'})
+
+           
 
             this.canvas = crear_canvas(_odiv, 1, 0,0,[0,0],[0,0], {border:'none'});
 
@@ -769,7 +900,51 @@ return (_raw);
             this.canvas.obj.addEventListener('mousedown', bindear_(this.mousedown, this) )
             this.rawcon.ini();
 
-          }
+            
+            this.lauracon.ini();
+
+          },
+
+          lauracon:{
+             _padre:'',
+            
+                images:[],
+
+                set(f_id=0)
+                {
+                  for(var i =0;i< this.images.length;i++)
+                  {
+                    let u = this.images[i];
+
+                    if(f_id==i)
+                      u.show();
+                    else
+                      u.hide();
+                  }
+
+                },
+
+                on_start()
+                {
+                this.set(1);
+                },
+                on_stop()
+                {
+                  this.set(0); 
+
+                },
+
+                ini()
+                {
+                  let _odiv = this._padre.odiv;
+                  
+                  this.images.push (crear_odiv_image_(_odiv, {url:'_data/images/music_laura_0.png',x:5,y:311 , style:{border:'none'}}),
+                                    crear_odiv_image_(_odiv, {url:'_data/images/music_laura_1.png',x:5,y:311 , style:{border:'none'}}) 
+                                   );
+
+                  this.set(0);
+                }
+             },
 
         },
 
@@ -975,6 +1150,8 @@ return (_raw);
           },
            stop(_reset=0, _loop = 0)
            {
+            this._padre.tilecon.lauracon.on_stop();
+
             let _canvasses = this._padre._padre.canvasses;
             let _can = this._padre.cancion_con.act;
             let _notemap = _can.notemap;
@@ -1025,6 +1202,7 @@ return (_raw);
            play_buffernode:'',
            start(f_loop=0)
            {
+            this._padre.tilecon.lauracon.on_start();
             this.loop = f_loop;
            this.tt[0]=0;
            this.estado=1;
@@ -1579,14 +1757,14 @@ return (_raw);
 
            //dibujar textos lims
 
-           //_canvasses[2].ctx.globalCompositeOperation = "source-atop";
+           _canvas.ctx.globalCompositeOperation = "source-atop";
 
            _canvas.ctx.font = _gs*0.8 + "px serif";
            _canvas.ctx.fillText("  <limites del bucle>", _a,  _gy-_gs/4);
 
            _canvas.ctx.fillText("  <limites del exportacion>", _aa,  _gy + (_notemap[0].length+1)*_gs-_gs/4  );
 
-           //_canvasses[2].ctx.globalCompositeOperation = "source-over";
+           _canvas.ctx.globalCompositeOperation = "source-over";
            
            
 
@@ -1793,12 +1971,11 @@ return (_raw);
           },
 
           //|load proyecto
-          load()
+          load(f_fix=0)
           {
               FORMS.cargar_txt( (e)=>{
                  let _json = JSON.parse(e);
                  console.log(_json);
-
 
                  
               //establecer red tile a notas de notemap
@@ -1809,14 +1986,25 @@ return (_raw);
                       {
                         u.select=0;
 
-                         //compatibilidad formato anterior
+                        if(f_fix)
+                        {
+                          if(u.tile_id!==undefined)
+                          {
+                           delete u.tile_id;
+                          }
+
+                          u.tile_xy=[0,0];
+                          u.tile = _json.tiles[0];
+                          continue;
+                        }
+                         /*//compatibilidad formato anterior
                           if(u.tile_id!==undefined)
                           {
                           u.tile = _json.tiles[u.tile_id];
 
-                           var woo = u.tile_id;
-                           let _a = (fl(woo/3) )
-                           let _b = woo-(_a*3);
+                           let _woo = u.tile_id;
+                           let _a = (fl(_woo/3) )
+                           let _b = _woo-(_a*3);
 
                            u.tile_xy =  [_a,_b];
 
@@ -1824,12 +2012,12 @@ return (_raw);
                           delete u.tile_id;
                           break;  
                           }
+                         */
 
 
                         for(var o of _json.tiles)
                         {
                           
-
                           if(u.tile_xy[0] == o.x && u.tile_xy[1]==o.y)
                           {
                           u.tile = o;
@@ -1861,7 +2049,6 @@ return (_raw);
               }
 
               this.set(_json)
-
 
               }, '.mus'
 
@@ -2042,7 +2229,7 @@ return (_raw);
 
        let _teclado = this._padre.win.teclado;
 
-      let _speed_arr = [this.drawcon.grid_size/5,this.drawcon.grid_size*2];
+      let _speed_arr = [this.drawcon.grid_size/2,this.drawcon.grid_size*3];
          if(_speed_arr[0]<4)
           _speed_arr[0]=4;
 
@@ -2083,6 +2270,10 @@ return (_raw);
          let _teclado = this._padre.win.teclado;
 
          let _key = e.key;
+
+
+         this.tilecon.keydown(e);
+
 
          if(_key=='-')
           this.drawcon.set_grid_size('-');

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
-<script type="text/javascript" src="/scripts/_basico.js"> </script>
-<script type="text/javascript" src="/scripts/_especializado.js"> </script>
+<script type="text/javascript" src="scripts/_basico.js"> </script>
+<script type="text/javascript" src="scripts/_especializado.js"> </script>
 
 <script>
 
@@ -14,11 +14,20 @@
 
   */
 
+var _BUILD =
+    {
+      nombre:'JMUS editor',
+      version:'0.03 Beta',
+      fecha:'07/01/2024'
+    }
+
 
 
                                             //fade=desvanecer al final
 function get_rawpitch(_raw, _pitch, _vol=[1,1], _fade=0,       _master, _j,   _o=0)
 {
+
+//_editor.piano_con.playcon.raw_total[(48000/10)*2+1 ]
 
 
        let _sr      = 48000;
@@ -56,12 +65,14 @@ function get_rawpitch(_raw, _pitch, _vol=[1,1], _fade=0,       _master, _j,   _o
          _end = (_raw[ fl(_o) ]*_v);
 
          //desvanecer si es extremoderecho de tile
-         if(_fade && o>=4800-300)
+         let _d = 300;
+         let _dd = 50;
+         if(_fade && o>=4800-_d)
           {
-            if(o==4800-300)
+            if(o==4800-_d)
               _f = _end;
 
-            _end = _f += (0-_f)/50;
+            _end = _f += (0-_f)/_dd;
           }
 
  
@@ -228,12 +239,12 @@ let _raw = new Float32Array(48000/10);
 }
 
 
-/*function crear_raw_ruido()
+function crear_raw_ruido()
 {
 
-let _raw = new Float32Array( (48000/10)*5 );
+let _raw = new Float32Array( (48000/10)*10 );
 
-            for(var i =0;i< (48000/10)*5 ;i++)
+            for(var i =0;i< (48000/10)*10 ;i++)
             {
               _raw[i]=Math.random()*2-1;
                
@@ -242,14 +253,14 @@ let _raw = new Float32Array( (48000/10)*5 );
 return (_raw);
 
 }
-*/
 
-function crear_raw_ruido()
+
+function _crear_raw_ruido()
 {
 
 let _raw = new Float32Array( (48000/10) );
 
-    let _a = new Float32Array( (48000/10)/10 );
+    let _a = new Float32Array( (48000/10)/100 );
             for(var i =0;i< _a.length; i++)
             {
               _a[i]=Math.random()*2-1;  
@@ -286,7 +297,104 @@ return (_raw);
      menu:
       {
         
-       Archivo:{
+       $Ayuda:
+       {
+
+       'Ayuda rápida'()
+       {
+        _editor.piano_con.playcon.stop();
+
+        let _y = 1;
+        function _ct(_text="", _text2="")
+        {
+
+          _FORM.crear_text(_c.odiv, {texto: _text,  
+                              x:10,y:20*_y,w:200, h:60, style:{textAlign:'left',fontSize:'12px', border:'none', whiteSpace:'wrap'} });
+
+          _FORM.crear_text(_c.odiv, {texto: _text2,  
+                              x:10,y:20*_y,w:[0,5], h:60, style:{textAlign:'right',fontSize:'12px', border:'none', whiteSpace:'wrap'} });
+
+            _y++;
+        }
+
+        let _win = _editor.win;
+
+        let _sub = _win.crear_subventana({x:190,y:50, w:300,h:410, titulo:'Ayuda rápida', grab:1} );
+            
+        let _c = _FORM.crear_categoria(_sub._bloque, {texto:'Información útil :) ', x:0,y:0, w:[10,10], h:[10,10]});
+
+           _ct('Borrar notas seleccionadas:','Delete');
+           _ct('Borrar notas al clickear:','Space + Click');
+           _ct("'Estirar' notas:",'Ctrl + Click');
+           _ct("Editar volumen de notas [simple]:",'Z + Click');
+           _ct("Editar volumen de notas [doble]:",'[Z+X] + Click');
+           _ct('Mover escenario:','A,S,W,F');
+           _ct("Aumentar/alejar escenario:", ' [+],[-] ');
+           _ct("Reproducir:",'Enter');
+           _ct("Reproducir en bucle:",'Shift + Enter');
+           _ct("Deseleccionar notas/resetear play:",'Escape');
+           _ct("Seleccionar area:", 'Shift + Click');
+           _ct("Copiar:", 'Ctrl + C');
+           _ct("Pegar:", 'Ctrl + V');
+           _ct('Ocultar/mostrar panel Tileraws:','Backspace');
+           _ct("","");
+           _ct("Y otras cosas secretas!","");
+
+
+                    
+
+
+       },
+
+       'Acerca de...'()
+       {
+
+          let _win = _editor.win;
+
+          let _sub = _win.crear_subventana({x:190,y:50, w:300,h:360, titulo:'Acerca de...', grab:1} );
+            
+     let _marco = crear_odiv(_sub._bloque, 20,20, 60,60, {border:'1px solid gray',borderLeft:'1px solid lightgray',borderTop:'1px solid lightgray'} );
+
+           crear_odiv_image_(_marco, {url:'_data/images/music_icon_a.png', x:10,y:10, 
+                                                  style:{border:'none'}})
+
+          _FORM.crear_text(_sub._bloque, {
+                 texto: '<b><font size="4"><u>'+_BUILD.nombre +'</u></font></b> <br>para navegador web <br>'+
+             'Version ' + _BUILD.version + '<br><br>Ult. modificación: ' + _BUILD.fecha +
+                                                  '<br><hr>Copyright [C] 2024 Sr J. Bigo <br> Freeware' ,  
+                              x:140,y:20, w:[100,10], h:200, style:{lineHeight:'20px', textAlign:'left',fontSize:'14px', border:'none', whiteSpace:'nowrap'} });
+
+/*          _FORM.crear_text(_sub._bloque, 
+               {texto: 'E-mail: srjbigo8@gmail.com <br>'+
+                       'Sitio: <a href="https://j-explorer.neocities.org/">   j-explorer.neocities.org/</a>' ,  
+                              x:140,y:230, w:[10,10], h:100, style:{textAlign:'left',fontSize:'14px', border:'none', whiteSpace:'wrap'} });
+ */
+      _FORM.crear_text(_sub._bloque, 
+               {texto: 'E-mail: <br> Sitio:',  
+                              x:0,y:230, w:[10,10], h:100, style:{textAlign:'left',fontSize:'14px', border:'none', whiteSpace:'wrap'} });
+
+     _FORM.crear_text(_sub._bloque, 
+               {texto: 'E-mail: srjbigo8@gmail.com <br> <a target="_blank" href="https://j-explorer.neocities.org/">j-explorer.neocities.org/</a>',  
+                              x:0,y:230, w:[60,10], h:100, style:{textAlign:'left',fontSize:'14px', border:'none', whiteSpace:'wrap'} });
+
+
+
+
+      _FORM.crear_boton(_sub._bloque, {x:90, y:280, w:100,texto:'Ok', mousedown:()=>                      
+                      {
+                       _sub.cerrar();
+                      }});
+
+
+          //let _c = _FORM.crear_categoria(_sub._bloque, {texto:'Información útil :) ', x:0,y:0, w:[10,10], h:[10,10]});
+
+
+
+       }
+
+       },
+
+       Proyecto:{
         /*'Play_all'()
         {
 
@@ -304,12 +412,19 @@ return (_raw);
          _editor.piano_con.cancion_con.load();
 
         },
+        //'Cargar_fix'()
+       // {
+
+        // _editor.piano_con.cancion_con.load(1);
+
+        //},
+
         'Guardar'()
         {
          _editor.piano_con.cancion_con.save();
 
         },
-        'Configuracion'()
+        'Configuración'()
         {
 
           _editor.cargar_configuracion();
@@ -330,19 +445,17 @@ return (_raw);
         
 
        },
-       Edicion:
+       'Edición':
          {
 
-          'importar tileraw'()
+          'Importar tileraw'()
           {
-
+           
            _editor.piano_con.tilecon.rawcon.cargar_raw();
-
-
 
           },
 
-          'Borrar pista'()
+          'Borrar notas'()
           {
             _editor.piano_con.cancion_con.borrar_todo();
           }
@@ -448,7 +561,7 @@ return (_raw);
      set_title(f_title = '')
      {
 
-      this.win.set_title('Editor musical v0.02 ' + '['+ f_title + ']');
+      this.win.set_title(_BUILD.nombre + ' v' +_BUILD.version + ' ['+ f_title + ']');
 
      },
 
@@ -603,6 +716,7 @@ return (_raw);
              this.draw();
               
            },
+           
            mousedown(e)
            {
             let _tiles = this.tiles;
@@ -616,7 +730,7 @@ return (_raw);
                 _y = fl(  (_ym-_y*4) /this.ht  );
 
 
-            if(_x>this.tiles.length-1 || _y>this.tiles[0].length-1) return;
+            if(_x>this.tiles.length-1 || _y>this.tiles[0].length-1 | _y<0) return;
 
             let u = this.tilegrid[_x][_y];
 
@@ -629,7 +743,10 @@ return (_raw);
                     if(this._padre._padre._padre.win.teclado.get('ctrl'))
                     {
                       for(var _u of this._padre._padre.grabcon.select.notas)
+                      {
                           _u.tile = this.act;
+                          _u.tile_xy = [this.act.x, this.act.y];
+                      }
                       
                       this._padre._padre.drawcon.draw_notas();
                     }
@@ -689,6 +806,7 @@ return (_raw);
                       
                       u.x = _r.x;
                       u.y = _r.y;
+                      u.tile_xy = [_r.x, _r.y];
                     }
 
                        let _tile =    {
@@ -741,6 +859,21 @@ return (_raw);
            },//draw
 
           },//tiles
+
+         _odiv_w_ini:90,
+
+           keydown(e)
+           {
+            
+              if(e.key=='Backspace')
+              {
+                if(this.odiv.wr==1)
+                  this.odiv.set_w(this._odiv_w_ini)
+
+                 else
+                this.odiv.set_w(1)
+              }
+           },
           
            mousedown(e)
            {
@@ -752,9 +885,12 @@ return (_raw);
           {
 
             let _win = this._padre._padre.win;
-            let _odiv = this.odiv = crear_odiv(_win.macrobloque, 0,0, 90,[52,100], 
+            let _odiv = this.odiv = crear_odiv(_win.macrobloque, 0,0, this._odiv_w_ini,[52,100], 
+           // let _odiv = this.odiv = crear_odiv(_win.macrobloque, 0,0, 1,[52,100], 
 
                                 {border:'none', borderLeft:'2px solid black',borderRight:'1px solid gray'},{x_orientacion:'der'})
+
+           
 
             this.canvas = crear_canvas(_odiv, 1, 0,0,[0,0],[0,0], {border:'none'});
 
@@ -764,7 +900,51 @@ return (_raw);
             this.canvas.obj.addEventListener('mousedown', bindear_(this.mousedown, this) )
             this.rawcon.ini();
 
-          }
+            
+            this.lauracon.ini();
+
+          },
+
+          lauracon:{
+             _padre:'',
+            
+                images:[],
+
+                set(f_id=0)
+                {
+                  for(var i =0;i< this.images.length;i++)
+                  {
+                    let u = this.images[i];
+
+                    if(f_id==i)
+                      u.show();
+                    else
+                      u.hide();
+                  }
+
+                },
+
+                on_start()
+                {
+                this.set(1);
+                },
+                on_stop()
+                {
+                  this.set(0); 
+
+                },
+
+                ini()
+                {
+                  let _odiv = this._padre.odiv;
+                  
+                  this.images.push (crear_odiv_image_(_odiv, {url:'_data/images/music_laura_0.png',x:5,y:311 , style:{border:'none'}}),
+                                    crear_odiv_image_(_odiv, {url:'_data/images/music_laura_1.png',x:5,y:311 , style:{border:'none'}}) 
+                                   );
+
+                  this.set(0);
+                }
+             },
 
         },
 
@@ -853,13 +1033,18 @@ return (_raw);
                         _fade=1;
                        }
                         
-                       let _pitch = get_rawpitch(u.tile.raw, u.y+1,  _vol,   _fade,       _raw, j-f_a, _o[i]);
+                       //console.log(_o[i])
+                       let _pitch = get_rawpitch(u.tile.raw, u.y+1,  _vol,   _fade,        _raw, j-f_a,  _o[i]);
 
 
-                       if(_u!==0 && _u.tile.raw == u.tile.raw)
+                       if(_u!==0)
                        {
+                        if(_u.tile.raw == u.tile.raw)
                          _o[i]=_pitch._o;
+
                        }
+                       if(_u==0)
+                        _o[i]=0;
 
                        
                       }
@@ -965,6 +1150,8 @@ return (_raw);
           },
            stop(_reset=0, _loop = 0)
            {
+            this._padre.tilecon.lauracon.on_stop();
+
             let _canvasses = this._padre._padre.canvasses;
             let _can = this._padre.cancion_con.act;
             let _notemap = _can.notemap;
@@ -1015,6 +1202,7 @@ return (_raw);
            play_buffernode:'',
            start(f_loop=0)
            {
+            this._padre.tilecon.lauracon.on_start();
             this.loop = f_loop;
            this.tt[0]=0;
            this.estado=1;
@@ -1151,13 +1339,13 @@ return (_raw);
         _padre:'',
 
 
-          grid_size:20,
-          grid_scroll:{x:0,y:0, x_ini:10, y_ini:30,},
+          grid_size:0,
+          grid_scroll:{x:0,y:0, x_ini:20, y_ini:30,},
 
           grid_lim:[5,50], //zoom
           reset_scroll()
           {
-             this.grid_size=19;
+             this.grid_size=15;
              this.grid_scroll.x = this.grid_scroll.x_ini;
              this.grid_scroll.y = this.grid_scroll.y_ini;
 
@@ -1185,6 +1373,7 @@ return (_raw);
               this.draw_play();
 
           },
+          //|scroll
           scroll(_x=0, _y=0)
           {
              
@@ -1193,18 +1382,52 @@ return (_raw);
 
               let _canvasses = this._padre._padre.canvasses;
 
+              let _canvas;
+              let _buf;
+
+              _canvas = _canvasses[0];
+              _buf    = _canvas.buffers[0];
+              
+
+              //_buf.ctx.globalCompositeOperation='copy';
+//              _buf.ctx.drawImage(_buf.obj,  _x, _y); 
+              
+              
+
+
+
+              
+  //            _canvas.ctx.drawImage(_buf.obj, 0,0);
+
+
+             
+
+              
+              //scroll grid
+
+              
+
+
+
+              //fin scroll grid
+
+
+
               this.draw_grid();
               this.draw_notas();
               this.draw_play();
 
           },
-          draw_grid()
-          {
-             let _canvas = this._padre._padre.canvasses[0];
-             
-             _canvas.clear();
-             _canvas.fill('lightgray');
+          //|draw_grid
 
+          draw_grid(_x, _y)
+          {
+
+
+             let _canvas = this._padre._padre.canvasses[0];
+             let _buf = _canvas.buffers[0];
+             
+             
              let _cancion = this._padre.cancion_con.act;
              let _notemap = _cancion.notemap;
              let _wc  = _canvas.wr;
@@ -1216,9 +1439,49 @@ return (_raw);
              let _ys = this.grid_scroll.y;
              let _gs = this.grid_size;
 
-             //draw fondo
-             _canvas.draw.square( _xs, _ys, _notemap.length*_gs, _notemap[0].length*_gs,  ['white','white']);
              
+             if(_x==undefined)
+             {
+             _buf.clear();
+             _buf.fill('lightgray');
+             
+              
+             //draw fondo
+
+             _buf.draw.square( _xs, _ys, _notemap.length*_gs, _notemap[0].length*_gs,  ['white','white']);
+             }
+
+             if(_x<0)
+             {
+             _buf.draw.square(  _wc+_x, 0,
+                                _x*-1,_hc
+              ,['transparent','lightgray']);
+             
+            
+              let _foo = _gs;
+
+             _buf.draw.square(  _wc+_x,   _ys,
+
+                                _x*-1,   _notemap[0].length*_gs
+
+              ,['transparent','white']);
+               
+             
+             }
+
+             if(_x>0)
+             {
+             _buf.draw.square(  0, 0,
+                                _x, _hc
+              ,['gray','gray']);
+             
+             
+             
+             }
+
+
+
+             let _lines = [];
 
              
              let _xsf =fl(_xs/_gs);
@@ -1226,7 +1489,6 @@ return (_raw);
              if(_xsf>0) _xsf=0;
              if(_ysf>0) _ysf=0;
              
-
              let __w = fl(_wc/_gs)+1;
              if((-_xsf+_wcf)>_notemap.length)
               __w -= (-_xsf+_wcf)-_notemap.length;
@@ -1255,43 +1517,79 @@ return (_raw);
               }
 
               //vertical
-              _canvas.draw.line(_xs+(j*_gs),   _ys,
-                                _xs+(j*_gs),   _ys+_notemap[0].length*_gs, 
 
-                                _c)
+              _lines.push(   [_xs+(j*_gs),   _ys,
+                             _xs+(j*_gs),   _ys+_notemap[0].length*_gs]  );
               
               //horizontal
               for(var i = -_ysf; i< __h-_ysf;i++)
-             {       
-              _canvas.draw.line(   _xs,                     _ys+(i*_gs)+2, //+2 = considerar relieve notas
-                                   _xs+_notemap.length*_gs, _ys+(i*_gs),
+             {
 
-                                'lightgray')
+              _lines.push  (   [_xs,                     _ys+(i*_gs)+2, //+2 = considerar relieve notas
+                                   _xs+_notemap.length*_gs, _ys+(i*_gs)]);
+
+                                
              }
-
 
 
              }
 
              //draw fondo2
-              _canvas.draw.square( _xs, _ys, _notemap.length*_gs, _notemap[0].length*_gs,  ['gray','transparent']);
-              _canvas.draw.square( _xs, _ys+_notemap[0].length*_gs, _notemap.length*_gs, 2,  ['gray','gray']);
+              _buf.draw.square( _xs, _ys, _notemap.length*_gs, _notemap[0].length*_gs,  ['gray','transparent']);
+              _buf.draw.square( _xs, _ys+_notemap[0].length*_gs, _notemap.length*_gs, 2,  ['gray','gray']);
+
+             
+             _buf.ctx.beginPath();
+             _buf.ctx.strokeStyle='lightgray';
+            
+
+             //dibujar lineas
+             for(var i =0;i<_lines.length;i++)
+             {
+               let u = _lines[i];
+
+               
+                //vertical
+                if( _x==undefined ||
+                  u[0]==u[2] &&  (_x<0&&  u[0] >= _wc + _x-_gs || (_x>0&&u[0] <= _x+_gs))  )
+                {
+
+               _buf.ctx.moveTo(fl(u[0]), fl(u[1]) )
+               _buf.ctx.lineTo(fl(u[2]), fl(u[3]))
+
+               }
+             }
+
+
+             _buf.ctx.stroke();
+
+              
+
+             //_canvas.ctx.globalCompositeOperation = 'copy';
+          
+
+
+             _canvas.ctx.drawImage(_buf.obj,0,0)
+
+
+
 
           },
 
-          nota_color:
-          {
-            select:[[0,0,0, 1],[255,255,255, 1] ]
+          
 
-          },
+
           //|draw_notas
           draw_notas()
           {
   
            let _cancion = this._padre.cancion_con.act;
            let _notemap = _cancion.notemap;
-           let _canvasses = this._padre._padre.canvasses;
-              _canvasses[1].clear();
+           let _canvas = this._padre._padre.canvasses[1];
+           let _buf = _canvas.buffers[0];
+               _canvas.clear();
+               _buf.clear();
+
            let _odiv_tileraws = this._padre.tilecon.odiv;
 
            let _gs = this.grid_size;
@@ -1300,7 +1598,7 @@ return (_raw);
 
 
           
-              let _cwt = fl( (_canvasses[0].wr-_odiv_tileraws.wr)/_gs);
+              let _cwt = fl( (_canvas.wr-_odiv_tileraws.wr)/_gs);
 
               let _i = [ fl(_xs/_gs)*-1-1, 
                         (fl(_xs/_gs)*-1)+_cwt+1
@@ -1319,9 +1617,11 @@ return (_raw);
 
                  
                  
+               let _shapes = {};
 
-           
-               //for(var i  = 0; i< _notemap.length;i++)
+               let _shapes_a = {};
+
+
                for(var i  = _i[0]; i< _i[1];i++)
                {
 
@@ -1332,66 +1632,70 @@ return (_raw);
                     let u = _notemap[i][j][k];
                     if(u!==0 && (u.x==i || u.x+ (_i[0]-u.x) == i) )
                     {
-                      let _color = u.tile.def_color;
+                      let _color = 'black'
                       if(u.select)
-                        _color = ['red',_color[1]] ;
-                          //_color = this.nota_color.select;
+                        _color = 'red';
+                          
 
                       let _x = [(u.x*_gs+_xs),  (u.x*_gs+_xs)  + (_gs*u.w)];
 
+                      if(_shapes_a[_color]==undefined  )
+                         _shapes_a[_color] = [];
                       
-                      //fondo
-                      _canvasses[1].draw.square(
-                                                 (u.x*_gs+_xs),(u.y*_gs+_ys), 
-                                                 u.w*_gs,_gs,
-                                                   
+                       _shapes_a[_color].push(
+                                     [fl(u.x*_gs+_xs),             fl(u.y*_gs+_ys)],
+                                     [fl(u.x*_gs+_xs),             fl(u.y*_gs+_ys+_gs) +3],
 
-                                           [_color[0],'black']);
+                                     [fl(u.x*_gs+_xs+_gs*u.w),     fl(u.y*_gs+_ys+_gs)+3],
+                                     [fl(u.x*_gs+_xs+_gs*u.w),     fl(u.y*_gs+_ys)],
 
-                       //relieve (optimizado)
-                       if(_notemap[i][j+1]!==undefined && _notemap[i][j+1][k] == 0 || u.w>0)
-                       {
-                      _canvasses[1].draw.square(
-                                                 (u.x*_gs+_xs),( u.y*_gs+_ys+_gs), 
-                                                 u.w*_gs,2,
-                                                   
-                                           ['black','black']);
-                       }
-            
-                      _canvasses[1].draw.shape([
-                                                  [_x[0],(u.y*_gs+_ys) + (_gs)],
-                                                  [_x[0],(u.y*_gs+_ys) + (_gs)-_gs*u.vol[0] ],
-                                                  [_x[1],(u.y*_gs+_ys) + (_gs)-_gs*u.vol[1] ],
-                                                  [_x[1],(u.y*_gs+_ys) + (_gs)]
-                                               ],
-                                                    
-                                           ['black',u.tile.def_color[1] ]);
+                                     [fl(u.x*_gs+_xs),             fl(u.y*_gs+_ys)],
 
-                              //sucio
-                            /**  _canvasses[1].draw.square(
-                                                 (u.x*_gs+_xs),(u.y*_gs+_ys), 
-                                                 u.w*_gs,_gs,
-                                                   
-
-                                           [_color[0],'transparent']);
-                                           */
+                                     );
 
 
+
+                      if(_shapes[u.tile.def_color[1]]==undefined  )
+                         _shapes[u.tile.def_color[1]] = [];
+
+                      _shapes[u.tile.def_color[1]].push(  [_x[0]+1,  (u.y*_gs+_ys) + (_gs)],
+                                                          [_x[0]+1,  (u.y*_gs+_ys) + (_gs)-_gs*u.vol[0] ],
+                                                          [_x[1]-1,  (u.y*_gs+_ys) + (_gs)-_gs*u.vol[1] ],
+                                                          [_x[1]-1,  (u.y*_gs+_ys) + (_gs)]
+                                                       )
+                                      
+                      
                     }
                   }  
 
                 }
                }
 
+
+               for(var i in _shapes_a)
+               {
+                _buf.draw.shape(_shapes_a[i], [i,'black' ],1,5  );  
+               }
+
+               for(var i in _shapes)
+               {
+                _buf.draw.shape(_shapes[i], ['rgba('+i+')','rgba('+i+')' ],1,4  );  
+               }
+              
+
+               _canvas.ctx.globalCompositeOperation = 'copy';
+               _canvas.ctx.drawImage(_buf.obj,0,0);
+
                
 
           },//drawnotas
 
-
+          //|draw_play
           draw_play()
           {
-
-            let _canvasses = this._padre._padre.canvasses;
+            let _canvas = this._padre._padre.canvasses[2].buffers[0];
+                _canvas.clear();
+            
             let _can = this._padre.cancion_con.act;
             let _notemap = _can.notemap;
             let _notas = _can.notas;
@@ -1409,8 +1713,8 @@ return (_raw);
               _color =['rgba(255, 0, 255, 0.5)','rgba(255, 0, 255, 0.5)'];
 
 
-            _canvasses[2].clear();
-            _canvasses[2].draw.square(this._padre.playcon.ll*_gs+_gx, _gy, _gs,_notemap[0].length*_gs, 
+            _canvas.clear();
+            _canvas.draw.square(this._padre.playcon.ll*_gs+_gx, _gy, _gs,_notemap[0].length*_gs, 
 
 
               _color);
@@ -1423,12 +1727,12 @@ return (_raw);
            let _e = _plim[1]*_gs+_gx;
 
 
-           _canvasses[2].draw.square(_a,  _gy-_gs,
+           _canvas.draw.square(_a,  _gy-_gs,
                                      _e-_a+_gs   , _gs,
 
                                        ['gray','white']);
            //relieve
-           _canvasses[2].draw.square(_a,  _gy,
+           _canvas.draw.square(_a,  _gy,
                                      _e-_a+_gs, _gs/20,
 
                                        ['gray','gray']);
@@ -1439,13 +1743,13 @@ return (_raw);
            let _ee = _slim[1]*_gs+_gx;
 
 
-           _canvasses[2].draw.square(_aa,  _gy-_gs + (_notemap[0].length+1)*_gs,
+           _canvas.draw.square(_aa,  _gy-_gs + (_notemap[0].length+1)*_gs,
                                   
                                      _ee-_aa+_gs   , _gs,
 
                                        ['gray','white']);
            //relieve
-           _canvasses[2].draw.square(_aa,  _gy + (_notemap[0].length+1)*_gs,
+           _canvas.draw.square(_aa,  _gy + (_notemap[0].length+1)*_gs,
                                      _ee-_aa+_gs, _gs/20,
 
                                        ['gray','gray']);
@@ -1453,25 +1757,29 @@ return (_raw);
 
            //dibujar textos lims
 
-           _canvasses[2].ctx.globalCompositeOperation = "source-atop";
+           _canvas.ctx.globalCompositeOperation = "source-atop";
 
-           _canvasses[2].ctx.font = _gs*0.8 + "px serif";
-           _canvasses[2].ctx.fillText("  <limites del bucle>", _a,  _gy-_gs/4);
+           _canvas.ctx.font = _gs*0.8 + "px serif";
+           _canvas.ctx.fillText("  <limites del bucle>", _a,  _gy-_gs/4);
 
-           _canvasses[2].ctx.fillText("  <limites del exportacion>", _aa,  _gy + (_notemap[0].length+1)*_gs-_gs/4  );
+           _canvas.ctx.fillText("  <limites del exportacion>", _aa,  _gy + (_notemap[0].length+1)*_gs-_gs/4  );
 
-           _canvasses[2].ctx.globalCompositeOperation = "source-over";
+           _canvas.ctx.globalCompositeOperation = "source-over";
            
            
 
    
            //dibujar grabber play
-            _canvasses[2].draw.square(this._padre.playcon.ll*_gs+_gx,  _gy-_gs,
+            _canvas.draw.square(this._padre.playcon.ll*_gs+_gx,  _gy-_gs,
                                          _gs, _gs,
 
                                        ['gray','white']);
 
 
+
+       this._padre._padre.canvasses[2].clear();
+       this._padre._padre.canvasses[2].ctx.drawImage(_canvas.obj,0,0);
+       
 
 
           },
@@ -1662,11 +1970,13 @@ return (_raw);
 
           },
 
-          load()
+          //|load proyecto
+          load(f_fix=0)
           {
               FORMS.cargar_txt( (e)=>{
                  let _json = JSON.parse(e);
                  console.log(_json);
+
                  
               //establecer red tile a notas de notemap
               for(var j in _json.notemap){for(var i in _json.notemap[j]){for(var k in _json.notemap[j][i])
@@ -1675,18 +1985,39 @@ return (_raw);
                       if(u!==0)
                       {
                         u.select=0;
-                        //compatibilidad formato anterior
+
+                        if(f_fix)
+                        {
+                          if(u.tile_id!==undefined)
+                          {
+                           delete u.tile_id;
+                          }
+
+                          u.tile_xy=[0,0];
+                          u.tile = _json.tiles[0];
+                          continue;
+                        }
+                         /*//compatibilidad formato anterior
                           if(u.tile_id!==undefined)
                           {
                           u.tile = _json.tiles[u.tile_id];
+
+                           let _woo = u.tile_id;
+                           let _a = (fl(_woo/3) )
+                           let _b = _woo-(_a*3);
+
+                           u.tile_xy =  [_a,_b];
+
+                          
+                          delete u.tile_id;
                           break;  
                           }
+                         */
 
 
                         for(var o of _json.tiles)
                         {
-
-
+                          
                           if(u.tile_xy[0] == o.x && u.tile_xy[1]==o.y)
                           {
                           u.tile = o;
@@ -1719,13 +2050,13 @@ return (_raw);
 
               this.set(_json)
 
-
               }, '.mus'
 
               );
 
           },
 
+          //|save
           save() //projecto
           {
               
@@ -1743,6 +2074,7 @@ return (_raw);
                       if(u!==0)
                       {
                         u.select=0;
+                        u.tile_xy = [u.tile.x, u.tile.y];
                         delete u.tile;
                       }
 
@@ -1756,6 +2088,10 @@ return (_raw);
               {
                 u.raw = Array.from(u.raw);
               }
+
+
+
+
 
              save_txt(_act.name + '.mus', JSON.stringify(_act), ()=>{
 
@@ -1890,6 +2226,40 @@ return (_raw);
       if(this.grabcon.estado!==0)
         this.grabcon.run();
 
+
+       let _teclado = this._padre.win.teclado;
+
+      let _speed_arr = [this.drawcon.grid_size/2,this.drawcon.grid_size*3];
+         if(_speed_arr[0]<4)
+          _speed_arr[0]=4;
+
+          _sp = _speed_arr[_teclado.get('space')];
+
+       
+        if(_teclado.get('ctrl')==0 )
+        {
+            let _move = [0,0];
+         if(_teclado.get('a') )
+            _move[0]=_sp;   
+         
+         if(_teclado.get('d') )
+           _move[0]=-_sp;   
+         
+         if(_teclado.get('w') )
+           _move[1]=_sp;   
+         
+         if(_teclado.get('s') )
+           _move[1]=-_sp;   
+        
+
+         if(_move[0]||_move[1])
+         this.drawcon.scroll(_move[0], _move[1])
+        
+
+        }
+
+
+
        },
 
        keydown(e)
@@ -1901,6 +2271,10 @@ return (_raw);
 
          let _key = e.key;
 
+
+         this.tilecon.keydown(e);
+
+
          if(_key=='-')
           this.drawcon.set_grid_size('-');
          
@@ -1908,20 +2282,6 @@ return (_raw);
           this.drawcon.set_grid_size('+');
          
    
-        if(this._padre.win.teclado.get('ctrl')==0 )
-        {
-         if(_key=='a')
-           this.drawcon.scroll(10)
-         
-         if(_key=='d')
-           this.drawcon.scroll(-10)
-         
-         if(_key=='w')
-           this.drawcon.scroll(0,10)
-         
-         if(_key=='s')
-           this.drawcon.scroll(0,-10)
-        }
 
 
          if(_key=='Enter' && this.grabcon.estado==0)
@@ -2464,7 +2824,7 @@ return (_raw);
               u.x =u.x-_dx;
               u.y =u.y-_dy;
 
-            //  let _color = this._padre.drawcon.nota_color.select;
+            
               let _color = u.tile.def_color;
 
               let __x = [(u.x*_gs+_xs),  (u.x*_gs+_xs)  + (_gs*u.w)];
@@ -2748,6 +3108,11 @@ return (_raw);
       this.canvasses.push(crear_canvas(_win._bloque, 1, 0,0, [0,0],[0,100]) );
       this.canvasses[1].obj.style.background='transparent';
       this.canvasses[2].obj.style.background='transparent';
+
+      this.canvasses[0].crear_buffer();
+      this.canvasses[1].crear_buffer();
+      this.canvasses[2].crear_buffer();
+      
       
 
       crear_enterframe(_root,_editor, _editor.run    );
