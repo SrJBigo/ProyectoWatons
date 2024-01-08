@@ -2849,16 +2849,15 @@ getWavHeader(options) {
                   run() {
 
                     let _image = this.image;
+                    
                     this._x += Math.floor(this.x) - Math.floor(this.xprev);
                     this._y += Math.floor(this.y) - Math.floor(this.yprev);
 
-
-                    //if(this.image!=="" &&  !(this.x==this.xprev && this.y==this.yprev)  )
                     if (_image !== "") {
 
 
                       if (this._x + _image.naturalWidth < 0) {
-                        this._x += _image.naturalWidth;
+                          this._x += _image.naturalWidth;
                       }
                       if (this._x > 0) {
 
@@ -2894,8 +2893,8 @@ getWavHeader(options) {
                     let _image = this.image;
 
 
-                    let _cw = (_canvas.wr / 2);
-                    let _ch = (_canvas.hr / 2);
+                    let _cw = (_canvas.wini / 2);
+                    let _ch = (_canvas.hini / 2);
 
                     let _w = _cw;
                     let _h = _ch;
@@ -2914,10 +2913,6 @@ getWavHeader(options) {
 
                       _h -= (((-_y) + _h) - _image.naturalHeight);
                     }
-
-              //let _u = this.canvasses[i];
-              //for (var j = 0; j < _u.buffers.length; j++) {
-
 
                     _ctx.drawImage(_image,
                       -_x, -_y, _w, _h,

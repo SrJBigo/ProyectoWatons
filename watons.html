@@ -1980,12 +1980,10 @@
 
 
 
-
-
   var WIN = ventana.crear_ventana(_root,
     //400   400
     {
-      x: 0, y: 0, w: 32*14, h: 32*12, teclado: 1, titulo: "", grab: 1, resize: 1,literal:1,
+      x: 0, y: 0, w: 32*14, h: 32*12, teclado: 1, titulo: "", grab: 1, resize: flipbin(IS_MOBILE) ,literal:1,
       menu: {
         Juego: {
           'Reiniciar->':
@@ -2035,10 +2033,24 @@
 
 
 
-  if (IS_MOBILE) {
-    WIN.set_h(WIN.hr + 100);
-    TECLADO.crear_teclado_visual(WIN, WIN.teclado, 'basico');
-  }
+ // if (IS_MOBILE) {
+    WIN.set_h(WIN.hr + 95);
+    TECLADO.crear_teclado_visual(WIN, WIN.teclado, 'basico', {
+       botones:{
+         z:{x:10, w:70,h:70, y:20},
+         x:{x:79, w:70,h:70, y:20},
+
+         der:{x:50*0+10},
+         aba:{x:50*1+10-1},
+         arr:{x:50*1+10-1},
+         izq:{x:50*2+10-2},
+
+       },
+
+       base:{style:{background:'white',border:'none'}  }});
+
+
+ // }
 
 
 

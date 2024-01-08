@@ -910,11 +910,16 @@ var _BASICO =
     _foo.padre = f_donde;
 
 
+   
 
 
 
     _foo.set_style(f_style);
     _foo.set(f_x, f_y, f_w, f_h);
+
+
+_foo.wini = _foo.wr;
+_foo.hini = _foo.hr;
 
 
 
@@ -1071,7 +1076,7 @@ var _BASICO =
           this.ctx.fillRect(0, 0, this.w, this.h);
         },
         clear() {
-          this.ctx.clearRect(0, 0, this.w, this.h);
+          this.ctx.clearRect(0, 0, this.obj.width, this.obj.height);
         },
 
       }
@@ -1208,7 +1213,7 @@ var _BASICO =
     }
     _foo.clear = function () {
       
-      this.ctx.clearRect(0, 0, this.wr, this.hr);
+      this.ctx.clearRect(0, 0, this.obj.width, this.obj.height);
     }
     //
 
