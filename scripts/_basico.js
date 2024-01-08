@@ -1073,7 +1073,7 @@ _foo.hini = _foo.hr;
         noclone: 1,
         fill(f_color) {
           this.ctx.fillStyle = f_color;
-          this.ctx.fillRect(0, 0, this.w, this.h);
+          this.ctx.fillRect(0, 0, this.obj.width, this.obj.height);
         },
         clear() {
           this.ctx.clearRect(0, 0, this.obj.width, this.obj.height);
@@ -1209,7 +1209,7 @@ _foo.hini = _foo.hr;
 
     _foo.fill = function (f_color) {
       this.ctx.fillStyle = f_color;
-      this.ctx.fillRect(0, 0, this.wr, this.hr);
+      this.ctx.fillRect(0, 0, this.obj.width, this.obj.height);
     }
     _foo.clear = function () {
       

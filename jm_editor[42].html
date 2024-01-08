@@ -59,7 +59,7 @@ function get_rawpitch(_raw, _pitch, _vol=[1,1], _fade=0,       _master, _j,   _o
         }
 
         if(_raw[ fl(_o) ]==undefined)
-          alert('ERROR + ' + _o)
+          alert('ERROR')
         
           
          _end = (_raw[ fl(_o) ]*_v);
@@ -1036,7 +1036,7 @@ return (_raw);
                        }
                         
                        //console.log(_o[i])
-                       let _pitch = get_rawpitch(u.tile.raw, u.y+1,  _vol,   _fade,          _raw, j-f_a,   _o[i]);
+                       let _pitch = get_rawpitch(u.tile.raw, u.y+1,  _vol,   _fade,        _raw, j-f_a,  _o[i]);
 
 
                        if(_u!==0)
@@ -1045,7 +1045,7 @@ return (_raw);
                          _o[i]=_pitch._o;
 
                        }
-                       if(_u==0 || u.tile.raw !== _u.tile.raw)
+                       if(_u==0)
                         _o[i]=0;
 
                        

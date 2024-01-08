@@ -26,6 +26,8 @@
 
     gestor:'',
 
+    wcanvas:'',
+    hcanvas:'',
 
     //|fadecon
     fadecon:
@@ -1026,7 +1028,7 @@
             ini() {
               let _hud = this.hud = WIN.gameges.crear_vacio($root, 2,
                 {
-                  w: fl(WIN._bloque.wr / 2),
+                  w: game.wcanvas,
                   h: 16*2,
                   y: 0,
                   draw_color: 'black'
@@ -1127,7 +1129,7 @@
                this.estado=0;
                 let _hud = this.hud = WIN.gameges.crear_vacio($root, 2,
                 {
-                  w: fl(WIN._bloque.wr / 2),
+                  w: game.wcanvas,
                   h: 16*4,
                   x: 0,
                   y: 17*11,
@@ -1228,7 +1230,7 @@
               this._padre.tt_dead=[0,60];
               let _hud = this.hud = WIN.gameges.crear_vacio($root, 2,
                 {
-                  w: fl(WIN._bloque.wr / 2),
+                  w: game.wcanvas,
                   h: 16,
                   y: 11 * 16,
                   draw_color: 'black'
@@ -1389,6 +1391,12 @@
                      crear_canvas(this._bloque, 2, 0, 0, [0,0], [0,0]),
                      crear_canvas(this._bloque, 2, 0, 0, [0,0], [0,0]),
       ];
+
+      game.wcanvas = ARR_CAN[0].obj.width;
+      game.hcanvas = ARR_CAN[0].obj.height;
+      
+      WIN.set_literal_size(game.wcanvas*2, game.hcanvas*2);
+
 
       window['GES'] = GAME.crear_gestor(WIN, ARR_CAN,
         {
@@ -2003,7 +2011,28 @@
           }
           
         },
-        Opciones: { Controles: 'Proximamente' },
+        Opciones: { 
+          'Tamaño de la pantalla':
+          {
+            'X1'()
+            {
+             WIN.set_literal_size(game.wcanvas, game.hcanvas);
+
+            },
+            'X2'()
+            {
+             WIN.set_literal_size(game.wcanvas*2, game.hcanvas*2);
+            },
+            'X3'()
+            {
+             WIN.set_literal_size(game.wcanvas*3, game.hcanvas*3);
+            }
+
+          },
+
+          Controles: 'Proximamente' 
+
+        },
         Escenas: {
           'intro_0'() { game.escenario.set('intro_0') },
           'intro_1'() { game.escenario.set('intro_1') },
@@ -2033,7 +2062,7 @@
 
 
 
- // if (IS_MOBILE) {
+  if (IS_MOBILE) {
     WIN.set_h(WIN.hr + 95);
     TECLADO.crear_teclado_visual(WIN, WIN.teclado, 'basico', {
        botones:{
@@ -2050,7 +2079,7 @@
        base:{style:{background:'white',border:'none'}  }});
 
 
- // }
+  }
 
 
 
