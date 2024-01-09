@@ -1,8 +1,13 @@
 <!DOCTYPE html>
 <script type="text/javascript" src="scripts/_basico.js"> </script>
 <script type="text/javascript" src="scripts/_especializado.js"> </script>
+<script type="text/javascript" src="scripts/Mp3LameEncoder.js"> </script>
 
 <script>
+
+//libreria mp3
+//https://github.com/higuma/mp3-lame-encoder-js/tree/master
+
 
   /*samplerate: 48000
    
@@ -440,6 +445,10 @@ return (_raw);
            _editor.piano_con.playcon.save();
 
            },
+           'Mp3'()
+           {
+          _editor.piano_con.playcon.save_mp3();
+           },
           
         },
 
@@ -874,6 +883,8 @@ return (_raw);
 
                  else
                 this.odiv.set_w(1)
+
+                this._padre.drawcon.draw_notas();
               }
            },
           
@@ -1059,6 +1070,39 @@ return (_raw);
            return(_raw);
 
           },
+
+          save_mp3()
+          {
+           let _slim    = this._padre.cancion_con.act.save_limit;
+           let _raw = this.get_all_buf(_slim[0],_slim[1]);
+           let _bw =  _slim[1]-_slim[0]+1; //evitar 0
+
+           
+           let _encoder = new Mp3LameEncoder(48000, 128);
+
+//alert(.ctx.sampleRate)
+
+
+              for(let i=0; i < _raw.length; i+=8192) {
+                _encoder.encode([_raw.subarray(i, i+8192),  _raw.subarray(i, i+8192)])
+               }
+
+              //_encoder.encode([_raw,_raw]);
+
+
+
+
+              let _blob = _encoder.finish();
+
+              const downloadLink = document.createElement('a')
+                    downloadLink.href = URL.createObjectURL(_blob)
+                    downloadLink.setAttribute('download', this._padre.cancion_con.act.name+'.mp3') // name file
+                    // Download file
+                    downloadLink.click();
+              
+
+          },
+
 
           save()
           {
