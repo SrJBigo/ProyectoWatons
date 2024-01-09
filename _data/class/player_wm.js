@@ -289,6 +289,20 @@ mapstart_tt:[0,60],
   },
 
 
+  camera_offset:{_padre:'', x:0,y:0,w:0,h:0, xp:0, yp:0, limit:1,
+
+   update(f_x=this._padre.x, f_y=this._padre.y, f_w=this._padre.w, f_h=this._padre.h)
+  {   
+   this.x = f_x;
+   this.y = f_y;
+   this.w = f_w;
+   this.h = f_h;
+  },
+
+
+  },
+
+
   loadframe() {
     
     this.propagar._padre = this;
@@ -303,7 +317,7 @@ mapstart_tt:[0,60],
     this.yvelocity = 0;
     this.tile_des = { x: fl(this.x / 16), y: fl(this.y / 16) };
 
-
+this.camera_offset.update();
   },
 
 
@@ -442,6 +456,8 @@ mapstart_tt:[0,60],
 
     this.anim.x = 0;
     this.anim.y = -5;
+
+this.camera_offset.update();
 
 //    game.center_nivel(this.x+this.w/2,this.y+this.h/2  );
 

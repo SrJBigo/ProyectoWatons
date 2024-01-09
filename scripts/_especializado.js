@@ -4835,6 +4835,15 @@ getWavHeader(options) {
               onmouseup() {
                 let _out = _ven.out_snap;
 
+                if (_out[2] !== "" && _ven.x + _ven.wr > window.innerWidth - _out[2]) {
+                  _ven.x = window.innerWidth - _out[2] - _ven.wr;
+                }
+
+                if (_out[3] !== "" && _ven.y + _ven.hr > window.innerHeight - _out[3]) {
+                  _ven.y = window.innerHeight - _out[3] - _ven.hr;
+                }
+
+
                 if (_out[0] !== "" && _ven.x < _out[0]) {
                   _ven.x = _out[0];
                 }
@@ -4843,13 +4852,6 @@ getWavHeader(options) {
                   _ven.y = _out[1];
                 }
 
-                if (_out[2] !== "" && _ven.x + _ven.wr > window.innerWidth - _out[2]) {
-                  _ven.x = window.innerWidth - _out[2] - _ven.wr;
-                }
-
-                if (_out[3] !== "" && _ven.y + _ven.hr > window.innerHeight - _out[3]) {
-                  _ven.y = window.innerHeight - _out[3] - _ven.hr;
-                }
 
 
               }

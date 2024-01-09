@@ -46,8 +46,8 @@ document.currentScript.class =
             { ll: 10, flip: [0, 0], buf: [[0, 4], [0, 5], [0, 6], [0, 7], [0, 6], [0, 5]] },
 
             //correr
-            { ll: 10, flip: [1, 0], buf: [[9, 0], [1, 1], [1, 2], [1, 3], [1, 2], [1, 1]] },
-            { ll: 10, flip: [0, 0], buf: [[0, 0], [1, 1], [1, 2], [1, 3], [1, 2], [1, 1]] },
+            { ll: 10, flip: [1, 0], buf: [[0, 8], [1, 9] ] },
+            { ll: 10, flip: [0, 0], buf: [[0, 8], [1, 9] ] },
 
             //salto up down
             { ll: 10, flip: [1, 0], buf: [[0, 12]]},
@@ -79,6 +79,19 @@ document.currentScript.class =
 
   draw_color: "",
 
+
+  camera_offset:{_padre:'', x:0,y:0,w:0,h:0, xp:0, yp:0, limit:1,
+
+   update(f_x=this._padre.x, f_y=this._padre.y, f_w=this._padre.w, f_h=this._padre.h)
+  {   
+   this.x = f_x;
+   this.y = f_y;
+   this.w = f_w;
+   this.h = f_h;
+  },
+
+
+  },
   xvelocity:0,
   yvelocity:0,
   xprev:0,
@@ -106,6 +119,7 @@ document.currentScript.class =
 
   },
 
+    
     //|spawn_fall
     spawn_fall:
     {
@@ -122,6 +136,8 @@ document.currentScript.class =
         _clip.hitcon.hit( {hitcon:{rebotar:0, damage:4} });
          let _salud = game.particon.data.perfiles.act.hp[0];
          
+        
+
          if(_salud>0)
         _clip.modos.set('muerto', [0]);
          else
@@ -130,6 +146,10 @@ document.currentScript.class =
        },
        end()
        {
+       
+       
+
+
             _clip.x=this.x;
             _clip.y=this.y;
             _clip.modos.set('normal');
@@ -244,6 +264,7 @@ document.currentScript.class =
            {
              this.att=1;
 
+             game.soundcon.play(8);
                 
 
            },
@@ -563,6 +584,7 @@ document.currentScript.class =
 
   },//hitcon
 
+  
   loadframe() 
   {
     window['_clip'] = this;
@@ -573,10 +595,11 @@ document.currentScript.class =
     
     this.set_player_sprite(game.particon.data.perfiles.id_act);
 
+   
     this.armacon.ini();
 
     this.suelo_y = $gameges.tileges.yt_allmax * 16;
-
+    this.camera_offset.update();
     //this.armacon.ini();
 
     
@@ -620,6 +643,8 @@ document.currentScript.class =
 
             }
           },
+          running:0,
+          run_tt:[0,13, 0],  //tt, max,  estado_prev
 
           permitir_arma:1,
           suelo_tt:0,
@@ -627,8 +652,8 @@ document.currentScript.class =
           estado:'',
 
           yvel_max:7,
-          xvel_max: 2,
-          xvel_impetu: 0.3,
+          xvel_max: [1.8, 2.4],  //2.4
+          xvel_impetu: [0.2,0.3],
 
           
 
@@ -636,9 +661,21 @@ document.currentScript.class =
           polvo:
           {
             _padre:'',
-            tt: [0,10],
+            tt: [0,8],
             reset() {
               this.tt[0] = 0;
+            },
+
+            crear()
+            {
+            let _padre = this._padre;
+               if(_padre.estado == 0 || _padre.estado == 2)  
+                      $WIN.gameges.cargar_clase($root.level, 1, { x: _clip.x + 7, y: _clip.y + 16,anim_id:0, enterframe(){this.y-=0.3} });
+                  
+                    if (_padre.estado == 1 || _padre.estado == 3) 
+                      $WIN.gameges.cargar_clase($root.level, 1, { x: _clip.x - 5, y: _clip.y + 18, anim_id:0,enterframe(){this.y-=0.3} });
+                
+
             },
 
             run() {
@@ -649,12 +686,8 @@ document.currentScript.class =
                 this.tt[0] = 0;
                   if (_padre.suelo_tt >= 3)
                   {
-                    if(_padre.estado == 0 || _padre.estado == 2)  
-                      $WIN.gameges.cargar_clase($root.level, 1, { x: _clip.x + 7, y: _clip.y + 16,anim_id:0 });
-                  
-                    if (_padre.estado == 1 || _padre.estado == 3) 
-                      $WIN.gameges.cargar_clase($root.level, 1, { x: _clip.x - 5, y: _clip.y + 18, anim_id:0 });
-                      
+                     this.crear();
+
                  }
                 }
               }
@@ -681,7 +714,6 @@ document.currentScript.class =
             let _yt = fl(_clip.y/16);
 
             
-
             this.suelo_tt--;
             _clip.yvelocity += _clip.gravedad;
             if(_clip.yvelocity>this.yvel_max)
@@ -695,6 +727,13 @@ document.currentScript.class =
               _clip.yvelocity=0;
 
               this.suelo_tt=8;
+            }
+
+            if(_col[0]||_col[2])
+            {
+              this.run_tt[0]=0;
+              this.running=0;
+
             }
             
 
@@ -710,7 +749,6 @@ document.currentScript.class =
               
 
               //salto
-
               if (this.suelo_tt > 0 && $WIN.teclado.get('z') == 1) 
               {
                 $WIN.teclado.get('z', 2)
@@ -747,33 +785,74 @@ document.currentScript.class =
 
                 _clip.xvelocity += (0 - _clip.xvelocity) / 5;
                 if ($WIN.teclado.get("izq"))
+                {
+                 if(this.run_tt[0]>0 && this.run_tt[2]==0)
+                 {
+                    this.polvo.crear();
+                    this.running=1;
+                    _clip.xvelocity-=0.2;
+                 }
+
                   this.estado = 2;
+                  this.run_tt[0]=this.run_tt[1];
+                  this.run_tt[2]=0;
+                }
                 if ($WIN.teclado.get("der"))
+                {
+                  if(this.run_tt[0]>0 && this.run_tt[2]==1)
+                  {
+                    this.polvo.crear();
+                    this.running=1;
+                    _clip.xvelocity+=0.2;
+                  }
+
                   this.estado = 3;
+                  this.run_tt[0]=this.run_tt[1];
+                  this.run_tt[2]=1;
+                }
               }
+
+
+              if(this.run_tt[0]>0)
+              {
+                this.run_tt[0]--;  
+              }
+              if(this.run_tt[0]==0)
+              {
+                if(this.estado==0||this.estado==1)
+                {
+                  this.running=0;
+                }
+              }
+
 
               //caminar izquierda
               if (this.estado == 2)
                {
                 _clip.orientacion = 0;
-                //this.polvo.run();
-                _clip.xvelocity -= this.xvel_impetu;
-                if (_clip.xvelocity < (-this.xvel_max)) 
-                    _clip.xvelocity = (-this.xvel_max);
+                if(this.running)
+                this.polvo.run();
+
+                _clip.xvelocity -= this.xvel_impetu[this.running];
+                if (_clip.xvelocity < (-this.xvel_max[this.running])) 
+                    _clip.xvelocity = (-this.xvel_max[this.running]);
                 
                 if ($WIN.teclado.get("izq") == 0) {
                     this.estado = 0;
                 }
               }
 
+
+
               //caminar derecha
               if (this.estado == 3) 
               {
                 _clip.orientacion = 1;
-                //this.polvo.run();
-                _clip.xvelocity += this.xvel_impetu;
-                if (_clip.xvelocity > this.xvel_max)
-                    _clip.xvelocity = this.xvel_max;
+                if(this.running)
+                this.polvo.run();
+                _clip.xvelocity += this.xvel_impetu[this.running];
+                if (_clip.xvelocity > this.xvel_max[this.running])
+                    _clip.xvelocity = this.xvel_max[this.running];
                 if ($WIN.teclado.get("der") == 0) 
                   this.estado = 1;
               }
@@ -788,6 +867,14 @@ document.currentScript.class =
                   _clip.estado_h = 7;
                 if(_clip.yvelocity>0)
                   _clip.estado_h+=2;
+              }
+
+              if(this.running)
+              {
+                if (this.estado == 0 || this.estado == 2) 
+                    _clip.estado_h = 4;
+                if (this.estado == 1 || this.estado == 3) 
+                    _clip.estado_h = 5;
               }
 
               if (_clip.x < 0) 
@@ -816,7 +903,7 @@ document.currentScript.class =
          muerto:
          {
           name:'muerto',
-          estado:0, //0:regresar pos, 1:perdida vida
+          estado:0, //0:regresar pos,  1: perdida vida
           hitcon:
           {
             detectar:1,
@@ -832,6 +919,25 @@ document.currentScript.class =
             this.estado=f_estado;
              _clip.yvelocity=0;
              _clip.xvelocity=0;
+
+             if(this.estado==0) //precipicio regresar pos
+             {
+
+              game.efectocon.add('v_move');
+
+
+
+              game.soundcon.play(9);
+
+              
+             }
+             if(this.estado==1||this.estado==2)//muerte normal;precipicio
+               {
+               
+               game.soundcon.temacon.play(7);
+
+               }
+
 
           },
           run()
@@ -849,14 +955,13 @@ document.currentScript.class =
                      
                    }
                }
-               if(this.estado==1)//muerte precipicio
+               if(this.estado==1||this.estado==2)//muerte normal;precipicio
                {
-                
+               
+               _clip.anim.visible=false;
+
                }
-               if(this.estado==2)//muerte normal
-               {
-                  _clip.anim.visible=false;
-               }
+               
 
                 //_clip.estado_h=10;
           }
@@ -883,12 +988,16 @@ document.currentScript.class =
           check()
           {
              
+               
+
              let _tilemap = $gameges.tileges.tilemaps_all[3];
              let _xt = fl((_clip.x+_clip.w/2)/16);
              let _yt = fl((_clip.y+_clip.h/2)/16);
 
               if(_tilemap[_yt] && _tilemap[_yt][_xt].id=='puerta' && _clip.modos.modos.normal.suelo_tt>0)
               {
+                game.soundcon.play(13,0.5);
+                
                 this.puerta = _tilemap[_yt][_xt];
                 let _des = this.puerta.destino;
                 
@@ -1165,6 +1274,8 @@ document.currentScript.class =
 
     this.xprev = this.x;
     this.yprev = this.y;
+
+    this.camera_offset.update();
 
 
   },

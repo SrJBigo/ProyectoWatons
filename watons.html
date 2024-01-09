@@ -29,6 +29,69 @@
     wcanvas:'',
     hcanvas:'',
 
+
+    //|efectocon
+    efectocon:
+    {
+      efectos:[],
+      _efectos:
+      {
+        v_move:
+          {
+            tt:[0,5],
+               ini()
+               {
+                
+
+               },
+               run()
+               {
+                let _jugador = $root.level.jugador;
+               
+                    _jugador = $root.level.jugador;
+                    _jugador.camera_offset.yp=3; 
+
+                this.tt[0]++;
+                if(this.tt[0]==this.tt[1])
+                {
+                 _jugador.camera_offset.yp=0;
+                 return (1);                  
+                }
+                
+
+               },
+
+          },
+          
+
+      },
+
+       add(f_name)
+       {
+         let _clone = clone_object(this._efectos[f_name]);
+         this.efectos.push( _clone );
+         _clone.ini();
+
+       },
+
+       run()
+       {
+        for(var i = this.efectos.length-1; i>=0;i--)
+        {
+          let u = this.efectos[i];
+
+           let _a = u.run();
+           if(_a==1)
+           {
+              this.efectos.splice(i,1);
+           }
+
+        }
+
+       }
+
+    },
+
     //|fadecon
     fadecon:
     {
@@ -37,6 +100,8 @@
       act:'',
       modos:
       {
+
+
         oscurecer:
         {
            tt:'',
@@ -151,21 +216,47 @@
     soundcon:
     {
     estado:1,
-
+       
       temacon:
       {
         _padre:'',
         act:'',
-         play(f_id, f_gain=1, f_pitch=0, f_loop=0)
+        stop()
         {
-          if(this.act!=='')
-          {
-            this.act.stop();
-          }
-
-        this.act = AUDIO.play_sample($WIN.LIB.SOUNDS[f_id], f_gain, f_pitch, f_loop);
+         if(this.act!=='')
+         {
+         this.act.stop();
+         this.act='';
+         }
 
         },
+
+         play(f_id, f_gain=1, f_pitch=0, f_loop=0)
+        {
+
+         if(this.act==='' || this.act.id!==f_id)
+         {
+         this.stop();
+         this.act = AUDIO.play_sample(WIN.LIB.SOUNDS[f_id], f_gain, f_pitch, f_loop);
+         this.act.id=f_id;
+         }
+
+        },
+
+        ini_leveltema() //llamado en mapcon -> set_submap
+        {
+
+          let _submap = game.mapcon.submap;
+          let _tema = _submap.tema;
+          
+          if(game.editor.estado==1)
+          {
+            this.stop();
+            return;
+          }
+
+          this.play(_tema.id,_tema.vol,0,1);       
+        }
 
       },
 
@@ -173,7 +264,7 @@
       {
 
         if(this.estado)
-        AUDIO.play_sample($WIN.LIB.SOUNDS[f_id], f_gain, f_pitch, f_loop);
+        AUDIO.play_sample(WIN.LIB.SOUNDS[f_id], f_gain, f_pitch, f_loop);
 
       },
 
@@ -294,8 +385,9 @@
         $root.hijos_clip = [];
         game.objs = [];
 
+
            
-        var _level = WIN.gameges.crear_vacio($root, {w: fl(WIN._bloque.wr / 2), h: fl(WIN._bloque.hr / 2) });
+        var _level = WIN.gameges.crear_vacio($root, {w: game.wcanvas, h: game.hcanvas });
         $root.level = _level;
         game.editor.tile_editor.offset_obj = _level;
 
@@ -303,7 +395,12 @@
         if(game.escenario.act.on_submapset)
         game.escenario.act.on_submapset();
 
-       
+
+
+        game.soundcon.temacon.ini_leveltema();
+
+        
+
        },
        set(_map=game.mapcon.map)
        {
@@ -318,7 +415,16 @@
                  };
         }
         for(var i in _map.submaps)
+        {
            _map.submaps[i].id = i;
+           if(_map.submaps[i].tema==undefined)
+           {
+            _map.submaps[i].tema={
+                                  id:5,
+                                  vol:0.4
+                                 };
+           }
+        }
 
         this.map = _map;
         this.map_master = clone_object(_map);
@@ -546,7 +652,7 @@
       },
       end() {
         if (this.dialogo !== '' && this.dialogo.write.estado !== 0) {
-          this.dialogo.write.on_end();
+           this.dialogo.write.on_end();
         }
 
       },
@@ -560,6 +666,8 @@
       set(_name) {
 
         //  game.first_draw =1;
+        
+        game.soundcon.temacon.stop();
 
         $root.hijos_clip = [];
         game.objs = [];
@@ -651,7 +759,7 @@
                }
 
 
-
+          game.efectocon.run();
           game.dialogo.run();
 
         }
@@ -671,6 +779,8 @@
             this.tt = 0;
             //var _level = WIN.gameges.crear_vacio($root,{w: fl(WIN._bloque.wr/2) ,h: fl(WIN._bloque.hr/2) });
             //$root.level = _level;    
+
+             
 
             let _logo = this.logo = WIN.gameges.crear_imagen($root, 12, { x: 60, y: 55, w: 6 * 16, h: 1 * 16, cut_cords: { x: 0 * 16, y: 1 * 16, w: 6 * 16, h: 1 * 16 } });
             _logo.filter = { opacity: 100 }
@@ -724,6 +834,8 @@
             this.c_id = 0;
             this.tt[0] = 0;
             this.estado = 0;
+
+            game.soundcon.temacon.play(10,0.5,0,1);
 
             let _cinema = this.cinema = WIN.gameges.crear_imagen($root, 15, {
               x: 16, y: 16,
@@ -848,11 +960,16 @@
                  let _empezar = this.textos.empezar;
                  let _opciones= this.textos.opciones;
                  
-                 if($TECLADO.get('izq'))
+                 if($TECLADO.get('izq',2)==1)
+                 {
+                  game.soundcon.play(11);
                   this.estado_2=0;
-                if($TECLADO.get('der'))
+                }
+                if($TECLADO.get('der',2)==1)
+                 {
+               game.soundcon.play(11);
                   this.estado_2=1;
-
+                }
 
                     if(this.estado_2==0)
                     {
@@ -861,6 +978,7 @@
                     if($TECLADO.get('z',2)==1)
                       {
                         this.estado=3;
+                        game.soundcon.play(12);
 
                          game.fadecon.set('oscurecer',   ()=>{
                        
@@ -1104,13 +1222,22 @@
                     }
 
                     if(WIN.teclado.get('izq',2)==1 && this.id>0)
+                    {
+                    game.soundcon.play(11);
                     this.set(this.id-1);
+                    }
+                    
                  
                     if(WIN.teclado.get('der',2)==1 && this.id<3)
-                    this.set(this.id+1);
+                    {
+                      game.soundcon.play(11);
+                      this.set(this.id+1);
+                    }
+                    
 
                     if(WIN.teclado.get('z',2)==1)
                     {
+                      game.soundcon.play(12);
                     $root.level.jugador.estado=6;
                     this._padre.estado=3;  
                     this.selector.visible=1;
@@ -1174,7 +1301,7 @@
 
             let _map = clone_object($LIB.CLASES[9]);
 
-            game.soundcon.temacon.play(6, 0.3, 0,0);
+           // game.soundcon.temacon.play(6, 0.3, 0,0);
 
             
             game.mapcon.set(_map,0);
@@ -1187,7 +1314,7 @@
           let _savepos = this.mapcon.savepos;
           WIN.gameges.cargar_clase($root.level, 8, { x: _savepos.x * 16, y: _savepos.y * 16, nombre: 'jugador' }); //jugador
           
-          game.center_nivel($root.level.jugador);
+          game.center_nivel($root.level.jugador.camera_offset);
  
 
           this.hud.ini();
@@ -1199,7 +1326,7 @@
             this.mapcon.savepos.x = fl($root.level.jugador.x / 16);//provisorio
             this.mapcon.savepos.y = fl($root.level.jugador.y / 16);//provisorio
             this.hudbottom.run();
-            game.center_nivel($root.level.jugador);
+            game.center_nivel($root.level.jugador.camera_offset);
             //GES.canvasses[2].no_clear=1;
             //GES._enterframe=()=>{GES.canvasses[2].draw.line(0,0,100,100);}
 
@@ -1277,7 +1404,7 @@
           vidalost_con:
           {
             _padre:'',
-           tt:[0,60],
+           tt:[0,120, 205],
            estado:0,
            ini()
            {
@@ -1289,17 +1416,28 @@
               if(this.estado)
               {
                 this.tt[0]++;
-                if(this.tt[0]==this.tt[1])
-                {
 
+                if(this.tt[0]==this.tt[2])
+                {
                   this.estado=0;
                   this.tt[0]=0;
 
-                 game.fadecon.set('oscurecer',   ()=>{
-                 game.particon.data.perfiles.refill(); 
+                  game.particon.data.perfiles.refill(); 
+
+
                  game.escenario.set('wmap');
                  game.fadecon.set('aclarar',   ()=>{});
 
+
+                }
+                if(this.tt[0]==this.tt[1])
+                {
+
+
+
+
+                 game.fadecon.set('oscurecer',   ()=>{
+                
                  });
 
 
@@ -1318,7 +1456,7 @@
 
            load()  //play
            {
-            game.soundcon.temacon.play(5,0.2,0,1);
+            //game.soundcon.temacon.play(5,0.2,0,1);
 
             this.hud._padre = this;
             this.vidalost_con._padre = this;
@@ -1362,7 +1500,7 @@
           this.vidalost_con.run();
           let _jugador = $root.level.jugador;
           
-          game.center_nivel(_jugador);
+          game.center_nivel(_jugador.camera_offset);
           //game.center_nivel(_jugador.x+_jugador.w/2,_jugador.y+_jugador.h/2  );
 
 
@@ -1465,7 +1603,7 @@
         //workaround
        _root.set_$(WIN);
       
-
+       
        game.escenario.enterframe(); 
       });
 
@@ -1577,6 +1715,9 @@
 
           this.tile_editor.set_capa_act(); //forzar actualizacion titulo ventanaeditor
           if (this.estado == 1) { //activar
+              
+
+
             this.grab.clear();
             WIN.macrobloque.header.titulo.obj.style.background = 'gray';
             let _jugador = $root.level.jugador;
@@ -1592,7 +1733,11 @@
             $root.level.jugador.x = _psave.x;
             $root.level.jugador.y = _psave.y;
           }
-          else { //editor to 9
+          else { //editor to 0
+
+           if(game.mapcon.submap!=='' && f_mapupdate)
+            game.soundcon.temacon.ini_leveltema();
+            //game.soundcon.temacon.ini_leveltema();
             
             if(f_mapupdate)
             {
@@ -1815,14 +1960,22 @@
     },
 
 
-  center_nivel(f_x, f_y)
+  center_nivel(f_x, f_y, _limit=1)
   {
 
+   let _yp = 0;
+   let _xp = 0;
     if(get_type(f_x)=='object') //centrar a objeto
     {
       let   _u = f_x;
       f_x = _u.x+_u.w/2;
       f_y = _u.y+_u.h/2;
+      if(_u.limit!==undefined)
+        _limit = _u.limit;
+
+      if(_u.xp!==undefined) _xp = _u.xp;
+      if(_u.yp!==undefined) _yp = _u.yp;
+
     }
 
     
@@ -1830,6 +1983,9 @@
     //$root.level.y = fl((f_y * -1)  + $root.h / 2);
     $root.level.x = ((f_x * -1)  + $root.w / 2);
     $root.level.y = ((f_y * -1)  + $root.h / 2);
+
+    if(_limit)
+    {
 
     if ($root.level.x > 0) 
       $root.level.x = 0;
@@ -1842,7 +1998,12 @@
     
     if ((-$root.level.y) + $gameges.tileges.yt_max * 16 > $gameges.tileges.yt_allmax * 16) 
       $root.level.y = -($gameges.tileges.yt_allmax * 16 - $gameges.tileges.yt_max * 16);
-    
+    }
+
+    $root.level.x +=  _xp;
+    $root.level.y +=  _yp;
+
+
     $gameges.tileges.x = $root.level.x * -1;
     $gameges.tileges.y = $root.level.y * -1;
 
@@ -2123,6 +2284,18 @@
 
     "_data/sounds/tema_0.wav",//5
     "_data/sounds/tema.wav",
+
+    "_data/sounds/lifelost.mp3",
+    "_data/sounds/ataque_sw_0.mp3",
+
+    "_data/sounds/hit_2.mp3", //caida fuera de mapa
+
+    "_data/sounds/intro_tema.mp3", //10
+
+    "_data/sounds/menu_select_0.mp3", 
+    "_data/sounds/menu_select_1.mp3", 
+
+    "_data/sounds/puerta.mp3", 
     
      ],
 

@@ -276,6 +276,8 @@ var RPG =
           this._padre.clip.remove();
           this._padre.clip = '';
 
+
+
           for (var u of this.clips)
             u.on_dialogo_end();
 
