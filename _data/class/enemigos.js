@@ -72,7 +72,7 @@ document.currentScript.class =
 
       if(this.texto_flotante=='DAMAGE')
         this.texto_flotante="";
-      let _htext = game.textoges.crear($root.level, {x:this._padre.x,y:this._padre.y-5, texto: '-'+f_data.damage})
+      let _htext = game.textoges.crear($root.level, {x:this._padre.x,y:this._padre.y-5, texto: '-'+f_data.damage}, 'tr8x8')
           _htext.tt=[0,30];
           _htext.enterframe=()=>
                {

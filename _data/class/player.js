@@ -260,9 +260,12 @@ document.currentScript.class =
            att:0,
            dir_at:1,
 
+           tt_hit:[0,10],
+
            shoot(f_angulo, f_orien)
            {
              this.att=1;
+             this.tt_hit[0]=this.tt_hit[1];
 
              game.soundcon.play(8);
                 
@@ -277,12 +280,15 @@ document.currentScript.class =
 
              let _11 = f_orien;  if(f_orien==0)_11=-1; 
 
+             if(this.tt_hit[0]>0)
+             {
              //hit enemigos
              let _hit = { x:_clip.x+16*_11, 
                           y:_clip.y-8,
                           w:_clip.w/2, 
                           h:_clip.h+8
                          };
+
                 for (var u of game.objs) 
                 {
                   if (game.simple_hit_test(_hit, u)) 
@@ -298,6 +304,9 @@ document.currentScript.class =
                     
                   }
                 }
+             }///tt_hit  
+
+
 
 
             }
@@ -310,6 +319,9 @@ document.currentScript.class =
               this._padre._padre.estado_h=0;
             }              
             this._padre._padre.anim.animdata.force.flip=[f_orien,0];
+
+            if(this.tt_hit[0]>0)
+            this.tt_hit[0]--;
             
 
 
@@ -438,7 +450,9 @@ document.currentScript.class =
       if (_p.x + _p.w > u.x && _p.x < u.x + u.w) {
 
         if (_udata[1] == 1 &&
-          _tilemap_1[u.yt - 1] != undefined && _udata[_tilemap_1[u.yt - 1][u.xt]] != '1,1,1,1' &&
+          _tilemap_1[u.yt - 1] != undefined &&  //_udata[_tilemap_1[u.yt - 1][u.xt]] != '1,1,1,1' &&
+          _tiledata[ _tilemap_1[u.yt - 1][u.xt] ].toString() !== '1,1,1,1' && 
+
           _p.yprev + _p.h <= u.y + 1 && _p.yvelocity > 0 && _p.y + _p.h > u.y) //colision arriba tile
         {
           _p.y = u.y - _p.h;
@@ -448,9 +462,13 @@ document.currentScript.class =
 
 
         if (_udata[3] == 1 &&
-          _tilemap_1[u.yt + 1] != undefined && _udata[_tilemap_1[u.yt + 1][u.xt]] != '1,1,1,1' &&
+          _tilemap_1[u.yt + 1] !== undefined && //_udata[_tilemap_1[u.yt + 1][u.xt]] != '1,1,1,1' && 
+          _tiledata[ _tilemap_1[u.yt + 1][u.xt] ].toString() !== '1,1,1,1' && 
+          //_tilemap_1[u.yt + 1][u.xt] ==0 &&
+
           _p.yprev >= u.y + u.h && _p.yvelocity < 0 && _p.y < u.y + u.h) //colision abajo tile
         {
+         
           _p.y = u.y + u.h;
 
           _p.yvelocity = 0.5;
@@ -1107,6 +1125,8 @@ document.currentScript.class =
 
               if(_tilemap[_yt] && this.id_escalera.includes(_tilemap[_yt][_xt]) )
               {
+              _clip.modos.modos.normal.run_tt[0] = 0;
+              _clip.modos.modos.normal.running = 0;
               _clip.modos.set('escalera',[_xt, _yt]);
               return (true);
               }
