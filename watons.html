@@ -243,6 +243,29 @@
                 $gameges.fondoges.fondos[2].y = ($root.level.y) - 25;
 
                 }
+              },
+
+              campo_b:
+              {
+                
+                ini()
+                {
+                  GES.fondoges.ini(0, { image: 26, x: 0, y: 0 }); 
+                  GES.fondoges.ini(0, { image: 27, x: 0, y: 0 });
+                },
+                run()
+                {
+                
+                $gameges.fondoges.fondos[0].x = ($root.level.x / 7);
+                $gameges.fondoges.fondos[1].x = ($root.level.x / 3);
+
+                //$gameges.fondoges.fondos[0].y = ($root.level.y) - 10;
+                
+                //$gameges.fondoges.fondos[1].y = ($root.level.y) - 25;
+               // $gameges.fondoges.fondos[2].x = ($root.level.x / 3);
+                //$gameges.fondoges.fondos[2].y = ($root.level.y) - 25;
+
+                }
               }
        
        },
@@ -2480,7 +2503,8 @@
 
 
 
-
+//|imp
+  //imp images
   WIN.load_isc(["_data/images/fondo_0.png",
     "_data/images/image_03.png",
     "_data/images/lau_spritesheet.png",
@@ -2508,10 +2532,14 @@
      "_data/images/npc.png",
      "_data/images/fuente_tn8x8.png",
      "_data/images/fuente_tr8x8.png",
-     "_data/images/fuente_ta8x8.png"
+     "_data/images/fuente_ta8x8.png",
+
+     "_data/images/fondo_campo_b_0.png",
+     "_data/images/fondo_campo_b_1.png"
 
   ],
 
+    //|imp sounds
     [
     
     "_data/sounds/hit_0.wav",
@@ -2534,8 +2562,11 @@
     "_data/sounds/menu_select_1.mp3", 
 
     "_data/sounds/puerta.mp3", 
+    "_data/sounds/tema_1.mp3",
     
      ],
+
+   //|imp class
 
     ["_data/class/player.js",
       "_data/class/obj_e16.js",
