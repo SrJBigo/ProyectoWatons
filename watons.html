@@ -212,6 +212,74 @@
 
     },//fadecon
 
+    //|fondocon
+    fondocon:
+    {
+       
+      fondos:
+       {
+        campo_a:
+              {
+                tt: [0, 25, 0],
+                ini()
+                {
+                  GES.fondoges.ini(0, { image: 9, x: 0, y: 0 }); 
+                  GES.fondoges.ini(0, { image: 10, x: 0, y: 0 });
+                  GES.fondoges.ini(0, { image: 11, x: 0, y: 0 });
+                },
+                run()
+                {
+                this.tt[0]++;
+                if (this.tt[0] > this.tt[1]) 
+                {
+                  this.tt[0] = 0;
+                  this.tt[2] += 1;
+                }
+                $gameges.fondoges.fondos[0].x = ($root.level.x / 7);
+                $gameges.fondoges.fondos[0].y = ($root.level.y) - 10;
+                $gameges.fondoges.fondos[1].x = ($root.level.x / 3) - this.tt[2];
+                $gameges.fondoges.fondos[1].y = ($root.level.y) - 25;
+                $gameges.fondoges.fondos[2].x = ($root.level.x / 3);
+                $gameges.fondoges.fondos[2].y = ($root.level.y) - 25;
+
+                }
+              }
+       
+       },
+
+       clear()
+       {
+         this.act="";
+       },
+
+       
+
+       set(f_fondo)
+       {
+
+            GES.fondoges.fondos = [];
+
+            this.act="";
+            if(this.fondos[f_fondo.id]!==undefined)
+            {
+            let _act = clone_object(this.fondos[f_fondo.id]);
+            this.act = _act;
+            _act.ini();
+            }
+            GES.fondoges.estado = 1;
+
+       },
+       run()
+       {
+            if(this.act!=='')
+            {
+              this.act.run();
+            }
+       },
+
+
+    },//fondocon
+
    //|soundcon
     soundcon:
     {
@@ -233,12 +301,18 @@
 
          play(f_id, f_gain=1, f_pitch=0, f_loop=0)
         {
+           
 
          if(this.act==='' || this.act.id!==f_id)
          {
+
          this.stop();
          this.act = AUDIO.play_sample(WIN.LIB.SOUNDS[f_id], f_gain, f_pitch, f_loop);
          this.act.id=f_id;
+         }
+         else if(this.act.id === f_id)
+         {
+          this.act.gain.gain.value= game.mapcon.submap.tema.vol;
          }
 
         },
@@ -258,7 +332,7 @@
           this.play(_tema.id,_tema.vol,0,1);       
         }
 
-      },
+      },//temacon
 
       play(f_id, f_gain=1, f_pitch=0, f_loop=0)
       {
@@ -398,6 +472,7 @@
 
 
         game.soundcon.temacon.ini_leveltema();
+        game.fondocon.set(this.submap.fondo);
 
         
 
@@ -423,6 +498,13 @@
                                   id:5,
                                   vol:0.4
                                  };
+           }
+
+           if(_map.submaps[i].fondo==undefined)
+           {
+            _map.submaps[i].fondo={
+                                   id:'campo_a',
+                                  };
            }
         }
 
@@ -689,6 +771,7 @@
 
         //  game.first_draw =1;
         
+        game.fondocon.clear();
         game.soundcon.temacon.stop();
 
         $root.hijos_clip = [];
@@ -782,6 +865,7 @@
 
 
           game.efectocon.run();
+          game.fondocon.run();
           game.dialogo.run();
 
         }
@@ -1492,12 +1576,8 @@
             GES.tileges.estado = 1;
             GES.tileges.images[0] = $LIB.IMAGES[5];
 
-            GES.fondoges.fondos = [];
-            GES.fondoges.ini(0, { image: 9, x: 0, y: 0 });  //canvasses gameges pintado
-            GES.fondoges.ini(0, { image: 10, x: 0, y: 0 }); //canvasses gameges pintado
-            GES.fondoges.ini(0, { image: 11, x: 0, y: 0 }); //canvasses gameges pintado
-            //|optimizacion            
-            GES.fondoges.estado = 1;
+
+            
             
             game.mapcon.set(this.map, 0);
 
@@ -1866,11 +1946,144 @@
                   },//map
                   Submaps:
                   {
+                   
+                   
+                   'Propiedades submap'()
+                   {
+
+                    let _submap = game.mapcon.submap;
+
+                      let _sub = game.editor.tile_editor.win.crear_subventana({x:0, y:0, w:300,h:300, grab:1, titulo: 'Propiedades submapa',
+
+                        });
+
+
+            _sub.mostrar_error=(f_texto='ERROR')=>
+            {
+
+             let _err  = _sub.crear_subventana({x:35,y:50,w:200,h:150,titulo:'Error', grab:1,});
+                   
+                    let _tmes = _FORM.crear_text(_err._bloque, {texto: f_texto,  
+                              x:0,y:10,w:[5,5], h:60, style:{border:'none', whiteSpace:'wrap'} });
+
+                    _FORM.crear_boton(_err._bloque, {x:40, y:70, w:100,texto:'Ok', mousedown:()=>                      
+                      {
+                       _err.cerrar();
+                      }
+
+                     });
+
+            }
+
+
+                      console.log(_submap)
+
+
+                      _FORM.crear_text(_sub._bloque, {texto: 'Nombre:',  
+                              x:10,y:10,w:200, h:60, style:{textAlign:'left', border:'none', whiteSpace:'wrap'} });
+
+                      let _i_nombre = _FORM.crear_input(_sub._bloque,{x:0,y:10,w:[100,10],h:20,max_char:19, value:_submap.nombre });
+
+
+                      //tema
+                      let _c = _FORM.crear_categoria(_sub._bloque, {texto:'Tema', x:0,y:0, w:[10,10], h:[50,150]});
+
+                      _FORM.crear_text(_c.odiv, {texto: 'Id:',  
+                              x:10,y:15,w:40, h:60, style:{textAlign:'left', border:'none', whiteSpace:'wrap'} });
+
+                      let _i_tema_id = _FORM.crear_input(_c.odiv,{x:50,y:15, w:50,h:20,max_char:2, value: _submap.tema.id });
+
+
+                      _FORM.crear_text(_c.odiv, {texto: 'Vol:',  
+                              x:120,y:15,w:40, h:60, style:{textAlign:'left', border:'none', whiteSpace:'wrap'} });
+
+                      let _i_tema_vol = _FORM.crear_input(_c.odiv,{x:150,y:15, w:50,h:20,max_char:3, value:_submap.tema.vol });
+
+
+                    //fondo
+                      let _c2 = _FORM.crear_categoria(_sub._bloque, {texto:'Fondo', x:0,y:120, w:[10,10], h:50});
+
+                      _FORM.crear_text(_c2.odiv, {texto: 'Id:',  
+                              x:10,y:15,w:40, h:60, style:{textAlign:'left', border:'none', whiteSpace:'wrap'} });
+
+                      let _i_fondo_id = _FORM.crear_input(_c2.odiv,{x:50,y:15, w:150,h:20,max_char:15,  value:_submap.fondo.id });
+
+                      /*_FORM.crear_text(_c2.odiv, {texto: 'Vol:',  
+                              x:120,y:15,w:40, h:60, style:{textAlign:'left', border:'none', whiteSpace:'wrap'} });
+
+                      _FORM.crear_input(_c2.odiv,{x:150,y:15, w:50,h:20,max_char:19 });
+                      */
+
+
+              _FORM.crear_boton(_sub._bloque, {x:10, y:220, w:100,texto:'Aplicar', mousedown:()=>                      
+                      {
+                       
+               
+                  let _v_nombre   = remove_lastspace_string(_i_nombre.get_value() ); 
+                  let _v_tema_id  = _i_tema_id.get_value();
+                  let _v_tema_vol = _i_tema_vol.get_value();
+
+                  let _v_fondo_id = remove_lastspace_string(_i_fondo_id.get_value() );
+
+                  if(_v_nombre == '' )
+                  {
+                        _sub.mostrar_error('Nombre no valido');              
+
+                        return;
+            
+                  }
+                  if(_v_fondo_id == '' )
+                  {
+                        _sub.mostrar_error('Fondo id no valido');              
+                        return;
+            
+                  }
+
+
+                       if(!is_numeric(_v_tema_id ) )
+                       {
+                        _sub.mostrar_error('Tema id no valida');              
+
+                        return;
+                       }
+                       if(!is_numeric(_v_tema_vol ) )
+                       {
+                       
+                        _sub.mostrar_error('Tema vol no valida');              
+
+                         return;
+                       }
+                       
+
+                      _submap.nombre = _v_nombre; 
+                      _submap.tema.id=string_to_number(_v_tema_id) ;
+                      _submap.tema.vol=string_to_number(_v_tema_vol);
+                      _submap.fondo.id = _v_fondo_id;
+
+
+
+
+                       _sub.cerrar();
+                      
+
+
+                      }});
+
+              _FORM.crear_boton(_sub._bloque, {x:130, y:220, w:100,texto:'Cancelar', mousedown:()=>                      
+                      {
+                       _sub.cerrar();
+                      }});
+
+
+
+                   },
+
                    'Log submaps'()
                    {
                     console.log(game.mapcon.map.submaps)
 
                    },
+
                    'Submaps->':
                    {
                       

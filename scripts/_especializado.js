@@ -1813,9 +1813,8 @@ var _ESPECIALIZADO =
       _gain.gain.value = 0;
       _gain.gain.setValueCurveAtTime([0, f_gain], this.ctx.currentTime, 0.1);
 
-      
       _buffer.connect(_gain);
-      //_buffer.gain = _gain;
+      _buffer.gain = _gain;
 
       //_gain.connect(this.mastergain);
 

@@ -133,13 +133,14 @@ document.currentScript.class =
        },
        start()
        {
-        _clip.hitcon.hit( {hitcon:{rebotar:0, damage:4} });
+        _clip.hitcon.hit(  {hitcon:{rebotar:0, damage:4, noplayerkill:1}  });
+
          let _salud = game.particon.data.perfiles.act.hp[0];
          
         
-
          if(_salud>0)
         _clip.modos.set('muerto', [0]);
+
          else
          _clip.modos.set('muerto',[1])
         
@@ -379,29 +380,7 @@ document.currentScript.class =
   
   },//armacon
 
-  //|fondocon
-  fondocon:
-  {
-    _padre:'',
-    tt: [0, 25, 0],
-    update_fondos()
-    {
-      this.tt[0]++;
-      if (this.tt[0] > this.tt[1]) 
-      {
-        this.tt[0] = 0;
-        this.tt[2] += 1;
-      }
-      $gameges.fondoges.fondos[0].x = ($root.level.x / 7);
-      $gameges.fondoges.fondos[0].y = ($root.level.y) - 10;
-      $gameges.fondoges.fondos[1].x = ($root.level.x / 3) - this.tt[2];
-      $gameges.fondoges.fondos[1].y = ($root.level.y) - 25;
-      $gameges.fondoges.fondos[2].x = ($root.level.x / 3);
-      $gameges.fondoges.fondos[2].y = ($root.level.y) - 25;
-    },
-
-  },//fondocon
-
+  
   
  //|colcheck
   col_check() {
@@ -519,8 +498,9 @@ document.currentScript.class =
 
           game.particon.data.perfiles.set_var(_enem.hitcon.damage, 'hp', '-');
           let _salud = game.particon.data.perfiles.act.hp[0];
-          if(_salud<=0)
+          if(_salud<=0 && _enem.hitcon.noplayerkill!==1)
           {
+            alert('dada')
           _clip.modos.set('muerto',[2])
           return;  
           }
@@ -607,7 +587,7 @@ document.currentScript.class =
   {
     window['_clip'] = this;
     padrear(this);
-    this.fondocon.update_fondos()
+    //this.fondocon.update_fondos()
 
     this.anim = this.hijos_clip[1];
     
@@ -943,8 +923,6 @@ document.currentScript.class =
 
               game.efectocon.add('v_move');
 
-
-
               game.soundcon.play(9);
 
               
@@ -953,7 +931,6 @@ document.currentScript.class =
                {
                
                game.soundcon.temacon.play(7);
-
                }
 
 
@@ -1286,7 +1263,7 @@ document.currentScript.class =
 
 
 //   game.center_nivel(this.x+this.w/2,this.y+this.h/2  );
-    this.fondocon.update_fondos();
+    //this.fondocon.update_fondos();
 
 
     this.anim.x = -13;

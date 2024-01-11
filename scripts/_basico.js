@@ -3624,6 +3624,10 @@ _foo.hini = _foo.hr;
                                       }
 
                                       
+                                     if(f_data.value!==undefined)
+                                     {
+                                      this.set_value(f_data.value.toString());
+                                     }
 
                                      
                                       return (_input);
