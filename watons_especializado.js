@@ -276,6 +276,12 @@ var RPG =
           this._padre.clip.remove();
           this._padre.clip = '';
 
+          if(this.TIMEOUT_P!==undefined)
+          {
+           clearTimeout(this.TIMEOUT_P)
+           this.TIMEOUT_P=undefined;
+          }
+
 
 
           for (var u of this.clips)
@@ -380,6 +386,7 @@ var RPG =
                 if (_c == "{") {
 
                   let _json = find_json_from_string(this.line, this.act[1]);
+                  
 
                   for (var i in _json.json) {
                     let u = _json.json[i];
@@ -389,7 +396,6 @@ var RPG =
                     if (i == 'goto') {
                       this.texto = this.tags[u].arr;
 
-                      console.log(this.tags)
                       this.act[0] = this.tags[u].act[0];
                       this.act[1] = this.tags[u].act[1];
                       this.x = 0;
@@ -425,15 +431,16 @@ var RPG =
                     if(i=='pause') //en milisegundos
                     {
                     this.estado='paused';
-                    setTimeout(()=>{
-                                    this.estado=1;
-                                   },u)
+                    this.TIMEOUT_P = setTimeout(()=>{
+                                     
+                                                  this.estado=1;
+
+                                                 },u)
                     }
 
                   }
-
-                  this.line = this.line.slice(0, _json.a) + this.line.slice(_json.b + 1);
-
+                  let _a = this.line;
+                  this.line = _a.slice(0, _json.a)  +  _a.slice(_json.b + 1);
                   _c = this.line.charAt(this.act[1]);
 
 
@@ -441,19 +448,52 @@ var RPG =
 
 
                 //quebrar linea 
-                if (this.act[1] > 0 && this.line.charAt(this.act[1] - 1) === " ") {
-                  for (var i = this.act[1]; i <= this.line.length; i++) {
-                    if (this.line.charAt(i) == " " || i == this.line.length) {
-                      let _len = i - this.act[1];
-                      if ((_margen[0] + (this.x + _len) * 8) * 2 > this._padre.odiv.wr - _margen[2] * 2) {
-                        this.x = 0;
-                        this.y++;
+                let _lin = this.line;
+                if (this.act[1] > 0 && _lin.charAt(this.act[1] - 1) === " ") 
+                {
+
+                  for (var i = this.act[1]; i <= _lin.length; i++) 
+                  {
+
+                      if(_lin.charAt(i)=='{')
+                      {
+                        
+                        _json = find_json_from_string(_lin, i);
+
+                         let _a = _lin;
+                         _lin = _a.slice(0, _json.a)  +  _a.slice(_json.b + 1);
+
+                        
+                         
+                         i = this.act[i]-1;
+                         continue;
+                        
                       }
 
-                      break;
-                    }
+                     
+
+                      let _len = i - this.act[1];
+                      if (
+                         //i == this.line.length || 
+                         (_margen[0] +  (this.x + _len)* 8)  >  game.wcanvas //- _margen[2]  
+
+                        ) 
+                      {
+                        
+                        this.x = 0;
+                        this.y++;
+                        break;
+                      }
+
+                      if(_lin.charAt(i) == " " || i ==this.line.length)
+                      {
+                        break;
+                      }
+   
+
                   }
-                }
+                }//fin quiebre
+
                 if(this.estado=='paused')
                   break block_tt;
 

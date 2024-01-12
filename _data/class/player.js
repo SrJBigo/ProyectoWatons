@@ -498,10 +498,12 @@ document.currentScript.class =
 
           game.particon.data.perfiles.set_var(_enem.hitcon.damage, 'hp', '-');
           let _salud = game.particon.data.perfiles.act.hp[0];
+          this.estado = 1;
           if(_salud<=0 && _enem.hitcon.noplayerkill!==1)
           {
-            alert('dada')
+
           _clip.modos.set('muerto',[2])
+
           return;  
           }
           
@@ -571,7 +573,11 @@ document.currentScript.class =
           {
 
             u.hitcon.on_hit(this, { damage: 6 },'player');
+
             this.hit(u); 
+
+
+
             break;
           }
 

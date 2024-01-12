@@ -325,6 +325,7 @@
          play(f_id, f_gain=1, f_pitch=0, f_loop=0)
         {
            
+        
 
          if(this.act==='' || this.act.id!==f_id)
          {
@@ -780,6 +781,8 @@
       end() {
         if (this.dialogo !== '' && this.dialogo.write.estado !== 0) {
            this.dialogo.write.on_end();
+
+
         }
 
       },
@@ -980,7 +983,7 @@
             let _s0 = '{"speed":[20,20]}';
             let _s1 = '{"speed":[5,5]}';
 
-            game.dialogo.set(['{"id":"main","m_speed":[4,4]}Hace miles de años, en la Constelacion 73'+_s0+' ...' + _script ,
+            game.dialogo.set(['{"id":"main","m_speed":[4,4]}Hace miles de años, en laaaaaaaa Constelacion 73'+_s0+' ...' + _script ,
                'Existio lo que era llamado '+_s1+'el bar de los amiguitos.'+ _script,
                'Un magico lugar que acogia a las solitarias almas del multiverso.'+ _script,
                'Tiempos felices. Mas nadie hacia presagiar lo que el futuro les deparaba...'+'{"pause":9999999999999}',
@@ -1481,9 +1484,11 @@
             
             hudbarras:{  },
             textos:{},
+            estado:0,
 
             ini() {
               this._padre.tt_dead=[0,60];
+              this.estado=0;
               let _hud = this.hud = WIN.gameges.crear_vacio($root, 2,
                 {
                   w: game.wcanvas,
@@ -1499,21 +1504,35 @@
                this.hudbarras.pp = game.crear_hudbarra(_hud, 
                     {valores:_stats.pp, x:(8*5)+5, y:6, w:8*5, h:6, texto:{x:-1,y:-7,texto:'magia'}, colores:['gray','white'  ]  })
 
-              
+            },
+            run()
+            {
+            
+            
+
+            if(this.estado=='hit_hp')
+               {
+                //this.hudbarras.hp.texto.y++;
+
+               }
+
+
+               
+
             },
           
 
           on_stats_update(f_obj)
           {
            this._padre.hud.hudbarras[f_obj.name].set(f_obj.value[0], 'set');
+           
+           this.estado='hit_hp';
+
            if(f_obj.name=='hp'&&f_obj.value[0]<=0)
            {
-             //game.mapcon.reset();
             
              game.escenario.escenas.play_0.vidalost_con.on_vidalost();
-             
-             
-             //this.update_hudbarras();
+            
            }
 
           },
@@ -1623,6 +1642,7 @@
           enterframe() {
                                   
           this.vidalost_con.run();
+          this.hud.run();
           let _jugador = $root.level.jugador;
           
           game.center_nivel(_jugador.camera_offset);
@@ -1732,7 +1752,7 @@
        game.escenario.enterframe(); 
       });
 
-      game.escenario.set('play_0');
+      game.escenario.set('intro_1');
 
 
     },//ini

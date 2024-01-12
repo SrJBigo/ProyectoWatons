@@ -2880,6 +2880,7 @@ _foo.hini = _foo.hr;
     let _llaves = [0, 0];
     for (var i = f_index; i < f_texto.length; i++) {
       let u = f_texto.charAt(i);
+      
 
       if (u == "{")
         _llaves[0]++;
