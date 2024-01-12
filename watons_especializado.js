@@ -449,28 +449,28 @@ var RPG =
 
                 //quebrar linea 
                 let _lin = this.line;
+                var choo = 0;
+
                 if (this.act[1] > 0 && _lin.charAt(this.act[1] - 1) === " ") 
                 {
-
-                  for (var i = this.act[1]; i <= _lin.length; i++) 
+                  
+                  for (let i = this.act[1]; i <= _lin.length; i++) 
                   {
 
-                      if(_lin.charAt(i)=='{')
+
+
+                      if(_lin.charAt(i)==='{')
                       {
-                        
-                        _json = find_json_from_string(_lin, i);
+
+                         _json = find_json_from_string(_lin, i);
 
                          let _a = _lin;
+
                          _lin = _a.slice(0, _json.a)  +  _a.slice(_json.b + 1);
 
-                        
-                         
-                         i = this.act[i]-1;
-                         continue;
+
                         
                       }
-
-                     
 
                       let _len = i - this.act[1];
                       if (
@@ -485,8 +485,9 @@ var RPG =
                         break;
                       }
 
-                      if(_lin.charAt(i) == " " || i ==this.line.length)
+                      if(_lin.charAt(i) === " " || i ==this.line.length)
                       {
+
                         break;
                       }
    
