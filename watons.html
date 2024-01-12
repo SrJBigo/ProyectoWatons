@@ -307,7 +307,8 @@
     soundcon:
     {
     estado:1,
-       
+      
+      //|temacon 
       temacon:
       {
         _padre:'',
@@ -322,16 +323,30 @@
 
         },
 
-         play(f_id, f_gain=1, f_pitch=0, f_loop=0)
+         get_vol()
+         {
+          if(this.act!=='')
+            {
+            return(this.act.gain.gain.value);
+            }
+
+         },
+         set_vol(_vol = 1)
+         {
+            if(this.act!=='')
+            {
+            this.act.gain.gain.value= _vol;
+            }
+
+         },
+         play(f_id, f_gain=1, f_pitch=0, f_loop=0, f_time=0, f_offset=undefined)
         {
            
-        
-
          if(this.act==='' || this.act.id!==f_id)
          {
 
          this.stop();
-         this.act = AUDIO.play_sample(WIN.LIB.SOUNDS[f_id], f_gain, f_pitch, f_loop);
+         this.act = AUDIO.play_sample(WIN.LIB.SOUNDS[f_id], f_gain, f_pitch, f_loop,   f_time, f_offset);
          this.act.id=f_id;
          }
          else if(this.act.id === f_id)
@@ -789,6 +804,80 @@
 
     },
 
+
+    //|pausecon
+    pausecon:
+    {
+      
+      estado:0,
+      set(f_id)
+      {
+
+      },
+      on_keydown(e)
+      {
+
+         if(game.escenario.act.can_pause)
+         { 
+          if(e.key=='Enter')
+          {
+          
+           _root.propagar_enterframe = this.estado;
+           _root.enabled_enterload   = this.estado;
+
+           this.estado = flipbin(this.estado);
+           
+           if(this.estado)
+           {
+           
+           this.temaprev = game.soundcon.temacon.act;
+
+           let _start = this.temaprev.startTime;
+           let _curr = AUDIO.ctx.currentTime;
+           let _dur = this.temaprev.buffer.duration;
+
+
+           let _sec = (_curr-_start);
+           while(_sec>_dur)
+           {
+            _sec-= _dur;
+           }
+               
+           this.resume_time = _sec;
+
+              //alert(_sec)
+
+
+           game.soundcon.temacon.stop(); 
+
+
+
+           }
+           else
+           {
+            
+            game.soundcon.temacon.play(this.temaprev.id, this.temaprev.gain.gain.value, 0, this.temaprev.loop,   0, [this.resume_time,undefined] ); 
+            game.soundcon.temacon.act.startTime -= this.resume_time;
+
+
+
+            //play(f_id, f_gain=1, f_pitch=0, f_loop=0, f_time=0, f_offset=undefined)
+
+
+           }
+           
+
+
+
+          }
+
+         }
+
+      }
+
+
+    },
+
     //|escenario
     escenario:
     {
@@ -858,11 +947,20 @@
 
 
       },
+
+      on_keydown(e)
+      {
+
+      },
       //|enterframe
       enterframe() {
 
         if(WIN.get_title()!== 'Watons, legend of pipi [' + game.escenario.act.name + ']' )
            WIN.set_title('Watons, legend of pipi [' + game.escenario.act.name + ']');
+
+
+              
+
         
 
         if (this.act !== '') {
@@ -1446,6 +1544,14 @@
           let _savepos = this.mapcon.savepos;
           WIN.gameges.cargar_clase($root.level, 8, { x: _savepos.x * 16, y: _savepos.y * 16, nombre: 'jugador' }); //jugador
           
+          if(game.editor._psave!==undefined)
+          {
+            $root.level.jugador.x = game.editor._psave.x;
+            $root.level.jugador.y = game.editor._psave.y;
+            game.editor._psave=undefined;
+          }
+          $root.level.jugador.camera_offset.update();
+
           game.center_nivel($root.level.jugador.camera_offset);
  
 
@@ -1474,6 +1580,7 @@
         {
           name: 'play_0',
           editor: { img_id: [5,17], tiledata_id: 1 },
+          can_pause:1,
 
           map:'',
                           //{value, name, modo}
@@ -1633,9 +1740,27 @@
 
           WIN.gameges.cargar_clase($root.level, 0, { x: _startpoint.x * 16, y: _startpoint.y * 16, nombre: 'jugador'}); //jugador
           $root.level.jugador.modos.modos.normal.estado=_startpoint.direccion;
+          
+          //editor
+          if(game.editor._psave!==undefined)
+          {
+            $root.level.jugador.x = game.editor._psave.x;
+            $root.level.jugador.y = game.editor._psave.y;
+            game.editor._psave=undefined;
+          }
 
+
+          $root.level.jugador.camera_offset.update();
+          
 
           this.hud.ini();
+
+           
+
+
+          game.center_nivel($root.level.jugador.camera_offset);
+
+          
 
           },
 
@@ -1749,10 +1874,15 @@
        _root.set_$(WIN);
       
        
+       
        game.escenario.enterframe(); 
+       
+       
+
+
       });
 
-      game.escenario.set('intro_1');
+      game.escenario.set('play_0');
 
 
     },//ini
@@ -1866,7 +1996,7 @@
             this.grab.clear();
             WIN.macrobloque.header.titulo.obj.style.background = 'gray';
             let _jugador = $root.level.jugador;
-            let _psave = { x: _jugador.x, y: _jugador.y };
+            this._psave = { x: _jugador.x, y: _jugador.y };
 
 
             if(f_mapupdate)
@@ -1875,8 +2005,8 @@
             game.mapcon.reset(0, game.mapcon.submap.id);
             }
 
-            $root.level.jugador.x = _psave.x;
-            $root.level.jugador.y = _psave.y;
+            //$root.level.jugador.x = _psave.x;
+            //$root.level.jugador.y = _psave.y;
           }
           else { //editor to 0
 
@@ -2181,6 +2311,8 @@
     },//editor
     on_keydown(_key) {
         this.editor.on_keydown(_key);
+        this.escenario.on_keydown(_key);
+        this.pausecon.on_keydown(_key);
     },
     on_mousedown(e) {
         this.editor.on_mousedown(e);

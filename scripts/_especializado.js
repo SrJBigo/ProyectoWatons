@@ -1082,6 +1082,7 @@ var _ESPECIALIZADO =
   
     
     f_donde.propagar_enterframe = f_propagar;
+    f_donde.enabled_enterload = 1;
 
     //if (f_donde.escenario != undefined)
     //  f_donde.propagar_enterframe = 0;
@@ -1131,6 +1132,7 @@ var _ESPECIALIZADO =
       }
 
 
+        if(f_donde.enabled_enterload)
         enterload(f_donde);
 
       if (f_donde.propagar_enterframe == 1) 
@@ -1787,7 +1789,7 @@ var _ESPECIALIZADO =
       return (_buffer)
     },
 
-    play_sample(f_buffer, f_gain=1, f_pitch = 0, f_loop = 0) {
+    play_sample(f_buffer, f_gain=1, f_pitch = 0, f_loop = 0, f_time=undefined,f_offset=[0,undefined],) {
       let _ctx = this.ctx;
 
 
@@ -1833,7 +1835,9 @@ var _ESPECIALIZADO =
       //_buffer.loopStart=1;
       //_buffer.loopEnd=1.1;
 
-      _buffer.start();
+      //_buffer.start();
+      _buffer.start(f_time,  f_offset[0],f_offset[1]);
+      _buffer.startTime = AUDIO.ctx.currentTime;
 
     return(_buffer);
 

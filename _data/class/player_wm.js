@@ -135,8 +135,13 @@ mapstart_tt:[0,60],
       let _id = _tilemaps[1][_y][_x];
       let _id2 = _tilemaps[1][_yy][_xx];
 
-      let _a = this.tiles_infolado[_id];
-      let _b = this.tiles_infolado[_id2];
+      let _tiledata = $gameges.tileges.tiledata.col;
+      
+
+      let _a = _tiledata[_id];
+      let _b = _tiledata[_id2];
+
+
       if (_a == undefined || _b == undefined)
         return (0)
 
@@ -151,7 +156,7 @@ mapstart_tt:[0,60],
 
       return (0);
     },
-    tiles_infolado: //definicion de 'salidas' de tiles camino
+    /*tiles_infolado: //definicion de 'salidas' de tiles camino
     {
       0: [0, 0, 0, 0],
 
@@ -176,9 +181,11 @@ mapstart_tt:[0,60],
       52: [1, 1, 1, 0], 56: [2, 2, 1, 0]
 
     },
+    */
 
     check_4(_xt, _yt) {
       let _tilemaps = $gameges.tileges.tilemaps_all;
+      let _tiledata = $gameges.tileges.tiledata.col;
       let _id_ini = _tilemaps[1][_yt][_xt];
 
       let _xy = [[-1, 0],
@@ -203,12 +210,15 @@ mapstart_tt:[0,60],
             _id_dig[0] >= 0 && _id_dig[0] <= 5 &&
            this.check_join(_xt, _yt, _x, _y,  2)
         ) {
+           
+           //swap tile
 
-           _tilemaps[1][_y][_x] -= 4;
+           _tilemaps[1][_y][_x] = _tiledata[_id][5];
 
            if(_id==34)
            {
-            return;
+            //break
+           continue
            }
             
            this.puntos.push({ x: _x, y: _y })
@@ -227,52 +237,61 @@ mapstart_tt:[0,60],
 
   check_tile_nextmove() { //empleado movimiento automatico
     let _tilemaps = $gameges.tileges.tilemaps_all;
+    
 
     let _id = this.get_c16().id;
+    let _tiledata = $gameges.tileges.tiledata.col[_id];
 
-    let _movedata =
-    {
-      1: {
-        2: [-1, 0, 1],
-        21: [0, -1, 2],
-        1: [0, 1, 4],
-      },
 
-      2: {
-        11: [0, -1, 2],
-        1: [1, 0, 3],
-        3: [-1, 0, 1]
-      },
+    if (_tiledata[4]===1) {
 
-      3:
+      for(var i =0;i<4;i++)
       {
-        2: [1, 0, 3], //x,y,estado
-        23: [0, -1, 2],
-        3: [0, 1, 4]
-      },
+        
+        if(_tiledata[i]==1 && i!== this.flip_4(this.estado-1))
+        {
+        let _xyp = this.xyp_from_4(i);
+        this.tile_des.x += _xyp[0];
+        this.tile_des.y += _xyp[1];
 
-      4:
-      {
-        11: [0, 1, 4], //x,y,estado
-        21: [1, 0, 3],
-        23: [-1, 0, 1],
-      },
+        this.estado = i+1;
+        break;
+        }
+
+      }
 
 
 
-    }
+      
 
-    if (_movedata[this.estado][_id]) {
-      this.tile_des.x += _movedata[this.estado][_id][0];
-      this.tile_des.y += _movedata[this.estado][_id][1];
 
-      this.estado = _movedata[this.estado][_id][2];
 
       return (1);
     }
 
 
     return (0);
+
+  },
+
+  flip_4(_pos)
+  {
+    if(_pos==0)return (2);
+    if(_pos==1)return (3);
+    if(_pos==2)return (0);
+    if(_pos==3)return (1);
+
+  },
+
+  xyp_from_4(_n)
+  {
+     let _a = [[-1,0],
+               [0,-1],
+               [1,0],
+               [0,1],
+              ]
+
+    return(_a[_n]);
 
   },
 
@@ -306,7 +325,7 @@ mapstart_tt:[0,60],
   loadframe() {
     
     this.propagar._padre = this;
-
+    padrear(this);
     //this.update_fondos()
 
 
@@ -317,7 +336,7 @@ mapstart_tt:[0,60],
     this.yvelocity = 0;
     this.tile_des = { x: fl(this.x / 16), y: fl(this.y / 16) };
 
-this.camera_offset.update();
+    this.camera_offset.update();
   },
 
 
@@ -333,6 +352,8 @@ this.camera_offset.update();
 
 
     let _estado_h = this.estado;
+
+    this.camera_offset.update(); //bug
 
 
     this.propagar.run();
@@ -367,6 +388,7 @@ this.camera_offset.update();
         {
            game.escenario.act.on_mapoint_openselect(_to);  
            this.estado=5; //esperando en seleccion de personaje
+           return;
         }
       }
         
@@ -407,10 +429,12 @@ this.camera_offset.update();
       this.x -= _vel;
       if (this.x <= this.tile_des.x * 16) {
         this.x = this.tile_des.x * 16;
+
         if (this.check_tile_nextmove() == 0)
         {
           this.estado = 0;
         }
+
       }
     }
     //hacia arriba
@@ -452,12 +476,12 @@ this.camera_offset.update();
     this.anim.animdata.set_anim(_estado_h);
 
 
-
-
     this.anim.x = 0;
     this.anim.y = -5;
 
-this.camera_offset.update();
+
+
+    //game.center_nivel($root.level.jugador.camera_offset);
 
 //    game.center_nivel(this.x+this.w/2,this.y+this.h/2  );
 
