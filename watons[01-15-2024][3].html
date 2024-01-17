@@ -26,6 +26,71 @@
 
     gestor:'',
 
+    wcanvas:'',
+    hcanvas:'',
+
+
+    //|efectocon
+    efectocon:
+    {
+      efectos:[],
+      _efectos:
+      {
+        v_move:
+          {
+            tt:[0,5],
+               ini()
+               {
+                
+
+               },
+               run()
+               {
+                let _jugador = $root.level.jugador;
+               
+                    _jugador = $root.level.jugador;
+                    _jugador.camera_offset.yp=3; 
+
+                this.tt[0]++;
+                if(this.tt[0]==this.tt[1])
+                {
+                 _jugador.camera_offset.yp=0;
+                 return (1);                  
+                }
+                
+
+               },
+
+          },
+          
+
+      },
+
+       add(f_name)
+       {
+         let _clone = clone_object(this._efectos[f_name]);
+         this.efectos.push( _clone );
+         _clone.ini();
+
+       },
+
+       run()
+       {
+        for(var i = this.efectos.length-1; i>=0;i--)
+        {
+          let u = this.efectos[i];
+
+           let _a = u.run();
+           if(_a==1)
+           {
+              this.efectos.splice(i,1);
+           }
+
+        }
+
+       }
+
+    },
 
     //|fadecon
     fadecon:
@@ -35,6 +100,8 @@
       act:'',
       modos:
       {
+
+
         oscurecer:
         {
            tt:'',
@@ -145,13 +212,182 @@
 
     },//fadecon
 
+    //|fondocon
+    fondocon:
+    {
+       
+      fondos:
+       {
+        campo_a:
+              {
+                tt: [0, 25, 0],
+                ini()
+                {
+                  GES.fondoges.ini(0, { image: 9, x: 0, y: 0 }); 
+                  GES.fondoges.ini(0, { image: 10, x: 0, y: 0 });
+                  GES.fondoges.ini(0, { image: 11, x: 0, y: 0 });
+                },
+                run(_level_x, _level_y)
+                {
+                this.tt[0]++;
+                if (this.tt[0] > this.tt[1]) 
+                {
+                  this.tt[0] = 0;
+                  this.tt[2] += 1;
+                }
+                $gameges.fondoges.fondos[0].x = (_level_x / 7);
+                //$gameges.fondoges.fondos[0].y = ($root.level.y) - 10;
+                $gameges.fondoges.fondos[1].x = (_level_x / 3) - this.tt[2];
+                //$gameges.fondoges.fondos[1].y = ($root.level.y) - 25;
+                $gameges.fondoges.fondos[2].x = (_level_x / 3);
+                //$gameges.fondoges.fondos[2].y = ($root.level.y) - 25;
+
+                }
+              },
+
+              campo_b:
+              {
+                
+                ini()
+                {
+                  GES.fondoges.ini(0, { image: 26, x: 0, y: 0 }); 
+                  GES.fondoges.ini(0, { image: 27, x: 0, y: 0 });
+                },
+                run(_level_x, _level_y)
+                {
+                
+                $gameges.fondoges.fondos[0].x = (_level_x / 7);
+                $gameges.fondoges.fondos[1].x = (_level_x / 3);
+
+                //$gameges.fondoges.fondos[0].y = ($root.level.y) - 10;
+                
+                //$gameges.fondoges.fondos[1].y = ($root.level.y) - 25;
+               // $gameges.fondoges.fondos[2].x = ($root.level.x / 3);
+                //$gameges.fondoges.fondos[2].y = ($root.level.y) - 25;
+
+                }
+              }
+       
+       },
+
+       clear()
+       {
+         this.act="";
+       },
+
+       
+
+       set(f_fondo)
+       {
+
+            GES.fondoges.fondos = [];
+            game.mapcon.slidecon.f_scroll.x=0;
+            game.mapcon.slidecon.f_scroll.y=0;
+
+            this.act="";
+            if(this.fondos[f_fondo.id]!==undefined)
+            {
+            let _act = clone_object(this.fondos[f_fondo.id]);
+            this.act = _act;
+            _act.ini();
+            }
+            GES.fondoges.estado = 1;
+
+       },
+       run()
+       {
+            if(this.act!=='')
+            {
+             let _x = $root.level.x;
+              
+             _x += game.mapcon.slidecon.f_scroll.x;
+
+              this.act.run(
+                _x,
+                $root.level.y
+                );
+            }
+       },
+
+
+    },//fondocon
+
+   //|soundcon
     soundcon:
     {
-    estado:0,
-      play(f_id)
+    estado:1,
+      
+      //|temacon 
+      temacon:
       {
+        _padre:'',
+        act:'',
+        stop()
+        {
+         if(this.act!=='')
+         {
+         this.act.stop();
+         this.act='';
+         }
+
+        },
+
+         get_vol()
+         {
+          if(this.act!=='')
+            {
+            return(this.act.gain.gain.value);
+            }
+
+         },
+         set_vol(_vol = 1)
+         {
+            if(this.act!=='')
+            {
+            this.act.gain.gain.value= _vol;
+            }
+
+         },
+         play(f_id, f_gain=1, f_pitch=0, f_loop=0, f_time=0, f_offset=undefined)
+        {
+           
+         if(this.act==='' || this.act.id!==f_id)
+         {
+
+         this.stop();
+         this.act = AUDIO.play_sample(WIN.LIB.SOUNDS[f_id], f_gain, f_pitch, f_loop,   f_time, f_offset);
+         this.act.id=f_id;
+         }
+         else if(this.act.id === f_id)
+         {
+          this.act.gain.gain.value= game.mapcon.submap.tema.vol;
+         }
+
+        },
+
+        ini_leveltema() //llamado en mapcon -> set_submap
+        {
+
+          let _submap = game.mapcon.submap;
+          let _tema = _submap.tema;
+          
+          if(game.editor.estado==1)
+          {
+            this.stop();
+            return;
+          }
+
+          this.play(_tema.id,_tema.vol,0,1);       
+        }
+
+      },//temacon
+
+      play(f_id, f_gain=1, f_pitch=0, f_loop=0)
+      {
+
         if(this.estado)
-        AUDIO.play_sample($WIN.LIB.SOUNDS[f_id],0);
+        AUDIO.play_sample(WIN.LIB.SOUNDS[f_id], f_gain, f_pitch, f_loop);
+
       },
 
     },
@@ -159,11 +395,329 @@
     //|mapcon game
     mapcon:
     {
+      _padre:'',
        map_master:'', //mapa original
 
        map:'',        //mapa    en curso
        submap:'',     //submapa en curso
        
+
+       run()
+       {
+         this.slidecon.run();
+
+       },
+
+      //|slidecon
+      slidecon:
+      {
+      _padre:'',
+      estado:0,
+
+      
+      lim:0,
+      f_scroll:{x:0,y:0},
+      p_save:{x:0,y:0, xvelocity:0,yvelocity:0},
+      tileobj:'',
+      maps_wht:[{w:0,h:0},{w:0,h:0}], //prev, new
+      clear()
+      {
+       this.estado=0;
+      },
+
+        alien:{x:0,y:0, estado:0, objtile: ''},
+
+                   //2,3,4,5 esperados
+        start_alien(f_estado, f_objtile)
+        {
+
+           let _level = $root.level;
+           let _jugador = $root.level.jugador;
+
+           this.estado=1;
+
+           this.alien.estado = f_estado;
+           this.alien.objtile = f_objtile;
+
+           let _wt = [$gameges.tileges.yt_max, $gameges.tileges.xt_allmax];
+           let _ht = [$gameges.tileges.yt_max, $gameges.tileges.yt_allmax];
+
+
+           //this.tileobj = f_tileobj;
+           //this.estado=f_dir;
+
+           game.remove_all_obj();
+//           game.mapcon.slidecon.player_saveprops();
+         
+           _jugador.modos.set('freeze');
+
+
+
+           //calcular posiciones
+           if(f_estado==2 || f_estado == 4)
+           {
+             if(f_objtile.alien[0]=="A")
+             {
+             this.alien.x=0;
+             this.alien.y=0;
+             }
+             if(f_objtile.alien[0]=="B")
+             {
+             this.alien.x=0;
+             this.alien.y=( (_ht[1]-_ht[0])*16 )*-1;
+             }
+           }
+  
+
+        },
+
+        start_slide(f_dir)
+        {
+           let _level = $root.level;
+           let _jugador = $root.level.jugador;
+
+           this.estado=f_dir;
+           game.remove_all_obj();
+           
+         
+           _jugador.modos.set('freeze')
+
+           let _wt = [$gameges.tileges.xt_max, $gameges.tileges.xt_allmax];
+           let _ht = [$gameges.tileges.yt_max, $gameges.tileges.yt_allmax];
+
+           let _level_yt = fl( (_level.y*-1)/16 );
+           let _level_xt = fl( (_level.x*-1)/16 );
+           this.level_yt = _level_yt;
+           this.level_xt = _level_xt;
+
+           this.player_saveprops();
+
+           let _map  = game.mapcon.map;
+           let _smap = clone_object(game.mapcon.submap);
+           let _nmap = clone_object(game.mapcon.map.submaps[this.alien.objtile.id_submap]);
+
+           this.maps_wh = [{ 
+                            w:_smap.tilemaps[0][0].length*16,
+                            h:_smap.tilemaps[0].length*16,
+                            wt:_smap.tilemaps[0][0].length,
+                            wt:_smap.tilemaps[0][0].length,
+                            },
+                            {
+                            w:_nmap.tilemaps[0][0].length*16,
+                            h:_nmap.tilemaps[0].length*16,
+                            wt:_nmap.tilemaps[0][0].length,
+                            ht:_nmap.tilemaps[0].length,
+                            }
+                            ];
+
+           if(f_dir==2)
+           {
+               this.f_scroll.x+=this.maps_wh[1].w;
+
+               for(var k = 0;k<3;k++)
+               {
+                
+                  //for(var i =0;i<_nmap.tilemaps[k].length; i++)
+                  for(var i = 0; i<  _ht[0]; i++)
+                  {
+                  if(this.alien.objtile.alien[1]=="A")
+                    _smap.tilemaps[k][_level_yt + i] = [..._nmap.tilemaps[k][i], ..._smap.tilemaps[k][_level_yt + i] ];  
+
+                  if(this.alien.objtile.alien[1]=="B")
+                    _smap.tilemaps[k][_level_yt + i] = [..._nmap.tilemaps[k][_nmap.tilemaps[0].length-_ht[0]+i],  ..._smap.tilemaps[k][_level_yt + i] ];  
+
+                  }
+                  
+
+               }
+
+               GES.tileges.update_tilemaps(_smap.tilemaps[0],_smap.tilemaps[1],_smap.tilemaps[2]);
+           
+              _jugador.x = _nmap.tilemaps[0][0].length*16;          
+              _level.x -=  _nmap.tilemaps[0][0].length*16;
+
+           }
+
+           if(f_dir==4)
+           {
+            
+
+               _jugador.x = _smap.tilemaps[0][0].length*16-_jugador.w;          
+               for(var k = 0;k<3;k++)
+               {
+                  for(var i =0;i<_nmap.tilemaps[k].length; i++)
+                  _smap.tilemaps[k][i] = [..._smap.tilemaps[k][i], ..._nmap.tilemaps[k][i], ];              
+               }
+
+               GES.tileges.update_tilemaps(_smap.tilemaps[0],_smap.tilemaps[1],_smap.tilemaps[2]);
+              
+              //_level.x -=   _nmap.tilemaps[0][0].length*16;
+
+           }
+
+
+           GES.tileges.update_allmax();
+           GES.tileges.refresh.force();
+
+
+        },
+        player_saveprops()
+        {
+         let _level   = $root.level;
+         let _jugador = _level.jugador;
+
+           this.p_save.x=_jugador.x;
+           
+           //this.p_save.y=_jugador.y;
+           this.p_save.y = (_jugador.y- (this.level_yt*16) ) ;
+
+
+
+           this.p_save.xvelocity=_jugador.xvelocity;
+           this.p_save.yvelocity=_jugador.yvelocity;
+           this.p_save.estado=_jugador.modos.modos.normal.estado;
+           this.p_save.running=_jugador.modos.modos.normal.running;
+
+        },
+        player_setprops()
+        {
+         let _level   = $root.level;
+         let _jugador = _level.jugador;
+
+          _jugador.camera_offset.x = _jugador.x;
+          _jugador.camera_offset.y = _jugador.y;
+
+          _jugador.modos.modos.normal.estado=0;
+          game.center_nivel(_jugador.camera_offset);
+          _jugador.xvelocity = this.p_save.xvelocity;
+          _jugador.yvelocity = this.p_save.yvelocity;
+          _jugador.modos.modos.normal.estado = this.p_save.estado;
+          _jugador.modos.modos.normal.running = this.p_save.running;
+
+        },
+
+        run()
+        {
+
+         if(game.escenario.act.can_slide!==1)return;
+
+
+         let _level   = $root.level;
+         let _jugador = _level.jugador;
+         let _tilemaps = GES.tileges.tilemaps_all;
+
+            //detectar slide
+            if(this.estado==0 && 
+               game.editor.estado==0 && game.escenario.act.name=='play_0'&& _jugador.modos.act.name=='normal')
+            {
+             let _xt = fl((_jugador.x+_jugador.w/2)/16);
+             let _yt = fl((_jugador.y+_jugador.h/2)/16);
+
+              if(_tilemaps[3][_yt] && _tilemaps[3][_yt][_xt] && _tilemaps[3][_yt][_xt].id=='scroll_point')
+              {
+               let _tileobj = _tilemaps[3][_yt][_xt];
+                if(_jugador.x<=0 && _jugador.xvelocity<0)
+                {
+                this.start_alien(2, _tileobj);
+                }
+
+                if(_jugador.x+_jugador.w>=$gameges.tileges.xt_allmax * 16 && _jugador.xvelocity>0)
+                {
+
+                //this.start(3, _tileobj);
+                }
+              }
+            }
+
+
+           //alienar
+           if(this.estado==1)
+           {
+
+            _level.y += (this.alien.y-_level.y)/30;
+            _level.x += (this.alien.x-_level.x)/30;
+
+             if(_level.y >= this.alien.y-1 && _level.y <= this.alien.y+1 && 
+                _level.x >= this.alien.x-1 && _level.x <= this.alien.x+1)
+             {
+                _level.y = this.alien.y;
+                _level.x = this.alien.x;
+                this.start_slide(this.alien.estado);
+               
+             }
+
+           }
+
+            
+           if(this.estado==2)
+           {
+               _level.x+=3;
+               _jugador.x-=0.2;
+               if( (_level.x*-1 + game.wcanvas)  < this.maps_wh[1].w)
+               {
+                this.estado=0;
+
+                _level.x = (this.maps_wh[1].w)*-1+game.wcanvas;
+                
+                game.mapcon.set_submap(this.alien.objtile.id_submap, {set_fondo:0,slide:1});
+                
+                $root.level.jugador.x = this.maps_wh[1].w-16;
+
+                if(this.alien.objtile.alien[1]=='A')
+                { 
+
+                  $root.level.jugador.y = this.p_save.y;
+                }
+                  //$root.level.jugador.y = this.p_save.y+this.alien.y;
+
+                if(this.alien.objtile.alien[1]=='B')
+                {
+                  //alert($gameges.tileges.yt_max)
+                 $root.level.jugador.y = this.maps_wh[1].h-($gameges.tileges.yt_max*16)+this.p_save.y;
+                }
+
+
+                this.player_setprops();
+               }
+           }
+
+           else if(this.estado==4)
+           {
+               _level.x-=3;
+               _jugador.x+=0.2;
+
+               if( (_level.x*-1)  > this.maps_wh[0].w)
+               {
+                this.estado=0;
+
+                this.f_scroll.x-=this.maps_wh[0].w;
+
+                _level.x = 0;
+                
+                game.mapcon.set_submap(this.alien.objtile.id_submap, {set_fondo:0, slide:1});
+                
+                $root.level.jugador.x = 0;
+                $root.level.jugador.y = this.p_save.y;
+                this.player_setprops();
+               }
+               
+             }
+
+
+           if(this.estado>=1&&this.estado<=5)
+           {
+            $gameges.tileges.x = _level.x * -1;
+            $gameges.tileges.y = _level.y * -1;
+           }
+
+
+
+        }
+
+
+      },//slidecon
+
+
       reset(_hard=0, _submap_id=0) 
       {
        if(_hard==0)
@@ -250,8 +804,17 @@
 
        },
 
-       set_submap(f_id)
+       set_submap(f_id, f_data={})
        {
+
+         let _data = {
+                      ...{
+                      set_fondo:1,
+                      slide:0,
+                      },
+                      ...f_data
+                     }
+
 
          this.submap = this.map.submaps[f_id];
          game.editor.tile_editor.mapcon.set(this.submap); 
@@ -271,8 +834,9 @@
         $root.hijos_clip = [];
         game.objs = [];
 
+
            
-        var _level = WIN.gameges.crear_vacio($root, {w: fl(WIN._bloque.wr / 2), h: fl(WIN._bloque.hr / 2) });
+        var _level = WIN.gameges.crear_vacio($root, {w: game.wcanvas, h: game.hcanvas });
         $root.level = _level;
         game.editor.tile_editor.offset_obj = _level;
 
@@ -280,7 +844,15 @@
         if(game.escenario.act.on_submapset)
         game.escenario.act.on_submapset();
 
-       
+
+
+        game.soundcon.temacon.ini_leveltema();
+
+        if(_data.set_fondo)
+        game.fondocon.set(this.submap.fondo);
+
+        
+
        },
        set(_map=game.mapcon.map)
        {
@@ -295,15 +867,29 @@
                  };
         }
         for(var i in _map.submaps)
+        {
            _map.submaps[i].id = i;
+           if(_map.submaps[i].tema==undefined)
+           {
+            _map.submaps[i].tema={
+                                  id:5,
+                                  vol:0.4
+                                 };
+           }
+
+           if(_map.submaps[i].fondo==undefined)
+           {
+            _map.submaps[i].fondo={
+                                   id:'campo_a',
+                                  };
+           }
+        }
 
         this.map = _map;
         this.map_master = clone_object(_map);
 
 
-
         this.update_menu_submaps();
-
 
         this.set_submap(this.map.ini_submap);
 
@@ -333,6 +919,28 @@
             w:[8,8],
             h:[8,8],
             },
+     tn8x8:
+            {
+            img_id:23,
+            w:[8,8],
+            h:[8,8],
+            },
+
+            tr8x8:
+            {
+            img_id:24,
+            w:[8,8],
+            h:[8,8],
+            },
+
+            ta8x8:
+            {
+            img_id:25,
+            w:[8,8],
+            h:[8,8],
+            },
+
+
       tn10x18:
             {
             img_id:19,
@@ -358,6 +966,7 @@
                      gameges:WIN.gameges,
                      image:$LIB.IMAGES[_fuente.img_id],
                      canvas:DUMMY_CANVAS,
+                     canvas_id:2,
                   
                      ..._fuente
                      },
@@ -525,10 +1134,86 @@
       },
       end() {
         if (this.dialogo !== '' && this.dialogo.write.estado !== 0) {
-          this.dialogo.write.on_end();
+           this.dialogo.write.on_end();
+
+
         }
 
       },
+
+    },
+
+
+    //|pausecon
+    pausecon:
+    {
+      
+      estado:0,
+      set(f_id)
+      {
+
+      },
+      on_keydown(e)
+      {
+
+         if(game.escenario.act.can_pause)
+         { 
+          if(e.key=='Enter')
+          {
+          
+           _root.propagar_enterframe = this.estado;
+           _root.enabled_enterload   = this.estado;
+
+           this.estado = flipbin(this.estado);
+           
+           if(this.estado)
+           {
+           
+           this.temaprev = game.soundcon.temacon.act;
+
+           let _start = this.temaprev.startTime;
+           let _curr = AUDIO.ctx.currentTime;
+           let _dur = this.temaprev.buffer.duration;
+
+
+           let _sec = (_curr-_start);
+           while(_sec>_dur)
+           {
+            _sec-= _dur;
+           }
+               
+           this.resume_time = _sec;
+
+              //alert(_sec)
+
+
+           game.soundcon.temacon.stop(); 
+
+
+
+           }
+           else
+           {
+            
+            game.soundcon.temacon.play(this.temaprev.id, this.temaprev.gain.gain.value, 0, this.temaprev.loop,   0, [this.resume_time,undefined] ); 
+            game.soundcon.temacon.act.startTime -= this.resume_time;
+
+
+
+            //play(f_id, f_gain=1, f_pitch=0, f_loop=0, f_time=0, f_offset=undefined)
+
+
+           }
+           
+
+
+
+          }
+
+         }
+
+      }
+
 
     },
 
@@ -539,6 +1224,10 @@
       set(_name) {
 
         //  game.first_draw =1;
+        
+        game.fondocon.clear();
+        game.soundcon.temacon.stop();
+        game.mapcon.slidecon.clear();
 
         $root.hijos_clip = [];
         game.objs = [];
@@ -558,7 +1247,14 @@
 
 
         for (var u of GES.canvasses)
-          u.no_clear = 0;
+        {
+             u.no_clear = 0;
+             for(var b of u.buffers)
+             {
+              b.clear();
+             }
+        }
+          
 
         GES.tileges.refresh.force();
 
@@ -591,11 +1287,20 @@
 
 
       },
+
+      on_keydown(e)
+      {
+
+      },
       //|enterframe
       enterframe() {
 
         if(WIN.get_title()!== 'Watons, legend of pipi [' + game.escenario.act.name + ']' )
            WIN.set_title('Watons, legend of pipi [' + game.escenario.act.name + ']');
+
+
+              
+
         
 
         if (this.act !== '') {
@@ -623,8 +1328,10 @@
                }
 
 
-
+          game.efectocon.run();
+          game.fondocon.run();
           game.dialogo.run();
+          game.mapcon.run();
 
         }
 
@@ -643,6 +1350,8 @@
             this.tt = 0;
             //var _level = WIN.gameges.crear_vacio($root,{w: fl(WIN._bloque.wr/2) ,h: fl(WIN._bloque.hr/2) });
             //$root.level = _level;    
+
+             
 
             let _logo = this.logo = WIN.gameges.crear_imagen($root, 12, { x: 60, y: 55, w: 6 * 16, h: 1 * 16, cut_cords: { x: 0 * 16, y: 1 * 16, w: 6 * 16, h: 1 * 16 } });
             _logo.filter = { opacity: 100 }
@@ -697,6 +1406,8 @@
             this.tt[0] = 0;
             this.estado = 0;
 
+            game.soundcon.temacon.play(10,0.5,0,1);
+
             let _cinema = this.cinema = WIN.gameges.crear_imagen($root, 15, {
               x: 16, y: 16,
               w: 12 * 16, h: 5 * 16,
@@ -711,7 +1422,7 @@
             let _s0 = '{"speed":[20,20]}';
             let _s1 = '{"speed":[5,5]}';
 
-            game.dialogo.set(['{"id":"main","m_speed":[4,4]}Hace miles de años, en la Constelacion 73'+_s0+' ...' + _script ,
+            game.dialogo.set(['{"id":"main","m_speed":[4,4]}Hace miles de años, en la Constelacion 73'+_s0+'...' + _script ,
                'Existio lo que era llamado '+_s1+'el bar de los amiguitos.'+ _script,
                'Un magico lugar que acogia a las solitarias almas del multiverso.'+ _script,
                'Tiempos felices. Mas nadie hacia presagiar lo que el futuro les deparaba...'+'{"pause":9999999999999}',
@@ -784,8 +1495,8 @@
 
             GES.fondoges.fondos = [];
             GES.fondoges.ini(0, { image: 9, x: 0, y: 0 });  //canvasses gameges pintado
-            GES.fondoges.ini(1, { image: 10, x: 0, y: 0 }); //canvasses gameges pintado
-            GES.fondoges.ini(1, { image: 11, x: 0, y: 0 }); //canvasses gameges pintado
+            GES.fondoges.ini(0, { image: 10, x: 0, y: 0 }); //canvasses gameges pintado
+            GES.fondoges.ini(0, { image: 11, x: 0, y: 0 }); //canvasses gameges pintado
 
             GES.tileges.tilemaps[0][0][0]=1;
             let _map = $LIB.CLASES[11];
@@ -820,11 +1531,16 @@
                  let _empezar = this.textos.empezar;
                  let _opciones= this.textos.opciones;
                  
-                 if($TECLADO.get('izq'))
+                 if($TECLADO.get('izq',2)==1)
+                 {
+                  game.soundcon.play(11);
                   this.estado_2=0;
-                if($TECLADO.get('der'))
+                }
+                if($TECLADO.get('der',2)==1)
+                 {
+               game.soundcon.play(11);
                   this.estado_2=1;
-
+                }
 
                     if(this.estado_2==0)
                     {
@@ -833,6 +1549,7 @@
                     if($TECLADO.get('z',2)==1)
                       {
                         this.estado=3;
+                        game.soundcon.play(12);
 
                          game.fadecon.set('oscurecer',   ()=>{
                        
@@ -1000,7 +1717,7 @@
             ini() {
               let _hud = this.hud = WIN.gameges.crear_vacio($root, 2,
                 {
-                  w: fl(WIN._bloque.wr / 2),
+                  w: game.wcanvas,
                   h: 16*2,
                   y: 0,
                   draw_color: 'black'
@@ -1076,13 +1793,22 @@
                     }
 
                     if(WIN.teclado.get('izq',2)==1 && this.id>0)
+                    {
+                    game.soundcon.play(11);
                     this.set(this.id-1);
+                    }
+                    
                  
                     if(WIN.teclado.get('der',2)==1 && this.id<3)
-                    this.set(this.id+1);
+                    {
+                      game.soundcon.play(11);
+                      this.set(this.id+1);
+                    }
+                    
 
                     if(WIN.teclado.get('z',2)==1)
                     {
+                      game.soundcon.play(12);
                     $root.level.jugador.estado=6;
                     this._padre.estado=3;  
                     this.selector.visible=1;
@@ -1101,7 +1827,7 @@
                this.estado=0;
                 let _hud = this.hud = WIN.gameges.crear_vacio($root, 2,
                 {
-                  w: fl(WIN._bloque.wr / 2),
+                  w: game.wcanvas,
                   h: 16*4,
                   x: 0,
                   y: 17*11,
@@ -1140,11 +1866,13 @@
 
             GES.fondoges.fondos = [];
             GES.fondoges.ini(0, { image: 9, x: 0, y: 0 });  //canvasses gameges pintado
-            GES.fondoges.ini(1, { image: 10, x: 0, y: 0 }); //canvasses gameges pintado
-            GES.fondoges.ini(1, { image: 11, x: 0, y: 0 }); //canvasses gameges pintado
+            GES.fondoges.ini(0, { image: 10, x: 0, y: 0 }); //canvasses gameges pintado
+            GES.fondoges.ini(0, { image: 11, x: 0, y: 0 }); //canvasses gameges pintado
             GES.fondoges.estado = 1;
 
             let _map = clone_object($LIB.CLASES[9]);
+
+           // game.soundcon.temacon.play(6, 0.3, 0,0);
 
             
             game.mapcon.set(_map,0);
@@ -1157,7 +1885,15 @@
           let _savepos = this.mapcon.savepos;
           WIN.gameges.cargar_clase($root.level, 8, { x: _savepos.x * 16, y: _savepos.y * 16, nombre: 'jugador' }); //jugador
           
-          game.center_nivel($root.level.jugador);
+          if(game.editor._psave!==undefined)
+          {
+            $root.level.jugador.x = game.editor._psave.x;
+            $root.level.jugador.y = game.editor._psave.y;
+            game.editor._psave=undefined;
+          }
+          $root.level.jugador.camera_offset.update();
+
+          game.center_nivel($root.level.jugador.camera_offset);
  
 
           this.hud.ini();
@@ -1169,7 +1905,7 @@
             this.mapcon.savepos.x = fl($root.level.jugador.x / 16);//provisorio
             this.mapcon.savepos.y = fl($root.level.jugador.y / 16);//provisorio
             this.hudbottom.run();
-            game.center_nivel($root.level.jugador);
+            game.center_nivel($root.level.jugador.camera_offset);
             //GES.canvasses[2].no_clear=1;
             //GES._enterframe=()=>{GES.canvasses[2].draw.line(0,0,100,100);}
 
@@ -1185,6 +1921,8 @@
         {
           name: 'play_0',
           editor: { img_id: [5,17], tiledata_id: 1 },
+          can_pause:1,
+          can_slide:1,
 
           map:'',
                           //{value, name, modo}
@@ -1195,12 +1933,14 @@
             
             hudbarras:{  },
             textos:{},
+            estado:0,
 
             ini() {
               this._padre.tt_dead=[0,60];
+              this.estado=0;
               let _hud = this.hud = WIN.gameges.crear_vacio($root, 2,
                 {
-                  w: fl(WIN._bloque.wr / 2),
+                  w: game.wcanvas,
                   h: 16,
                   y: 11 * 16,
                   draw_color: 'black'
@@ -1213,21 +1953,35 @@
                this.hudbarras.pp = game.crear_hudbarra(_hud, 
                     {valores:_stats.pp, x:(8*5)+5, y:6, w:8*5, h:6, texto:{x:-1,y:-7,texto:'magia'}, colores:['gray','white'  ]  })
 
-              
+            },
+            run()
+            {
+            
+            
+
+            if(this.estado=='hit_hp')
+               {
+                //this.hudbarras.hp.texto.y++;
+
+               }
+
+
+               
+
             },
           
 
           on_stats_update(f_obj)
           {
            this._padre.hud.hudbarras[f_obj.name].set(f_obj.value[0], 'set');
+           
+           this.estado='hit_hp';
+
            if(f_obj.name=='hp'&&f_obj.value[0]<=0)
            {
-             //game.mapcon.reset();
             
              game.escenario.escenas.play_0.vidalost_con.on_vidalost();
-             
-             
-             //this.update_hudbarras();
+            
            }
 
           },
@@ -1247,7 +2001,7 @@
           vidalost_con:
           {
             _padre:'',
-           tt:[0,60],
+           tt:[0,120, 205],
            estado:0,
            ini()
            {
@@ -1259,17 +2013,28 @@
               if(this.estado)
               {
                 this.tt[0]++;
-                if(this.tt[0]==this.tt[1])
-                {
 
+                if(this.tt[0]==this.tt[2])
+                {
                   this.estado=0;
                   this.tt[0]=0;
 
-                 game.fadecon.set('oscurecer',   ()=>{
-                 game.particon.data.perfiles.refill(); 
+                  game.particon.data.perfiles.refill(); 
+
+
                  game.escenario.set('wmap');
                  game.fadecon.set('aclarar',   ()=>{});
 
+
+                }
+                if(this.tt[0]==this.tt[1])
+                {
+
+
+
+
+                 game.fadecon.set('oscurecer',   ()=>{
+                
                  });
 
 
@@ -1288,6 +2053,8 @@
 
            load()  //play
            {
+            //game.soundcon.temacon.play(5,0.2,0,1);
+
             this.hud._padre = this;
             this.vidalost_con._padre = this;
 
@@ -1300,12 +2067,8 @@
             GES.tileges.estado = 1;
             GES.tileges.images[0] = $LIB.IMAGES[5];
 
-            GES.fondoges.fondos = [];
-            GES.fondoges.ini(0, { image: 9, x: 0, y: 0 });  //canvasses gameges pintado
-            GES.fondoges.ini(0, { image: 10, x: 0, y: 0 }); //canvasses gameges pintado
-            GES.fondoges.ini(0, { image: 11, x: 0, y: 0 }); //canvasses gameges pintado
-            //|optimizacion            
-            GES.fondoges.estado = 1;
+
+            
             
             game.mapcon.set(this.map, 0);
 
@@ -1319,19 +2082,39 @@
 
           WIN.gameges.cargar_clase($root.level, 0, { x: _startpoint.x * 16, y: _startpoint.y * 16, nombre: 'jugador'}); //jugador
           $root.level.jugador.modos.modos.normal.estado=_startpoint.direccion;
+          
+          //editor
+          if(game.editor._psave!==undefined)
+          {
+            $root.level.jugador.x = game.editor._psave.x;
+            $root.level.jugador.y = game.editor._psave.y;
+            game.editor._psave=undefined;
+          }
 
+
+          $root.level.jugador.camera_offset.update();
+          
 
           this.hud.ini();
+
+           
+
+
+          game.center_nivel($root.level.jugador.camera_offset);
+
+          
 
           },
 
           enterframe() {
                                   
           this.vidalost_con.run();
+          this.hud.run();
           let _jugador = $root.level.jugador;
+         
+          if(game.mapcon.slidecon.estado==0) 
+          game.center_nivel(_jugador.camera_offset);
           
-          game.center_nivel(_jugador);
-          //game.center_nivel(_jugador.x+_jugador.w/2,_jugador.y+_jugador.h/2  );
 
 
             //GES.canvasses[2].no_clear=1;
@@ -1354,11 +2137,17 @@
       WIN.cursor.add_mouseup(bindear_(game.on_mouseup, game));
       WIN.cursor.add_mousemove(bindear_(game.on_mousemove, game));
 
-      var ARR_CAN = [crear_canvas(this._bloque, 2, 0, 0, this._bloque.wr, this._bloque.hr),
-      crear_canvas(this._bloque, 2, 0, 0, this._bloque.wr, this._bloque.hr),
-      crear_canvas(this._bloque, 2, 0, 0, this._bloque.wr, this._bloque.hr),
-      crear_canvas(this._bloque, 2, 0, 0, this._bloque.wr, this._bloque.hr),
+      var ARR_CAN = [crear_canvas(this._bloque, 2, 0, 0, [0,0], [0,0]),
+                     crear_canvas(this._bloque, 2, 0, 0, [0,0], [0,0]),
+                     crear_canvas(this._bloque, 2, 0, 0, [0,0], [0,0]),
+                     crear_canvas(this._bloque, 2, 0, 0, [0,0], [0,0]),
       ];
+
+      game.wcanvas = ARR_CAN[0].obj.width;
+      game.hcanvas = ARR_CAN[0].obj.height;
+      
+      WIN.set_literal_size(game.wcanvas*2, game.hcanvas*2);
+
 
       window['GES'] = GAME.crear_gestor(WIN, ARR_CAN,
         {
@@ -1376,7 +2165,7 @@
         {
           id: 5,
           wt: 16, ht: 16,
-          yt_max: 12, xt_max: 12+3
+          yt_max: 12, xt_max: 12+2
         }
       );
       GES.tileges.estado = 0;
@@ -1393,6 +2182,8 @@
 
       GES.tileges.on_draw_tile = function (_y, _x, _modo) {
         
+        if(game.mapcon.slidecon.estado!==0)return;
+
         if (_modo == 'x' || _modo == 'y' || (_modo == 'all' && game.first_draw == 1)) {
 
           let _maps = GES.tileges.tilemaps_all;
@@ -1427,8 +2218,13 @@
         //workaround
        _root.set_$(WIN);
       
-
+       
+       
        game.escenario.enterframe(); 
+       
+       
+
+
       });
 
       game.escenario.set('play_0');
@@ -1539,10 +2335,13 @@
 
           this.tile_editor.set_capa_act(); //forzar actualizacion titulo ventanaeditor
           if (this.estado == 1) { //activar
+              
+
+
             this.grab.clear();
             WIN.macrobloque.header.titulo.obj.style.background = 'gray';
             let _jugador = $root.level.jugador;
-            let _psave = { x: _jugador.x, y: _jugador.y };
+            this._psave = { x: _jugador.x, y: _jugador.y };
 
 
             if(f_mapupdate)
@@ -1551,10 +2350,14 @@
             game.mapcon.reset(0, game.mapcon.submap.id);
             }
 
-            $root.level.jugador.x = _psave.x;
-            $root.level.jugador.y = _psave.y;
+            //$root.level.jugador.x = _psave.x;
+            //$root.level.jugador.y = _psave.y;
           }
-          else { //editor to 9
+          else { //editor to 0
+
+           if(game.mapcon.submap!=='' && f_mapupdate)
+            game.soundcon.temacon.ini_leveltema();
+            //game.soundcon.temacon.ini_leveltema();
             
             if(f_mapupdate)
             {
@@ -1661,11 +2464,144 @@
                   },//map
                   Submaps:
                   {
+                   
+                   
+                   'Propiedades submap'()
+                   {
+
+                    let _submap = game.mapcon.submap;
+
+                      let _sub = game.editor.tile_editor.win.crear_subventana({x:0, y:0, w:300,h:300, grab:1, titulo: 'Propiedades submapa',
+
+                        });
+
+
+            _sub.mostrar_error=(f_texto='ERROR')=>
+            {
+
+             let _err  = _sub.crear_subventana({x:35,y:50,w:200,h:150,titulo:'Error', grab:1,});
+                   
+                    let _tmes = _FORM.crear_text(_err._bloque, {texto: f_texto,  
+                              x:0,y:10,w:[5,5], h:60, style:{border:'none', whiteSpace:'wrap'} });
+
+                    _FORM.crear_boton(_err._bloque, {x:40, y:70, w:100,texto:'Ok', mousedown:()=>                      
+                      {
+                       _err.cerrar();
+                      }
+
+                     });
+
+            }
+
+
+                      console.log(_submap)
+
+
+                      _FORM.crear_text(_sub._bloque, {texto: 'Nombre:',  
+                              x:10,y:10,w:200, h:60, style:{textAlign:'left', border:'none', whiteSpace:'wrap'} });
+
+                      let _i_nombre = _FORM.crear_input(_sub._bloque,{x:0,y:10,w:[100,10],h:20,max_char:19, value:_submap.nombre });
+
+
+                      //tema
+                      let _c = _FORM.crear_categoria(_sub._bloque, {texto:'Tema', x:0,y:0, w:[10,10], h:[50,150]});
+
+                      _FORM.crear_text(_c.odiv, {texto: 'Id:',  
+                              x:10,y:15,w:40, h:60, style:{textAlign:'left', border:'none', whiteSpace:'wrap'} });
+
+                      let _i_tema_id = _FORM.crear_input(_c.odiv,{x:50,y:15, w:50,h:20,max_char:2, value: _submap.tema.id });
+
+
+                      _FORM.crear_text(_c.odiv, {texto: 'Vol:',  
+                              x:120,y:15,w:40, h:60, style:{textAlign:'left', border:'none', whiteSpace:'wrap'} });
+
+                      let _i_tema_vol = _FORM.crear_input(_c.odiv,{x:150,y:15, w:50,h:20,max_char:3, value:_submap.tema.vol });
+
+
+                    //fondo
+                      let _c2 = _FORM.crear_categoria(_sub._bloque, {texto:'Fondo', x:0,y:120, w:[10,10], h:50});
+
+                      _FORM.crear_text(_c2.odiv, {texto: 'Id:',  
+                              x:10,y:15,w:40, h:60, style:{textAlign:'left', border:'none', whiteSpace:'wrap'} });
+
+                      let _i_fondo_id = _FORM.crear_input(_c2.odiv,{x:50,y:15, w:150,h:20,max_char:15,  value:_submap.fondo.id });
+
+                      /*_FORM.crear_text(_c2.odiv, {texto: 'Vol:',  
+                              x:120,y:15,w:40, h:60, style:{textAlign:'left', border:'none', whiteSpace:'wrap'} });
+
+                      _FORM.crear_input(_c2.odiv,{x:150,y:15, w:50,h:20,max_char:19 });
+                      */
+
+
+              _FORM.crear_boton(_sub._bloque, {x:10, y:220, w:100,texto:'Aplicar', mousedown:()=>                      
+                      {
+                       
+               
+                  let _v_nombre   = remove_lastspace_string(_i_nombre.get_value() ); 
+                  let _v_tema_id  = _i_tema_id.get_value();
+                  let _v_tema_vol = _i_tema_vol.get_value();
+
+                  let _v_fondo_id = remove_lastspace_string(_i_fondo_id.get_value() );
+
+                  if(_v_nombre == '' )
+                  {
+                        _sub.mostrar_error('Nombre no valido');              
+
+                        return;
+            
+                  }
+                  if(_v_fondo_id == '' )
+                  {
+                        _sub.mostrar_error('Fondo id no valido');              
+                        return;
+            
+                  }
+
+
+                       if(!is_numeric(_v_tema_id ) )
+                       {
+                        _sub.mostrar_error('Tema id no valida');              
+
+                        return;
+                       }
+                       if(!is_numeric(_v_tema_vol ) )
+                       {
+                       
+                        _sub.mostrar_error('Tema vol no valida');              
+
+                         return;
+                       }
+                       
+
+                      _submap.nombre = _v_nombre; 
+                      _submap.tema.id=string_to_number(_v_tema_id) ;
+                      _submap.tema.vol=string_to_number(_v_tema_vol);
+                      _submap.fondo.id = _v_fondo_id;
+
+
+
+
+                       _sub.cerrar();
+                      
+
+
+                      }});
+
+              _FORM.crear_boton(_sub._bloque, {x:130, y:220, w:100,texto:'Cancelar', mousedown:()=>                      
+                      {
+                       _sub.cerrar();
+                      }});
+
+
+
+                   },
+
                    'Log submaps'()
                    {
                     console.log(game.mapcon.map.submaps)
 
                    },
+
                    'Submaps->':
                    {
                       
@@ -1720,6 +2656,8 @@
     },//editor
     on_keydown(_key) {
         this.editor.on_keydown(_key);
+        this.escenario.on_keydown(_key);
+        this.pausecon.on_keydown(_key);
     },
     on_mousedown(e) {
         this.editor.on_mousedown(e);
@@ -1777,14 +2715,22 @@
     },
 
 
-  center_nivel(f_x, f_y)
+  center_nivel(f_x, f_y, _limit=1)
   {
 
+   let _yp = 0;
+   let _xp = 0;
     if(get_type(f_x)=='object') //centrar a objeto
     {
       let   _u = f_x;
       f_x = _u.x+_u.w/2;
       f_y = _u.y+_u.h/2;
+      if(_u.limit!==undefined)
+        _limit = _u.limit;
+
+      if(_u.xp!==undefined) _xp = _u.xp;
+      if(_u.yp!==undefined) _yp = _u.yp;
+
     }
 
     
@@ -1792,6 +2738,9 @@
     //$root.level.y = fl((f_y * -1)  + $root.h / 2);
     $root.level.x = ((f_x * -1)  + $root.w / 2);
     $root.level.y = ((f_y * -1)  + $root.h / 2);
+
+    if(_limit)
+    {
 
     if ($root.level.x > 0) 
       $root.level.x = 0;
@@ -1804,7 +2753,12 @@
     
     if ((-$root.level.y) + $gameges.tileges.yt_max * 16 > $gameges.tileges.yt_allmax * 16) 
       $root.level.y = -($gameges.tileges.yt_allmax * 16 - $gameges.tileges.yt_max * 16);
-    
+    }
+
+    $root.level.x +=  _xp;
+    $root.level.y +=  _yp;
+
+
     $gameges.tileges.x = $root.level.x * -1;
     $gameges.tileges.y = $root.level.y * -1;
 
@@ -1946,16 +2900,14 @@
 
 
 
-//padrear(_game);
-
-
+padrear(game);
 
 
 
   var WIN = ventana.crear_ventana(_root,
     //400   400
     {
-      x: 0, y: 0, w: 32*14, h: 32*12, teclado: 1, titulo: "", grab: 1, resize: 1,literal:1,
+      x: 0, y: 0, w: 32*14, h: 32*12, teclado: 1, titulo: "", grab: 1, resize: flipbin(IS_MOBILE) ,literal:1,
       menu: {
         Juego: {
           'Reiniciar->':
@@ -1975,7 +2927,28 @@
           }
           
         },
-        Opciones: { Controles: 'Proximamente' },
+        Opciones: { 
+          'Tamaño de la pantalla':
+          {
+            'X1'()
+            {
+             WIN.set_literal_size(game.wcanvas, game.hcanvas);
+
+            },
+            'X2'()
+            {
+             WIN.set_literal_size(game.wcanvas*2, game.hcanvas*2);
+            },
+            'X3'()
+            {
+             WIN.set_literal_size(game.wcanvas*3, game.hcanvas*3);
+            }
+
+          },
+
+          Controles: 'Proximamente' 
+
+        },
         Escenas: {
           'intro_0'() { game.escenario.set('intro_0') },
           'intro_1'() { game.escenario.set('intro_1') },
@@ -2006,14 +2979,29 @@
 
 
   if (IS_MOBILE) {
-    WIN.set_h(WIN.hr + 100);
-    TECLADO.crear_teclado_visual(WIN, WIN.teclado, 'basico');
+    WIN.set_h(WIN.hr + 95);
+    TECLADO.crear_teclado_visual(WIN, WIN.teclado, 'basico', {
+       botones:{
+         z:{x:10, w:70,h:70, y:20},
+         x:{x:79, w:70,h:70, y:20},
+
+         der:{x:50*0+10},
+         aba:{x:50*1+10-1},
+         arr:{x:50*1+10-1},
+         izq:{x:50*2+10-2},
+
+       },
+
+       base:{style:{background:'white',border:'none'}  }});
+
+
   }
 
 
 
 
-
+//|imp
+  //imp images
   WIN.load_isc(["_data/images/fondo_0.png",
     "_data/images/image_03.png",
     "_data/images/lau_spritesheet.png",
@@ -2038,19 +3026,44 @@
      "_data/images/fuente_tn10x18.png",
      "_data/images/fuente_tn5x9.png",//20
      "_data/images/fuente_tn10x18_b.png", //press start menu
-     "_data/images/npc.png"
+     "_data/images/npc.png",
+     "_data/images/fuente_tn8x8.png",
+     "_data/images/fuente_tr8x8.png",
+     "_data/images/fuente_ta8x8.png",
+
+     "_data/images/fondo_campo_b_0.png",
+     "_data/images/fondo_campo_b_1.png"
 
   ],
 
+    //|imp sounds
     [
-    /*"_data/sounds/hit_0.wav",
+    
+    "_data/sounds/hit_0.wav",
     "_data/sounds/hit_1.wav",
-
     "_data/sounds/jump_0.wav",
     "_data/sounds/jump_1.wav",
     "_data/sounds/jump_2.wav",
-    */
+
+    "_data/sounds/tema_0.wav",//5
+    "_data/sounds/tema.wav",
+
+    "_data/sounds/lifelost.mp3",
+    "_data/sounds/ataque_sw_0.mp3",
+
+    "_data/sounds/hit_2.mp3", //caida fuera de mapa
+
+    "_data/sounds/intro_tema.mp3", //10
+
+    "_data/sounds/menu_select_0.mp3", 
+    "_data/sounds/menu_select_1.mp3", 
+
+    "_data/sounds/puerta.mp3", 
+    "_data/sounds/tema_1.mp3",
+    
      ],
+
+   //|imp class
 
     ["_data/class/player.js",
       "_data/class/obj_e16.js",

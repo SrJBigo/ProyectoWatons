@@ -3198,8 +3198,20 @@ getWavHeader(options) {
 
 
             this.update_allmax = function () {
-              this.xt_allmax = this.tilemap_0[0].length; //ancho de nivel en tiles
+              //let _ymax = 0;
+              let _xmax = 0;
+
+              for(var u of this.tilemap_0)
+              {
+                if(u.length>_xmax)
+                  _xmax = u.length;
+              }
+
+
+//              this.xt_allmax = this.tilemap_0[0].length; //ancho de nivel en tiles
+              this.xt_allmax = _xmax;
               this.yt_allmax = this.tilemap_0.length;    //ancho de nivel en tiles
+
             }
 
             this.remade_tilemaps = function (f_h, f_w, f_u = 0) {
@@ -3776,6 +3788,16 @@ getWavHeader(options) {
               this.cargar_clase(_ret, u);
             }
 
+          }
+
+          
+
+          //enterload(_ret); //add 01-16-2024
+          if (_ret.loadframe_state != 1 && _ret.loadframe != undefined) //ejecutar loadframe si no se ha iniciado
+          {
+          window['$enterload'] = _ret;
+          _ret.loadframe();
+          _ret.loadframe_state = 1;
           }
 
 
@@ -7170,7 +7192,7 @@ getWavHeader(options) {
             erase: ['lshift', 0], //tecla, indice tile vacio
             drop: 'space',
 
-            add: ['a', 'w', 'd', 's'],
+            add: [['space','a'], ['space','w'], ['space','d'], ['space','s'] ],
             rem: [['lshift', 'a'], ['lshift', 'w'], ['lshift', 'd'], ['lshift', 's']],
 
             onkeydown(e) {},
@@ -7532,6 +7554,16 @@ getWavHeader(options) {
                  in: 0,
                  json:'{"direccion":0}'//nunca referenciado en tilemaps[3]
                  
+                 },
+
+
+               111:{
+                 _id:'', //index ids(automatico)
+
+                 id: 'scroll_point',
+                 in: 0,
+                 json:'{"alien":["A","A"], "id_submap": 0}'//nunca referenciado en tilemaps[3]
+                 
                  }
 
 
@@ -7670,7 +7702,10 @@ getWavHeader(options) {
                 }
               }
 
-              if (this.enable_extend && _teclado.get('space')) {
+              if (this.enable_extend 
+                  //&&_teclado.get('space')
+
+                ) {
 
                 //extender lienzo
                 let _extends = [
@@ -7985,7 +8020,7 @@ getWavHeader(options) {
             loadframe()
             {
              
-             this.odiv_image = crear_odiv(_data.win._bloque, 10, 10, 10, 10)
+             this.odiv_image = crear_odiv(_data.win._bloque, 10, 10, 10, 10, {overflowY:'scroll'});
              this.canvas = crear_canvas(this.odiv_image, 1,    0, 0, 500, 500);
              
              this.set_modo(0);
@@ -8008,7 +8043,7 @@ getWavHeader(options) {
            {
             loadframe()
             {
-             this.odiv_image = crear_odiv(_data.win._bloque, 10, 10, 10, 10)
+             this.odiv_image = crear_odiv(_data.win._bloque, 10, 10, 10, 10, {overflowY:'scroll'})
              this.canvas = crear_canvas(this.odiv_image, 1,    0, 0, 500, 500);
              
              this.set_modo(1);

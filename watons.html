@@ -227,7 +227,7 @@
                   GES.fondoges.ini(0, { image: 10, x: 0, y: 0 });
                   GES.fondoges.ini(0, { image: 11, x: 0, y: 0 });
                 },
-                run()
+                run(_level_x, _level_y)
                 {
                 this.tt[0]++;
                 if (this.tt[0] > this.tt[1]) 
@@ -235,12 +235,12 @@
                   this.tt[0] = 0;
                   this.tt[2] += 1;
                 }
-                $gameges.fondoges.fondos[0].x = ($root.level.x / 7);
-                $gameges.fondoges.fondos[0].y = ($root.level.y) - 10;
-                $gameges.fondoges.fondos[1].x = ($root.level.x / 3) - this.tt[2];
-                $gameges.fondoges.fondos[1].y = ($root.level.y) - 25;
-                $gameges.fondoges.fondos[2].x = ($root.level.x / 3);
-                $gameges.fondoges.fondos[2].y = ($root.level.y) - 25;
+                $gameges.fondoges.fondos[0].x = (_level_x / 7);
+                //$gameges.fondoges.fondos[0].y = ($root.level.y) - 10;
+                $gameges.fondoges.fondos[1].x = (_level_x / 3) - this.tt[2];
+                //$gameges.fondoges.fondos[1].y = ($root.level.y) - 25;
+                $gameges.fondoges.fondos[2].x = (_level_x / 3);
+                //$gameges.fondoges.fondos[2].y = ($root.level.y) - 25;
 
                 }
               },
@@ -253,11 +253,11 @@
                   GES.fondoges.ini(0, { image: 26, x: 0, y: 0 }); 
                   GES.fondoges.ini(0, { image: 27, x: 0, y: 0 });
                 },
-                run()
+                run(_level_x, _level_y)
                 {
                 
-                $gameges.fondoges.fondos[0].x = ($root.level.x / 7);
-                $gameges.fondoges.fondos[1].x = ($root.level.x / 3);
+                $gameges.fondoges.fondos[0].x = (_level_x / 7);
+                $gameges.fondoges.fondos[1].x = (_level_x / 3);
 
                 //$gameges.fondoges.fondos[0].y = ($root.level.y) - 10;
                 
@@ -281,6 +281,8 @@
        {
 
             GES.fondoges.fondos = [];
+            game.mapcon.slidecon.f_scroll.x=0;
+            game.mapcon.slidecon.f_scroll.y=0;
 
             this.act="";
             if(this.fondos[f_fondo.id]!==undefined)
@@ -296,7 +298,14 @@
        {
             if(this.act!=='')
             {
-              this.act.run();
+             let _x = $root.level.x;
+              
+             _x += game.mapcon.slidecon.f_scroll.x;
+
+              this.act.run(
+                _x,
+                $root.level.y
+                );
             }
        },
 
@@ -386,11 +395,541 @@
     //|mapcon game
     mapcon:
     {
+      _padre:'',
        map_master:'', //mapa original
 
        map:'',        //mapa    en curso
        submap:'',     //submapa en curso
        
+
+       run()
+       {
+         this.slidecon.run();
+
+       },
+
+      //|slidecon
+      slidecon:
+      {
+      _padre:'',
+      estado:0,
+
+      
+      lim:0,
+      f_scroll:{x:0,y:0},
+      p_save:{x:0,y:0, xvelocity:0,yvelocity:0},
+      tileobj:'',
+      maps_wht:[{w:0,h:0},{w:0,h:0}], //prev, new
+      clear()
+      {
+       this.estado=0;
+      },
+
+        alien:{x:0,y:0, estado:0, objtile: ''},
+
+                   //2,3,4,5 esperados
+        start_alien(f_estado, f_objtile)
+        {
+
+           let _level = $root.level;
+           let _jugador = $root.level.jugador;
+
+           this.estado=1;
+
+           this.alien.estado = f_estado;
+           this.alien.objtile = f_objtile;
+
+           let _wt = [$gameges.tileges.xt_max, $gameges.tileges.xt_allmax];
+           let _ht = [$gameges.tileges.yt_max-1, $gameges.tileges.yt_allmax];
+
+
+           game.remove_all_obj();
+           game.mapcon.slidecon.player_saveprops();
+         
+           _jugador.modos.set('freeze');
+
+
+           //calcular posiciones
+           if(f_estado==2 || f_estado == 4)
+           {
+             if(f_objtile.alien[0]=="A")
+             this.alien.y=0;
+             
+             if(f_objtile.alien[0]=="B")
+             this.alien.y=( (_ht[1]-_ht[0])*16 )*-1;
+
+           if(f_estado==2)
+             this.alien.x=0;
+
+           if(f_estado==4)
+             this.alien.x= (_wt[1]*16-_wt[0]*16)*-1 ;
+           
+           }
+
+
+           if(f_estado==3 || f_estado == 5)
+           {
+             if(f_objtile.alien[0]=="A")
+             this.alien.x=0;
+             
+             if(f_objtile.alien[0]=="B")
+             this.alien.x=( (_wt[1]-_wt[0])*16 )*-1;
+
+           if(f_estado==3)
+             this.alien.y=0;
+
+           if(f_estado==5)
+           {
+             this.alien.y= (_ht[1]*16-_ht[0]*16)*-1 ;
+           }
+           
+           }
+  
+
+        },
+
+        start_slide(f_dir)
+        {
+           let _level = $root.level;
+           let _jugador = $root.level.jugador;
+
+           this.estado=f_dir;
+        //   game.remove_all_obj();         
+        //   _jugador.modos.set('freeze')
+
+           let _wt = [$gameges.tileges.xt_max, $gameges.tileges.xt_allmax];
+           let _ht = [$gameges.tileges.yt_max-1, $gameges.tileges.yt_allmax];
+
+           let _level_yt = fl( (_level.y*-1)/16 );
+           let _level_xt = fl( (_level.x*-1)/16 );
+           this.level_yt = _level_yt;
+           this.level_xt = _level_xt;
+
+    //     this.player_saveprops();
+           this.p_save.x = (_jugador.x- (this.level_xt*16) ) ;
+           this.p_save.y = (_jugador.y- (this.level_yt*16) ) ;
+
+
+           let _map  = game.mapcon.map;
+           let _smap = clone_object(game.mapcon.submap);
+           let _nmap = clone_object(game.mapcon.map.submaps[this.alien.objtile.id_submap]);
+
+           this.maps_wh = [{ 
+                            w:_smap.tilemaps[0][0].length*16,
+                            h:_smap.tilemaps[0].length*16,
+                            wt:_smap.tilemaps[0][0].length,
+                            wt:_smap.tilemaps[0][0].length,
+                            },
+                            {
+                            w:_nmap.tilemaps[0][0].length*16,
+                            h:_nmap.tilemaps[0].length*16,
+                            wt:_nmap.tilemaps[0][0].length,
+                            ht:_nmap.tilemaps[0].length,
+                            }
+                            ];
+
+           if(f_dir==2)
+           {
+               this.f_scroll.x+=this.maps_wh[1].w;
+
+               for(var k = 0;k<3;k++)
+               {
+                
+                  for(var i = 0; i<  _ht[0]; i++)
+                  {
+                  if(this.alien.objtile.alien[1]=="A")
+                    _smap.tilemaps[k][_level_yt + i] = [..._nmap.tilemaps[k][i], ..._smap.tilemaps[k][_level_yt + i] ];  
+
+                  if(this.alien.objtile.alien[1]=="B")
+                    _smap.tilemaps[k][_level_yt + i] = [..._nmap.tilemaps[k][_nmap.tilemaps[0].length-_ht[0]+i],  ..._smap.tilemaps[k][_level_yt + i] ];  
+
+                  }
+               }
+
+               GES.tileges.update_tilemaps(_smap.tilemaps[0],_smap.tilemaps[1],_smap.tilemaps[2]);
+           
+              _jugador.x = _nmap.tilemaps[0][0].length*16;          
+              _level.x -=  _nmap.tilemaps[0][0].length*16;
+           }
+
+           if(f_dir==3)
+           {
+                  for(var k = 0;k<3;k++)
+                  {
+                  for(var j = 0; j<  _ht[0]; j++)
+                  {
+
+                  if(this.alien.objtile.alien[1]=="A")
+                  {
+                    _smap.tilemaps[k].splice(j,0, [...crear_array(_level_xt, 1), ..._nmap.tilemaps[k][_nmap.tilemaps[0].length-_ht[0]+ j]] );  
+                  }
+
+                  if(this.alien.objtile.alien[1]=="B")
+                  {
+                   
+                    _smap.tilemaps[k].splice(j,0, [...crear_array(_level_xt, 1), 
+
+                    ..._nmap.tilemaps[k][_nmap.tilemaps[0].length-_ht[0]+j].slice(
+
+                       _nmap.tilemaps[k][j].length-_wt[0],   _nmap.tilemaps[k][j].length)] 
+
+                    );  
+
+
+                 // _smap.tilemaps[k].push( [...crear_array(_level_xt, 1), 
+                   //     ..._nmap.tilemaps[k][j].slice(_nmap.tilemaps[k][j].length-_wt[0],   _nmap.tilemaps[k][j].length)] );  
+
+                  }
+                  
+
+                  }
+               }   
+               
+
+               GES.tileges.update_tilemaps(_smap.tilemaps[0],_smap.tilemaps[1],_smap.tilemaps[2]);
+           
+              _jugador.y =  _ht[0]*16;
+              _level.y  -=  _ht[0]*16;
+
+           }
+
+
+
+           if(f_dir==4)
+           {
+            
+               _jugador.x = _smap.tilemaps[0][0].length*16-_jugador.w;          
+               
+               for(var k = 0;k<3;k++)
+               {
+               for(var i = 0; i<  _ht[0]; i++)
+                  {
+                  if(this.alien.objtile.alien[1]=="A")
+                    _smap.tilemaps[k][_level_yt + i] = [..._smap.tilemaps[k][_level_yt + i],  ..._nmap.tilemaps[k][i] ];  
+
+                  if(this.alien.objtile.alien[1]=="B")
+                    _smap.tilemaps[k][_level_yt + i] = [..._smap.tilemaps[k][_level_yt + i],  ..._nmap.tilemaps[k][_nmap.tilemaps[0].length-_ht[0]+i] ];  
+
+                  }
+               }   
+
+               GES.tileges.update_tilemaps(_smap.tilemaps[0],_smap.tilemaps[1],_smap.tilemaps[2]);
+
+           }
+
+
+           if(f_dir==5)
+           {
+               _jugador.y = _smap.tilemaps[0].length*16-_jugador.h;          
+
+               
+               
+               for(var k = 0;k<3;k++)
+               {
+               for(var j = 0; j<  _ht[0]; j++)
+                  {
+
+                  if(this.alien.objtile.alien[1]=="A")
+                  {
+                    _smap.tilemaps[k].push( [...crear_array(_level_xt, 1), ..._nmap.tilemaps[k][j]] );  
+                  }
+
+
+                  if(this.alien.objtile.alien[1]=="B")
+                  {
+                   
+                  _smap.tilemaps[k].push( [...crear_array(_level_xt, 1), 
+                        ..._nmap.tilemaps[k][j].slice(_nmap.tilemaps[k][j].length-_wt[0],   _nmap.tilemaps[k][j].length)] );  
+
+                  }
+
+
+                  }
+               }   
+
+
+               GES.tileges.update_tilemaps(_smap.tilemaps[0],_smap.tilemaps[1],_smap.tilemaps[2]);
+              
+           }
+
+
+           GES.tileges.update_allmax();
+           GES.tileges.refresh.force();
+
+
+        },
+        player_saveprops()
+        {
+         let _level   = $root.level;
+         let _jugador = _level.jugador;
+
+
+
+
+           this.p_save.xvelocity=_jugador.xvelocity;
+           this.p_save.yvelocity=_jugador.yvelocity;
+
+           this.p_save.modo = _jugador.modos.act.name;
+           this.p_save.estado=_jugador.modos.modos.normal.estado;
+           
+
+           this.p_save.running=_jugador.modos.modos.normal.running;
+
+        },
+        player_setprops()
+        {
+         let _level   = $root.level;
+         let _jugador = _level.jugador;
+
+          _jugador.camera_offset.x = _jugador.x;
+          _jugador.camera_offset.y = _jugador.y;
+
+          _jugador.modos.modos.normal.estado=0;
+          game.center_nivel(_jugador.camera_offset);
+          _jugador.xvelocity = this.p_save.xvelocity;
+          _jugador.yvelocity = this.p_save.yvelocity;
+          _jugador.modos.modos.normal.estado = this.p_save.estado;
+          _jugador.modos.modos.normal.running = this.p_save.running;
+
+
+          if(this.p_save.modo=='escalera')
+          {
+        //    _jugador.modos.modos.escalera.check();
+          _jugador.modos.set(this.p_save.modo, [fl( (_jugador.x+_jugador.w/2)/16 ),
+                                                fl( (_jugador.y+_jugador.h/2)/16 )  ]);
+          }
+          
+
+        },
+
+        run()
+        {
+
+         if(game.escenario.act.can_slide!==1)return;
+
+
+         let _level   = $root.level;
+         let _jugador = _level.jugador;
+         let _tilemaps = GES.tileges.tilemaps_all;
+
+            //detectar slide
+            if(this.estado==0 && 
+               game.editor.estado==0 && game.escenario.act.name=='play_0' &&
+               (_jugador.modos.act.name=='normal'|| _jugador.modos.act.name=='escalera') )
+            {
+             let _xt = fl((_jugador.x+_jugador.w/2)/16);
+             let _yt = fl((_jugador.y+_jugador.h/2)/16);
+
+              if(_tilemaps[3][_yt] && _tilemaps[3][_yt][_xt] && _tilemaps[3][_yt][_xt].id=='scroll_point')
+              {
+               let _tileobj = _tilemaps[3][_yt][_xt];
+
+                //chocar izquierda
+                if(_jugador.x<=0 && _jugador.xvelocity<0)
+                this.start_alien(2, _tileobj);
+
+                //chocar arriba
+                if(_jugador.y<=0 && _jugador.yvelocity<0) 
+                this.start_alien(3, _tileobj);
+                
+                //chocar derecha
+                if(_jugador.x+_jugador.w>=$gameges.tileges.xt_allmax * 16 && _jugador.xvelocity>0)
+                this.start_alien(4, _tileobj);
+
+                //chacar abajo
+                if(_jugador.y+_jugador.h>=$gameges.tileges.yt_allmax * 16 && _jugador.yvelocity>0)
+                this.start_alien(5, _tileobj);
+
+              }
+
+            }
+
+
+           //alienar
+           if(this.estado==1)
+           {
+            let _alien = this.alien;
+            //_level.y += (this.alien.y-_level.y)/30;
+            //_level.x += (this.alien.x-_level.x)/30;
+            if(_level.x< _alien.x) _level.x+=2;
+            if(_level.x> _alien.x) _level.x-=2;
+            if(_level.y< _alien.y) _level.y+=2;
+            if(_level.y> _alien.y) _level.y-=2;
+
+
+             if(_level.y >= this.alien.y-2 && _level.y <= this.alien.y+2 && 
+                _level.x >= this.alien.x-2 && _level.x <= this.alien.x+2)
+             {
+                _level.y = this.alien.y;
+                _level.x = this.alien.x;
+                this.start_slide(this.alien.estado);
+               
+             }
+
+           }
+
+            
+           if(this.estado==2)
+           {
+               _level.x+=3;
+               _jugador.x-=0.2;
+               if( (_level.x*-1 + game.wcanvas)  < this.maps_wh[1].w)
+               {
+                this.estado=0;
+
+                _level.x = (this.maps_wh[1].w)*-1+game.wcanvas;
+                
+                game.mapcon.set_submap(this.alien.objtile.id_submap, {set_fondo:0,slide:1});
+                
+                $root.level.jugador.x = this.maps_wh[1].w-16;
+
+                if(this.alien.objtile.alien[1]=='A') 
+                  $root.level.jugador.y = this.p_save.y;
+
+                if(this.alien.objtile.alien[1]=='B')
+                 $root.level.jugador.y = this.maps_wh[1].h-(($gameges.tileges.yt_max-1)*16)+this.p_save.y;
+                
+                this.player_setprops();
+               }
+           }
+
+           
+           //arriba
+           else if(this.estado==3)
+           {
+               _level.y+=3;
+               _jugador.y-=0.3;
+
+         //if( (_level.x*-1 + game.wcanvas)  < this.maps_wh[1].w)
+         if( (_level.y*-1 + game.hcanvas)  < ($gameges.tileges.yt_max*16))
+               {
+                
+               this.estado=0;
+      
+
+               let _lvx = $root.level.x;
+
+                _level.y = 0;
+                
+                game.mapcon.set_submap(this.alien.objtile.id_submap, {set_fondo:0, slide:1});
+                
+
+                $root.level.jugador.y = this.maps_wh[1].h-16;
+                if(this.alien.objtile.alien[1]=='A') 
+                {
+                  this.f_scroll.x+= _lvx;
+                  $root.level.jugador.x = this.p_save.x;
+                }
+
+                if(this.alien.objtile.alien[1]=='B')
+                {
+                  if(this.alien.objtile.alien[0]=='A')
+                 this.f_scroll.x+= this.maps_wh[1].w-($gameges.tileges.xt_max)*16;
+                  if(this.alien.objtile.alien[0]=='B')
+                  this.f_scroll.x+= this.maps_wh[1].w-this.maps_wh[0].w;  //$root.level.x;
+                 //this.f_scroll.x+= $root.level.x;
+
+
+                 $root.level.jugador.x = this.maps_wh[1].w-(($gameges.tileges.xt_max)*16)+this.p_save.x;
+                }
+                
+                this.player_setprops();
+               }
+                  
+           }
+
+
+
+           else if(this.estado==4)
+           {
+               _level.x-=3;
+               _jugador.x+=0.2;
+
+               if( (_level.x*-1)  > this.maps_wh[0].w)
+               {
+                this.estado=0;
+
+                this.f_scroll.x-=this.maps_wh[0].w;
+
+                _level.x = 0;
+                
+                game.mapcon.set_submap(this.alien.objtile.id_submap, {set_fondo:0, slide:1});
+                
+                $root.level.jugador.x = 0;
+              
+                if(this.alien.objtile.alien[1]=='A') 
+                  $root.level.jugador.y = this.p_save.y;
+
+                if(this.alien.objtile.alien[1]=='B')
+                 $root.level.jugador.y = this.maps_wh[1].h-(($gameges.tileges.yt_max-1)*16)+this.p_save.y;
+
+                this.player_setprops();
+               }
+               
+             }
+
+
+           else if(this.estado==5)
+           {
+               _level.y-=3;
+               _jugador.y+=0.4;
+
+              
+               if( (_level.y*-1)  > this.maps_wh[0].h)
+               {
+                this.estado=0;
+
+                
+
+               let _lvx = $root.level.x;
+
+                _level.y = 0;
+                
+                game.mapcon.set_submap(this.alien.objtile.id_submap, {set_fondo:0, slide:1});
+                
+                $root.level.jugador.y = 0;
+              
+                if(this.alien.objtile.alien[1]=='A') 
+                {
+                  this.f_scroll.x+= _lvx;
+                  $root.level.jugador.x = this.p_save.x;
+                }
+
+                if(this.alien.objtile.alien[1]=='B')
+                {
+                 //this.f_scroll.x+= this.maps_wh[1].w-($gameges.tileges.xt_max)*16;
+                 //this.f_scroll.x+= $root.level.x;
+                  if(this.alien.objtile.alien[0]=='A')
+                 this.f_scroll.x+= this.maps_wh[1].w-($gameges.tileges.xt_max)*16;
+
+                 if(this.alien.objtile.alien[0]=='B')
+                 this.f_scroll.x+= this.maps_wh[1].w-this.maps_wh[0].w;  //$root.level.x;
+                 //this.f_scroll.x+= this.maps_wh[0].w-($gameges.tileges.xt_max)*16;  //$root.level.x;
+
+
+                 $root.level.jugador.x = this.maps_wh[1].w-(($gameges.tileges.xt_max)*16)+this.p_save.x;
+                }
+                
+                this.player_setprops();
+               }
+                              
+             }
+
+
+           if(this.estado>=1&&this.estado<=5)
+           {
+            $gameges.tileges.x = _level.x * -1;
+            $gameges.tileges.y = _level.y * -1;
+           }
+
+
+
+        }
+
+
+      },//slidecon
+
+
       reset(_hard=0, _submap_id=0) 
       {
        if(_hard==0)
@@ -477,8 +1016,17 @@
 
        },
 
-       set_submap(f_id)
+       set_submap(f_id, f_data={})
        {
+
+         let _data = {
+                      ...{
+                      set_fondo:1,
+                      slide:0,
+                      },
+                      ...f_data
+                     }
+
 
          this.submap = this.map.submaps[f_id];
          game.editor.tile_editor.mapcon.set(this.submap); 
@@ -511,6 +1059,8 @@
 
 
         game.soundcon.temacon.ini_leveltema();
+
+        if(_data.set_fondo)
         game.fondocon.set(this.submap.fondo);
 
         
@@ -628,6 +1178,7 @@
                      gameges:WIN.gameges,
                      image:$LIB.IMAGES[_fuente.img_id],
                      canvas:DUMMY_CANVAS,
+                     canvas_id:2,
                   
                      ..._fuente
                      },
@@ -888,6 +1439,7 @@
         
         game.fondocon.clear();
         game.soundcon.temacon.stop();
+        game.mapcon.slidecon.clear();
 
         $root.hijos_clip = [];
         game.objs = [];
@@ -991,6 +1543,7 @@
           game.efectocon.run();
           game.fondocon.run();
           game.dialogo.run();
+          game.mapcon.run();
 
         }
 
@@ -1543,6 +2096,9 @@
           {
           let _savepos = this.mapcon.savepos;
           WIN.gameges.cargar_clase($root.level, 8, { x: _savepos.x * 16, y: _savepos.y * 16, nombre: 'jugador' }); //jugador
+
+            //$root.level.jugador.loadframe();
+            //$root.level.jugador.loadframe_state = 1;
           
           if(game.editor._psave!==undefined)
           {
@@ -1581,6 +2137,7 @@
           name: 'play_0',
           editor: { img_id: [5,17], tiledata_id: 1 },
           can_pause:1,
+          can_slide:1,
 
           map:'',
                           //{value, name, modo}
@@ -1741,6 +2298,10 @@
           WIN.gameges.cargar_clase($root.level, 0, { x: _startpoint.x * 16, y: _startpoint.y * 16, nombre: 'jugador'}); //jugador
           $root.level.jugador.modos.modos.normal.estado=_startpoint.direccion;
           
+
+            //$root.level.jugador.loadframe();
+            //$root.level.jugador.loadframe_state = 1;
+
           //editor
           if(game.editor._psave!==undefined)
           {
@@ -1769,9 +2330,10 @@
           this.vidalost_con.run();
           this.hud.run();
           let _jugador = $root.level.jugador;
-          
+         
+          if(game.mapcon.slidecon.estado==0) 
           game.center_nivel(_jugador.camera_offset);
-          //game.center_nivel(_jugador.x+_jugador.w/2,_jugador.y+_jugador.h/2  );
+          
 
 
             //GES.canvasses[2].no_clear=1;
@@ -1822,7 +2384,7 @@
         {
           id: 5,
           wt: 16, ht: 16,
-          yt_max: 12, xt_max: 12+3
+          yt_max: 12, xt_max: 12+2
         }
       );
       GES.tileges.estado = 0;
@@ -1839,6 +2401,8 @@
 
       GES.tileges.on_draw_tile = function (_y, _x, _modo) {
         
+        if(game.mapcon.slidecon.estado!==0)return;
+
         if (_modo == 'x' || _modo == 'y' || (_modo == 'all' && game.first_draw == 1)) {
 
           let _maps = GES.tileges.tilemaps_all;
@@ -2251,6 +2815,46 @@
 
                    },
 
+                   'Add submap'()
+                   {
+                   let _xt_max = GES.tileges.xt_max;
+                   let _yt_max = GES.tileges.yt_max;
+                   
+                   
+
+                   let _submap =
+                     {
+                      nombre:'Nuevo_submap',
+                      descripcion:'',
+                      id:game.mapcon.map.submaps.length,
+                      tema:{
+                      id:5,
+                      vol:0.5,
+                      }, 
+                      fondo:
+                      {
+                      id:"campo_a",
+                      },
+                      
+                      tilemaps:[
+                       crear_multiarray(_yt_max, _xt_max, 0),
+                       crear_multiarray(_yt_max, _xt_max, 0),
+                       crear_multiarray(_yt_max, _xt_max, 0),
+                       crear_multiarray(_yt_max, _xt_max, 0)
+                      ],
+
+                     }
+
+                   game.mapcon.map.submaps.push(_submap);
+                   game.mapcon.update_menu_submaps();
+
+
+
+
+
+                   },
+
+
                    'Log submaps'()
                    {
                     console.log(game.mapcon.map.submaps)
@@ -2405,9 +3009,14 @@
     
     if ($root.level.y > 0) 
       $root.level.y = 0;
-    
-    if ((-$root.level.y) + $gameges.tileges.yt_max * 16 > $gameges.tileges.yt_allmax * 16) 
-      $root.level.y = -($gameges.tileges.yt_allmax * 16 - $gameges.tileges.yt_max * 16);
+   
+
+   let _yp = 0;
+      if(game.escenario.act.name=='play_0') //considerar hud
+        _yp=1;
+
+    if ((-$root.level.y) + ($gameges.tileges.yt_max-_yp) * 16 > $gameges.tileges.yt_allmax * 16) 
+      $root.level.y = -($gameges.tileges.yt_allmax * 16 - ($gameges.tileges.yt_max-_yp) * 16);
     }
 
     $root.level.x +=  _xp;
@@ -2555,7 +3164,7 @@
 
 
 
-//padrear(_game);
+padrear(game);
 
 
 
@@ -2728,7 +3337,8 @@
       "_data/class/enemigos.js",//5
 
       "_data/class/config.json",
-      "_data/maps/00.json",
+      //"_data/maps/scrolltest.json",
+      "_data/maps/ruinas_del_bosque.json",
       "_data/class/player_wm.js",
       "_data/maps/wm00.json",
       "_data/class/tiledata_wm.json",//10

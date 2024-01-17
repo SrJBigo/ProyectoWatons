@@ -38,16 +38,16 @@ document.currentScript.class =
           animdata: GAME.crear_animdata({ master: { wt: 32, ht: 32, ll: 30 } },
 
             //quieto
-            { ll: 30, flip: [1, 0], buf: [[0, 0], [0, 1]] },
-            { ll: 30, flip: [0, 0], buf: [[0, 0], [0, 1]] },
+            { ll: 60, flip: [1, 0], buf: [[0, 0], [0, 1]] },
+            { ll: 60, flip: [0, 0], buf: [[0, 0], [0, 1]] },
 
             //caminar
-            { ll: 10, flip: [1, 0], buf: [[0, 4], [0, 5], [0, 6], [0, 7], [0, 6], [0, 5]] },
-            { ll: 10, flip: [0, 0], buf: [[0, 4], [0, 5], [0, 6], [0, 7], [0, 6], [0, 5]] },
+            { ll: 7, flip: [1, 0], buf: [[0, 4], [0, 5], [0, 6], [0, 7] ] },
+            { ll: 7, flip: [0, 0], buf: [[0, 4], [0, 5], [0, 6], [0, 7] ] },
 
             //correr
-            { ll: 10, flip: [1, 0], buf: [[0, 8], [1, 9] ] },
-            { ll: 10, flip: [0, 0], buf: [[0, 8], [1, 9] ] },
+            { ll: 9, flip: [1, 0], buf: [[0, 8], [1, 9] ] },
+            { ll: 9, flip: [0, 0], buf: [[0, 8], [1, 9] ] },
 
             //salto up down
             { ll: 10, flip: [1, 0], buf: [[0, 12]]},
@@ -418,7 +418,7 @@ document.currentScript.class =
           yt: _yt,
 
         });
-      }
+      } 
     }
 
     for (var u of _col) {
@@ -429,8 +429,8 @@ document.currentScript.class =
       if (_p.x + _p.w > u.x && _p.x < u.x + u.w) {
 
         if (_udata[1] == 1 &&
-          _tilemap_1[u.yt - 1] != undefined &&  //_udata[_tilemap_1[u.yt - 1][u.xt]] != '1,1,1,1' &&
-          _tiledata[ _tilemap_1[u.yt - 1][u.xt] ].toString() !== '1,1,1,1' && 
+          (_tilemap_1[u.yt - 1] === undefined || _tilemap_1[u.yt - 1] != undefined &&  //_udata[_tilemap_1[u.yt - 1][u.xt]] != '1,1,1,1' &&
+          _tiledata[ _tilemap_1[u.yt - 1][u.xt] ].toString() !== '1,1,1,1') && 
 
           _p.yprev + _p.h <= u.y + 1 && _p.yvelocity > 0 && _p.y + _p.h > u.y) //colision arriba tile
         {
@@ -591,6 +591,8 @@ document.currentScript.class =
   
   loadframe() 
   {
+    //alert('loadframe')
+
     window['_clip'] = this;
     padrear(this);
     //this.fondocon.update_fondos()
@@ -606,8 +608,10 @@ document.currentScript.class =
     this.camera_offset.update();
     //this.armacon.ini();
 
-    
+    //if(this.modos.act=='') 
     this.modos.set('normal',[]);
+
+    this.yvelocity+=0.1;
 
 
   },
@@ -631,6 +635,7 @@ document.currentScript.class =
    //|modos jugador
    modos:{
          _padre:'',
+
 
          //|normal modos jugador
          normal:
@@ -758,7 +763,10 @@ document.currentScript.class =
                 $WIN.teclado.get('z', 2)
                 this.suelo_tt = 0;
                 this.salto_estado = 1;
-                _clip.yvelocity = (-_perfil.yvel_salto);
+                
+                _clip.yvelocity = (-_perfil.yvel_salto)*( ($WIN.teclado.get('space')*2) +1) ;
+
+
                 game.soundcon.play(2);
                 
               }
@@ -875,14 +883,17 @@ document.currentScript.class =
 
               if(this.running)
               {
-                if (this.estado == 0 || this.estado == 2) 
+                if ( (this.estado == 0 || this.estado == 2) && _clip.xvelocity<=-this.xvel_max[this.running]) 
                     _clip.estado_h = 4;
-                if (this.estado == 1 || this.estado == 3) 
+                if ( (this.estado == 1 || this.estado == 3) && _clip.xvelocity>=this.xvel_max[this.running]) 
                     _clip.estado_h = 5;
               }
 
               if (_clip.x < 0) 
                 _clip.x = 0;
+
+              if (_clip.x+_clip.w > $gameges.tileges.xt_allmax * 16) 
+                _clip.x = $gameges.tileges.xt_allmax * 16 - _clip.w;
 
 
               if (game.editor.estado && _clip.y + _clip.h > _clip.suelo_y && _clip.yvelocity>0)
@@ -899,9 +910,48 @@ document.currentScript.class =
                 }
 
 
+
            },
 
+
+
+              
+
          },  //normal
+
+        //|freeze
+         freeze:
+         {
+          name:'freeze',
+          estado:0, //0:regresar pos,  1: perdida vida
+          
+          hitcon:
+          {
+            detectar:1,
+            rebotar:0,
+            on_hit(f_enem)
+            {
+
+            }
+          },
+
+          ini(f_estado)
+          {
+            this.estado=f_estado;
+             _clip.yvelocity=0;
+             _clip.xvelocity=0;
+          },
+          run()
+          {
+               
+
+          }
+
+         },//freeze
+
+
+
+ 
 
         //|muerto
          muerto:
@@ -1047,6 +1097,8 @@ document.currentScript.class =
                                 $root.level.jugador.x = u.x*16;
                                 $root.level.jugador.y = u.y*16;
 
+                                $root.level.jugador.spawn_fall.set(u.x*16, u.y*16);
+
                                 
                                 break;
                               }
@@ -1107,7 +1159,7 @@ document.currentScript.class =
               let _yt = fl((_clip.y+_clip.h/2)/16);
 
               if(_tilemap[_yt] && this.id_escalera.includes(_tilemap[_yt][_xt]) )
-              {
+              {console.log("------------------------------------------------")
               _clip.modos.modos.normal.run_tt[0] = 0;
               _clip.modos.modos.normal.running = 0;
               _clip.modos.set('escalera',[_xt, _yt]);
@@ -1119,6 +1171,7 @@ document.currentScript.class =
 
           ini(_xt, _yt)
           {
+
           this.estado=0;
           this.xt=_xt;
           this.yt=_yt;
@@ -1133,6 +1186,7 @@ document.currentScript.class =
            let _tilemap = $gameges.tileges.tilemaps_all[1];
            for(var i =0;i<100;i++)
            {
+
              if(this.ytmax[0]==='' && (_tilemap[_yt-i]==undefined || this.id_escalera.includes(_tilemap[_yt-i][_xt])==false) )
               this.ytmax[0]=(_yt-(i-1));
              
@@ -1142,6 +1196,9 @@ document.currentScript.class =
              if(this.ytmax[0]!==''&&this.ytmax[1]!=='')
               break;
            }
+
+           console.log(this.ytmax);
+
 
 
           },

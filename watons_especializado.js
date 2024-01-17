@@ -97,7 +97,8 @@ var RPG =
    let _htotal = _data.h[1];              
 
 
-   let _otexto =  _data.gameges.crear_imagen(f_donde, _img, 2,  {x:_data.x,y:_data.y,w:_wtotal, h:_htotal}); 
+   let _otexto =  _data.gameges.crear_imagen(f_donde, _img, _data.canvas_id,
+                                                            {x:_data.x,y:_data.y,w:_wtotal, h:_htotal}); 
        _otexto.data_text = _data;
        _otexto.set_text=function(f_texto)
        {

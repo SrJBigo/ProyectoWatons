@@ -542,8 +542,9 @@ document.currentScript.class =
        textos:[],
        ini()
        {
-        this.texto = game.textoges.crear($enterload.anim, {x:0,y:0-25, texto: 'Insuficiente!'})
+        this.texto = game.textoges.crear($enterload.anim, {x:0,y:0-25, texto: 'Insuficiente!', canvas_id:1})
         this.texto.visible=false;
+        //$enterload._z=5;
         this.texto.image.onload= ()=>
         {
          this.estado=1;
@@ -667,6 +668,7 @@ document.currentScript.class =
           { ll: 5, flip: [0, 0], buf: [ [0, 4] ] },
           
             ],
+      _z:-1,
 
       w: 16,
       h: 16,
@@ -687,6 +689,7 @@ document.currentScript.class =
 
        this.estado_h=0;
 
+
       },
       enterframe() {
         let _col = this.col_check(); //[n,n,n,n] relativo a tile
@@ -697,6 +700,41 @@ document.currentScript.class =
       },
 
     },//puerta
+
+    'scroll_point': {
+    animdata:[
+          { master: { wt: 16, ht: 16, ll: 30 } },
+
+          { ll: 5, flip: [0, 0], buf: [ [2, 11] ] },
+          
+            ],
+
+      w: 16,
+      h: 16,
+      visible_estados:[0,1],
+      offset: [0, 0],
+      hitcon: {
+        
+        on_hit(f_quien, f_data, f_modo)
+        {
+          return(0);
+        },
+        hp: [12, 12],
+        sound_id:0,
+      },
+      
+      loadframe() {
+
+       this.estado_h=0;
+
+      },
+      enterframe() { 
+
+        this.estado_h = 0;
+
+      },
+
+    },//scroll_point
 
 
 
