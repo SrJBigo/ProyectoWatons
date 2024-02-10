@@ -5,6 +5,12 @@
 
 
 <script>
+
+
+
+
+
+
   //nes wt += 4 'wt original'
 
   // bloquear caracteristicas de desarrollo al publicar betas
@@ -13,9 +19,20 @@
 
   ini_root();
 
+
   //relativo a dispositivos moviles
   set_viewport({ width: 32*14+7, height: "", user_scalable: 0 });
 
+
+  //constantes dialogos
+  //var $C_NAME = `{"script":" ( game.particon.data.perfiles.act.name.toUpperCase().charAt(0)+game.particon.data.perfiles.act.name.slice(1)) "}`;
+
+  $CNAME = function(){ 
+  
+  return(game.particon.data.perfiles.act.name.toUpperCase().charAt(0)+game.particon.data.perfiles.act.name.slice(1) )
+
+
+   }
   
 
   //|game
@@ -29,6 +46,231 @@
     wcanvas:'',
     hcanvas:'',
 
+    set_var(f_n, f_var, _modo)//atajo propiedades perfil
+    {
+    game.particon.data.perfiles.set_var(f_n, f_var, _modo);
+    },
+
+    //|misc
+    misc:
+    {
+      crear_rebotinero(f_data)//f_x, f_y, f_id=4, on_touch=function(){ })
+      {
+
+        if(f_data.modo=='hp')
+        {
+          f_data.id=7;
+          f_data.w=5;
+          f_data.h=5;
+          f_data.on_touch= function(){
+                           game.particulas_con.flyer_hp(1,this.x, this.y)
+                           game.soundcon.play(17,1);
+                           this.remove();
+                           }
+          }
+          if(f_data.modo=='pp')
+        {
+          f_data.id=8;
+          f_data.w=5;
+          f_data.h=5;
+          f_data.on_touch= function(){
+                           game.particulas_con.flyer_pp(1,this.x, this.y)
+                           game.soundcon.play(17,1);
+                           this.remove();
+                           }
+          }
+          if(f_data.modo=='exp')
+        {
+          f_data.id=4;
+          f_data.w=5;
+          f_data.h=5;
+          f_data.on_touch= function(){
+                           game.particulas_con.flyer_exp(1,this.x, this.y)
+                           game.soundcon.play(17,1);
+                           this.remove();
+                           }
+          }
+
+              let _data =
+                        {
+                        ...{
+                          x:0,
+                          y:0,
+                          w:16,
+                          h:16,
+                          gravity:0.1,
+                          id:4,
+                          can_col:1,
+                          tt:[0,210,    0, 10, 8],
+                          on_touch:function(){},
+                          _load:function(){ 
+                            this.xvelocity= Math.random()*5-2.5;
+                            this.yvelocity=-Math.random()*3; },
+                          _enterframe:function(){},
+                        },
+                        ...f_data
+                        }
+
+                  let _clip = $WIN.gameges.cargar_clase($root.level, 1, {
+                            x: _data.x,
+                            y: _data.y,
+                            anim_id:_data.id,
+                            __w:_data.w,
+                            __h:_data.h,
+                            gravity:_data.gravity,
+                            can_col:_data.can_col,
+                            on_touch:_data.on_touch,
+                            xvelocity: 0,
+                            yvelocity: 0,
+                            tt:_data.tt,
+                           // draw_color:'blue',
+                            _load:_data._load,
+                   enterframe(){
+                    if(game.simple_hit_test(this, $root.level.jugador))
+                    {
+
+                      this.on_touch();
+                    }
+                    this.w=this.__w;
+                    this.h=this.__w;
+                    //this._w=this.__w;
+                    //this._h=this.__h;
+
+                    this.yvelocity+=this.gravity;
+
+                    this.x = this.x + this.xvelocity;
+                    this.y = this.y + this.yvelocity;
+                    if(this.can_col)
+                    {
+                    let _col = col_check(this,0);
+                    if(_col[1])
+                    {
+                      this.yvelocity =-this.yvelocity/1.4;
+                      this.xvelocity = this.xvelocity/1.1;
+                    }
+                    if(_col[3])
+                    {
+                      this.yvelocity=0.5;
+                    }
+                    if(_col[0]||_col[2])
+                    {
+                      this.xvelocity = -this.xvelocity/2;
+                    }
+                    }
+                    this.xprev=this.x;
+                    this.yprev=this.y;
+
+                    if(this.tt!=='')
+                    {
+                      this.tt[0]++;
+                      if(this.tt[0]>this.tt[1])
+                      {
+                        this.tt[2]++;
+                        if(this.tt[2]>this.tt[3])
+                        {
+                          if(this.visible==true) this.visible=false;
+                          else this.visible=true;
+                          
+                          this.tt[2]=0;
+                          this.tt[4]--;
+                          if(this.tt[4]==0)
+                            this.remove();
+                        }
+                      }
+                    }
+
+                 } });
+                  _clip._load();
+                  
+                
+             return (_clip);
+
+      },
+
+
+    },
+
+    //|particulas_con
+    particulas_con:
+    {
+      
+      caja_destrozada(_x, _y)
+      {
+
+        let _xp = Math.random();
+
+          game.misc.crear_rebotinero(
+                                     {
+                                     x:_x,
+                                     y:_y,
+                                     w:16,
+                                     h:16,
+                                     can_col:0,
+                                     gravity:0.1,
+                                     id:5, 
+                                     _load(){
+                                      this.yvelocity=-2;
+                                      this.xvelocity=-1-_xp;
+                                     }
+                                   });
+          game.misc.crear_rebotinero(
+                                     {
+                                     x:_x,
+                                     y:_y,
+                                     w:16,
+                                     h:16,
+                                     can_col:0,
+                                     gravity:0.1,
+                                     id:6, 
+                                     _load(){
+                                      this.yvelocity=-2;
+                                      this.xvelocity= 1+_xp;
+                                     }
+                                   });
+                
+      },
+
+      flyer_exp(_n, _x, _y)
+      {
+      game.particulas_con.flyer(_x, _y, 3, (game.hcanvas-10)-3, 4, function(){this.remove(); game.set_var(_n,'exp', '+')   } );
+      },
+
+      flyer_hp(_n, _x, _y)
+      {
+      game.particulas_con.flyer(_x, _y, 3, (game.hcanvas-10)+2, 7, function(){this.remove(); game.set_var(_n,'hp', '+')   } );
+      },
+      flyer_pp(_n, _x, _y)
+      {
+      game.particulas_con.flyer(_x, _y, 3, (game.hcanvas-10)+7, 8, function(){this.remove(); game.set_var(_n,'pp', '+')   } );
+      },
+      
+
+      flyer(_x, _y, _xd=0, _yd=(game.hcanvas-10), _id=4, on_end=function(){this.remove()  })
+      {
+         
+
+        let _clip = $WIN.gameges.cargar_clase($root, 1, 
+        {LOAD:{canvas_id:2}, x: _x+$root.level.x, y: _y+$root.level.y,anim_id:_id, 
+           xd:_xd, yd:_yd,
+        enterframe(){
+        this.x += (this.xd-this.x)/10;
+        this.y += (this.yd-this.y)/10;
+        if(this.x>this.xd-1&&this.x<this.xd+1 &&
+           this.y>this.yd-1&&this.y<this.yd+1)
+          {
+          this.on_end();
+          }
+        
+       } });
+
+        _clip.on_end = on_end;
+
+       return(_clip);
+
+      },
+
+
+    },
 
     //|efectocon
     efectocon:
@@ -229,6 +471,9 @@
                 },
                 run(_level_x, _level_y)
                 {
+
+                //GES.canvasses[3].buffers[0].clear();
+
                 this.tt[0]++;
                 if (this.tt[0] > this.tt[1]) 
                 {
@@ -312,9 +557,661 @@
 
     },//fondocon
 
+   //|itemcon
+  itemcon:
+  {
+    estado:0,
+    points:[],
+    items_macro:
+    {
+      "Inventario vacio":
+       {
+         name:'',
+         id:100,
+         descripcion:'Invetario vacio',
+         remove_on_use:0,
+         no_usable:1,
+         usar()
+         {
+           game.itemcon.close();
+         },
+
+       },//invetario vacio
+
+
+     "Bom y Bom":
+       {
+         name:'',
+         id:0,
+         remove_on_use:1,
+         descripcion:'Un bombon de chocolate que aumenta 5HP',
+         no_usable:0,
+         usar()
+         {
+           game.set_var(5, 'hp', '+');
+
+           game.itemcon.close();
+
+
+         },
+
+       },//bom y bom
+       "Nota de las acciones":
+       {
+         name:'',
+         id:1,
+         descripcion:'En este popular libro encontraras tus poderes actuales',
+         no_usable:0,
+         usar()
+         {
+
+           //$root.contenedor.draw_color='gray';
+           for(var u of _clip.itemcon.items)
+            u.clip.visible=false;
+
+          
+              let _book = (WIN.gameges.crear_vacio($root.contenedor, 2,
+                 {
+                   w: game.wcanvas-16,
+                   h: game.hcanvas-16-16,
+                   x: 8,
+                   y: 8,
+                   draw_color: 'rgba(0,0,0,0.4)',
+                   nombre:'page'
+              }));
+
+              _clip.itemcon.textos.inventario.visible=false;
+
+              game.textoges.crear(_book, {x:60, y:10, _onload(){}, texto:"Ataques de Mundano:"},'tr8x8');
+              game.textoges.crear(_book, {x:10, y:20, texto:"Recuperacion"},'tr8x8');
+              
+
+
+          
+            //_clip.itemcon.textos.inventario._onload =()=>{}
+
+           //game.fadecon.set('oscurecer',   ()=>{});
+
+         },
+
+       },//nota de las acciones
+       "Chocboy":
+       {
+         name:'',
+         id:2,
+         descripcion:'Este bizcocho de chocolate aumenta 10PP',
+         remove_on_use:1,
+         no_usable:0,
+         usar()
+         {
+           game.set_var(10, 'pp', '+');
+
+           game.itemcon.close();
+         },
+
+       },//chocboy
+       
+       "Papa George":
+       {
+         name:'',
+         id:3,
+         descripcion:'Aumenta 20HP',
+         usar()
+         {
+         },
+
+       },//Papa George
+
+      
+    },//items_macro
+
+    add_item(f_nombre)
+    {
+        let _item = {...clone_object(this.items_macro[f_nombre]),
+                    ...{
+                       name:f_nombre,
+                       p:0,
+                       }
+                    };
+
+        this.items.push(_item);
+
+        this.save_en_particon();
+    },
+    items:[
+           
+           ],
+    act_id:0,
+    tt:[0,5,0],
+    move_dir:1,
+    move_tt:[0,10],
+    textos:{},
+    
+    save_en_particon()
+    {
+      game.particon.data.items = [];
+      for(var u of this.items)
+      {
+        game.particon.data.items.push(u.name);
+      }
+    },
+
+    on_particon_set(f_items=game.particon.data.items)
+    {
+      this.items = [];
+      this.act_id=0;
+      for(var u of f_items)
+      {
+        this.add_item(u);  
+      }
+    },
+    close()
+    {
+     if(this.items.length==1&&this.items[0].name=='Inventario vacio')
+     {
+      this.items=[];
+     }
+      
+
+
+      for(var u of $root.level.hijos_clip)
+      {
+        u.enabled_enterload = 1;
+        if(u.animdata)
+           u.animdata.pause=0;
+
+       for(var o of u.hijos_clip)
+         {
+           //o.enabled_enterload = 0;
+              if(o.animdata)
+                 o.animdata.pause=0;
+         }
+
+      }
+
+     this.estado=0;
+     this.move_dir=1;
+     this.points=[];
+     this.textos.nombre.remove();
+     this.contenedor.remove();
+
+     for(var u of this.items)
+     {
+      u.clip.remove();
+     }
+
+    },
+    on_empty_open()
+    {
+       this.add_item('Inventario vacio');
+       this.act_id=0;
+    },
+
+    open()
+    {
+      if(this.items.length==0)
+      this.on_empty_open();
+
+      //_root.propagar_enterframe = this.estado;
+      for(var u of $root.level.hijos_clip)
+      {
+
+        u.enabled_enterload = 0;
+        if(u.animdata)
+           u.animdata.pause=1;
+
+         for(var o of u.hijos_clip)
+         {
+           //o.enabled_enterload = 0;
+              if(o.animdata)
+                 o.animdata.pause=1;
+         }
+      }
+      //$root.level.enabled_enterload = 0;
+      
+
+
+
+      this.move_tt[0]=0;
+      this.estado=1;
+      
+      this.contenedor = (WIN.gameges.crear_vacio($root, 2,
+                 {
+                   w: game.wcanvas,
+                   h: game.hcanvas-16,
+                   x: 0,
+                   y: 0,
+                   draw_color: 'rgba(0,0,0,0.4)',
+                   nombre:'contenedor'
+                }));
+      if(game.escenario.act.name=='wmap')this.contenedor.y+=16;
+
+      this.textos.inventario = game.textoges.crear($root.contenedor, {x:60, y:10, texto:"Inventario"},'tnb10x18');
+      this.textos.inventario.visible=false;
+
+      this.textos.nombre= game.textoges.crear($root.contenedor, {x:game.wcanvas/2, y:game.hcanvas/2, texto:"Chocboy"},'tnb10x18');
+      this.textos.nombre.visible=false;
+
+      
+      this.foo = function(x,y, _c='blue', w=2,h=2)
+      {
+      
+           return (WIN.gameges.crear_vacio($root, 2,
+                 {
+                   w: w,
+                   h: h,
+                   x: x,
+                   y: y,
+                   draw_color: _c,
+                }));
+
+      }
+
+
+         //array 0->1
+         let _v = [[1,0,-1, 0,   1],
+                   [0,1, 0,-1,   0]];
+         let n = 0.1;
+         let _end = [[],[]];
+          for(var i =0;i<4;i++)
+          {
+             let  a = _v[0][i];
+             let _a = _v[0][i+1];
+
+             let  b = _v[1][i];
+             let _b = _v[1][i+1];
+
+             while(a!=="infinito")
+             {
+             if(a<_a){a+=n;if(a>=_a){a=_a; break;} }
+             if(a>_a){a-=n;if(a<=_a){a=_a; break;} }
+               _end[0].push(a);
+             }
+             while(b!=="infinito")
+             {
+             if(b<_b){b+=n;if(b>=_b){b=_b; break;} }
+             if(b>_b){b-=n;if(b<=_b){b=_b; break;} }
+             _end[1].push(b);
+             }
+             
+          }  
+
+          let x = 120;
+          let y = 55;
+          for(var i=0;i<_end[0].length;i++)
+          {
+             x += _end[0][i]*20;
+             y += _end[1][i]*2;
+             let _p = this.foo(x,y,'');
+                 _p.id=this.points.length;
+             this.points.push(_p);
+          }
+         
+
+         for(var i =0;i<this.items.length;i++)
+         {
+          let _d = (this.points.length/this.items.length);
+
+          let _i =  _d*i;
+
+          let _p = this.points[rd(_i) ];
+
+
+          let _id = this.items[i].id;
+           let _clip =
+            WIN.gameges.crear_sprite($root.contenedor, 29, 2, 
+              {animdata: GAME.crear_animdata(     
+             
+           { master: { wt: 32, ht: 32, ll: 30 } },
+           { ll: 15, flip: [0, 0], offset: [0, 0], buf: [[_id, 0],[_id, 1],[_id, 2],[_id, 3],[_id, 4],[_id, 5],[_id, 6],[_id, 7]]  },
+           { ll: 20, flip: [0, 0], offset: [0, 0], loop:1, buf: [[_id, 8],[_id, 9],[_id, 10],[_id, 11] ]  },
+          
+             
+                )  });
+            _clip.animdata.set_anim(0);
+
+            this.items[i].items_i = i;
+            this.items[i].clip=_clip;
+            this.items[i].point = _p;
+            this.items[i].i = rd(_i) ;
+         } 
+         
+         this.act = this.foo(0,0,'black');
+
+
+        while(this.items[this.act_id].point.id!==30)
+        {
+        this.rotate(-1);
+        }
+
+
+  
+    },
+
+    rotate(_dir)
+    {
+     for(var u of this.items)
+     {
+        let _i = u.i;
+        if(_dir==-1)
+        {
+          _i =u.i+1;
+            if(_i>this.points.length-1)
+            _i=0;
+         }
+        if(_dir==1)
+        {
+          _i =u.i-1;
+            if(_i<0)
+            _i=this.points.length-1;
+         }
+         
+
+         let p = this.points[_i];
+         u.clip.x= p.x;
+         u.clip.y= p.y;
+         u.point = p;
+         //u.clip.h= 26-((((game.hcanvas)/2)-p.y)/3);
+         u.clip._h= fl(35-((((game.hcanvas+40)/2)-p.y)/5));
+         u.clip._w= u.clip._h;
+         u.clip.y-= fl(u.clip._h/2);
+         u.clip.x-= fl(u.clip._w/2);
+         u.clip.animdata.pause=1;
+         u.clip.animdata.act[1]=0;
+
+         u.i = _i;
+     }
+
+       $root.contenedor.hijos_clip.sort(function(a,b){
+                                       
+                                         if(a.y==undefined)
+                                           a.y=0;
+                                         
+                                         if(b.y==undefined)
+                                           b.y=0;
+                                         
+                                          if(a.y<b.y)
+                                            return(-1)
+                                          
+                                          if(a.y>b.y)
+                                            return(1)
+                                          
+                                          return(0)
+                    })
+                    
+
+    },
+
+    move_item(_n)
+    {
+      game.soundcon.play(15,1);
+      this.move_dir=_n;
+      this.act_id+= _n;
+      if(this.act_id<0)
+        this.act_id=this.items.length-1;
+
+      else if(this.act_id>this.items.length-1)
+               this.act_id=0;
+
+    },
+
+    run()
+    {
+     let _clip = $root.level.jugador;
+
+      if($WIN.teclado.get('k',2)==1)
+      {
+        this.add_item('Chocboy');
+      }
+
+     if($WIN.teclado.get('c',2)==1 && this.estado!==3)//3=usando objeto
+     {   if(this.estado==0)
+         {
+         this.open();
+         }           
+
+         else
+         {
+         this.close();
+         }          
+
+      }
+      let _item;
+       let _iclip;
+      if(this.estado>0)
+      {
+       _item = this.items[this.act_id];
+       _iclip = _item.clip;
+      }
+
+
+     if(this.estado==1)
+     {
+      
+         //item principal centrado
+         if(this.items[this.act_id].point.id==18)
+         {
+
+          this.items[this.act_id].clip.animdata.pause=0;
+
+          if(this.move_tt[0]==0)
+          {
+
+            this.textos.nombre.set_text(this.items[this.act_id].name)
+            this.textos.nombre._onload=()=>
+                          {
+                         this.textos.nombre.visible=true;
+                         this.textos.nombre.x= game.wcanvas/2-this.textos.nombre.w/2;
+                          }
+          }
+          this.move_tt[0]++;
+         if(this.move_tt[0]>=this.move_tt[1] && this.items.length>1)
+         { 
+           if($WIN.teclado.get('izq'))
+           {
+             this.move_tt[0]=0;
+             this.move_item(1);
+           }
+           if($WIN.teclado.get('der'))
+           {
+             this.move_tt[0]=0;
+             this.move_item(-1);
+           }
+         }
+
+           if($WIN.teclado.get('z',2)==1&&this.items[this.act_id].no_usable!==1)
+           {
+             this.estado=2;
+             this.estado_2=0;
+             this.estado_3=0;
+
+             this.textos.usar  = game.textoges.crear($root.contenedor, {x:game.wcanvas/2-70, y:game.hcanvas/2+16, texto:"Usar"},"tnb10x18");
+             this.textos.info  = game.textoges.crear($root.contenedor, {x:game.wcanvas/2-18, y:game.hcanvas/2+16, texto:"Info"},"tng10x18");
+             this.textos.tirar = game.textoges.crear($root.contenedor, {x:game.wcanvas/2+40, y:game.hcanvas/2+16, texto:"Tirar"},"tng10x18");
+
+             //this.textos.usar.set_font($LIB.IMAGES[31]);
+
+
+           }
+
+        }
+
+        //si item central no esta centrado
+        if(this.items[this.act_id].point.id!==18)
+        {
+        this.rotate(this.move_dir); 
+        }
+      if($WIN.teclado.get('x',0)==1)//workaround evitar efectuar ataque
+      {
+       game.itemcon.close();
+      }
+    }//estado ==1
+
+
+     if(this.estado==3)//item usado 
+     {
+      if(_iclip.animdata.act[0]==0)
+      {
+      _iclip.animdata.animations[_iclip.animdata.act[0]].ll=1;
+      if(_iclip.animdata.act[1]<_iclip.animdata.animations[_iclip.animdata.act[0]].buf.length/2)
+      _iclip.animdata.force.reverse=1;
+      if(_iclip.animdata.act[1]==0)
+        _iclip.animdata.pause=1;
+      }
+      
+      if(_iclip.animdata.pause==1 || _iclip.animdata.act[0]==1)
+      {
+        this.usar_tt++;
+        if(this.usar_tt==30)
+        {
+          _iclip.animdata.force.reverse=0;
+          _iclip.animdata.pause=0;
+
+         _iclip.animdata.set_anim(1);
+        }
+        if(this.usar_tt==30+ ( (_iclip.animdata.animations[1].buf.length-1+1.5)*_iclip.animdata.animations[1].ll) )
+        {
+
+          _item.usar();
+          if(_item.remove_on_use)
+          { 
+           this.items.splice(_item.items_i,1);
+           this.save_en_particon();
+          }
+          this.act_id--;
+          if(this.act_id<0)
+            this.act_id=this.items.length-1;
+
+          return;
+
+
+
+        }
+        //if(_iclip.animdata.act[0]==1 && _iclip.animdata.act[1]==_iclip.animdata.animations[1].buf.length-1 && _iclip.)
+        
+          
+        
+      }
+      //_iclip.y--; 
+
+
+     }
+
+    //item enfocado
+    if(this.estado==2)
+    {
+      let _foo = [this.textos.usar,this.textos.info, this.textos.tirar];
+       
+      
+      
+      _iclip.y+= (50-_iclip.y)/10;
+      _iclip._w+= (40-_iclip._w)/10;
+      _iclip._h= _iclip._w;
+      _iclip.x = _item.point.x-_iclip._w/2;
+
+
+     if($WIN.teclado.get('z',2)==1)
+     {
+
+      if(this.estado_2==0) //|usar
+       {
+         this.estado=3;
+         this.usar_tt=0;
+         this.textos.nombre.visible=false;
+         this.textos.usar.visible=false;
+         this.textos.info.visible=false;
+         this.textos.tirar.visible=false;
+          
+          //_item.usar();
+
+       }
+
+       if(this.estado_2==1) //info
+       {
+        if(this.estado_3==0)
+        {
+         this.textos.usar.visible=false;
+         this.textos.info.visible=false;
+         this.textos.tirar.visible=false;
+         this.estado_3=1;
+         this.textos.descripcion = game.textoges.crear($root.contenedor, {_onload(){
+        //this.draw_color='blue';
+         this.x = (game.wcanvas/2)-this.w/2;
+
+         }, x:60, y:this.textos.usar.y, max_char:20, texto:_item.descripcion},'tnb10x18');
+        }
+        else if(this.estado_3==1)
+        {
+         this.estado_3=0;
+         this.textos.descripcion.remove();
+         this.textos.usar.visible=true;
+         this.textos.info.visible=true;
+         this.textos.tirar.visible=true;
+        }
+
+       }
+
+     }
+
+   if(this.estado_3==0)
+    {
+
+      if($WIN.teclado.get('izq',2)==1)
+        {
+          if(this.estado_2>0)
+          {
+            game.soundcon.play(11);  
+          _foo[this.estado_2].set_font($LIB.IMAGES[31]);
+           this.estado_2--;
+           _foo[this.estado_2].set_font($LIB.IMAGES[30]);
+         }
+        }
+       else if($WIN.teclado.get('der',2)==1)
+        {
+          if(this.estado_2<2)
+          {
+            game.soundcon.play(11);  
+          _foo[this.estado_2].set_font($LIB.IMAGES[31]);
+             this.estado_2++;
+           _foo[this.estado_2].set_font($LIB.IMAGES[30]);
+          }
+         }      
+      }
+
+
+       if($WIN.teclado.get('x',2)==1)
+       {
+        
+        if(this.estado_3==0)
+        {
+        this.estado=1;
+        this.rotate(0);
+        this.textos.usar.remove();
+        this.textos.info.remove();
+        this.textos.tirar.remove();
+        }
+        else if(this.estado_3==1)
+        {
+         this.estado_3=0;
+         this.textos.descripcion.remove();
+         this.textos.usar.visible=true;
+         this.textos.info.visible=true;
+         this.textos.tirar.visible=true;
+        }
+
+
+       }
+    }
+
+   }
+    
+  },//itemcon
+
+
    //|soundcon
     soundcon:
     {
+
     estado:1,
       
       //|temacon 
@@ -355,12 +1252,15 @@
          {
 
          this.stop();
-         this.act = AUDIO.play_sample(WIN.LIB.SOUNDS[f_id], f_gain, f_pitch, f_loop,   f_time, f_offset);
+         
+         this.act = AUDIO.play_sample(WIN.LIB.SOUNDS[f_id], f_gain*game.particon.data.config.sound.vol_music, f_pitch, f_loop,   f_time, f_offset);
+         
          this.act.id=f_id;
          }
          else if(this.act.id === f_id)
          {
-          this.act.gain.gain.value= game.mapcon.submap.tema.vol;
+          
+          this.act.gain.gain.value= game.mapcon.submap.tema.vol*game.particon.data.config.sound.vol_music; //test desmarcar
          }
 
         },
@@ -382,11 +1282,26 @@
 
       },//temacon
 
+      tile_play(f_id, f_gain)
+      {
+        let _td = $gameges.tileges.tiledata.col[f_id];
+        let _sid = 19;
+        if(get_type(_td[4])=='number' )
+          _sid = _td[4];
+
+        this.play(_sid, f_gain);
+
+      },
+
       play(f_id, f_gain=1, f_pitch=0, f_loop=0)
       {
+        if(f_pitch=='random')
+        {
+          f_pitch=1-Math.random();
+        }
 
         if(this.estado)
-        AUDIO.play_sample(WIN.LIB.SOUNDS[f_id], f_gain, f_pitch, f_loop);
+        AUDIO.play_sample(WIN.LIB.SOUNDS[f_id], f_gain*game.particon.data.config.sound.vol_sound, f_pitch, f_loop);
 
       },
 
@@ -487,6 +1402,42 @@
   
 
         },
+
+          end_estado:0,
+         start_end(f_estado, f_tile) //terminar nivel al tocar borde de la pantalla
+         {
+           if(this.end_estado==0)
+           {
+            this.end_estado=f_estado;
+             let _jugador = $root.level.jugador;
+             let _yvel = _jugador.yvelocity;
+            _jugador.modos.set('freeze');
+           
+            _jugador.yvelocity = _yvel;
+             let _col = _jugador.col_check();
+             _jugador.modos.modos.freeze.run = ()=>
+             {
+               _jugador.yvelocity += _jugador.gravedad;
+               let _col = _jugador.col_check();
+
+             }
+
+             game.fadecon.set('oscurecer',   ()=>{
+                         
+                         game.escenario.set('wmap');
+                         game.escenario.escenas.wmap.set_clearpath(f_tile.clear);
+
+                         game.fadecon.set('aclarar',   ()=>{
+                          this.end_estado=0;
+
+                         });
+
+                  })
+           }
+
+         
+
+         },
 
         start_slide(f_dir)
         {
@@ -712,6 +1663,24 @@
          let _jugador = _level.jugador;
          let _tilemaps = GES.tileges.tilemaps_all;
 
+         //control end
+         if(this.end_estado>0)
+         {
+          
+            if(this.end_estado==1)
+              {
+                _jugador.x--;
+               _jugador.estado_h=2;
+               }
+              
+             if(this.end_estado==3)
+             {
+              _jugador.x++;
+              _jugador.estado_h=3;
+             }
+              
+         }
+
             //detectar slide
             if(this.estado==0 && 
                game.editor.estado==0 && game.escenario.act.name=='play_0' &&
@@ -719,6 +1688,25 @@
             {
              let _xt = fl((_jugador.x+_jugador.w/2)/16);
              let _yt = fl((_jugador.y+_jugador.h/2)/16);
+
+              //detectar endpoint
+              if(_tilemaps[3][_yt] && _tilemaps[3][_yt][_xt] && _tilemaps[3][_yt][_xt].id=='end_point')
+              {
+                let _tileobj = _tilemaps[3][_yt][_xt];
+
+                if(_jugador.x<=0 && _jugador.xvelocity<=0)
+                this.start_end(1,_tileobj);
+
+                if(_jugador.y<=0 && _jugador.yvelocity<=0) 
+                this.start_end(1,_tileobj);                
+                
+                if(_jugador.x+_jugador.w>=$gameges.tileges.xt_allmax * 16 && _jugador.xvelocity>=0)
+                this.start_end(3,_tileobj);
+
+                if(_jugador.y+_jugador.h>=$gameges.tileges.yt_allmax * 16 && _jugador.yvelocity>=0)
+                this.start_end(3,_tileobj);
+
+              }
 
               if(_tilemaps[3][_yt] && _tilemaps[3][_yt][_xt] && _tilemaps[3][_yt][_xt].id=='scroll_point')
               {
@@ -1057,8 +2045,9 @@
         game.escenario.act.on_submapset();
 
 
-
+        
         game.soundcon.temacon.ini_leveltema();
+
 
         if(_data.set_fondo)
         game.fondocon.set(this.submap.fondo);
@@ -1118,6 +2107,15 @@
     {
      fuentes:
      {
+      //"_data/images/fuente_tb4x4.png",
+
+      tb4x4:
+            {
+            img_id:28,
+            w:[4,4],
+            h:[4,4],
+            },
+
       tn5x9:
             {
             img_id:20,
@@ -1165,6 +2163,20 @@
             w:[10,10],
             h:[18,18],
             },
+
+      tnb10x18: //cerveza y libertad
+            {
+            img_id:30,
+            w:[10,10],
+            h:[18,18],
+            },
+      tng10x18: //cerveza y libertad gris
+            {
+            img_id:31,
+            w:[10,10],
+            h:[18,18],
+            },
+
      },
 
     crear(f_donde=$root, f_data = {}, f_fuente='nb8x8')
@@ -1175,6 +2187,7 @@
                      texto:'test',
                      x:0,
                      y:0,
+                     //max_char:5,
                      gameges:WIN.gameges,
                      image:$LIB.IMAGES[_fuente.img_id],
                      canvas:DUMMY_CANVAS,
@@ -1203,9 +2216,30 @@
            act:'',
            pos:[0,0],
           },
+          items:
+          [
+          'Bom y Bom'
+          ],
+          test_items:
+           [
+           'Nota de las acciones',
+            'Bom y Bom',
+            'Bom y Bom',
+            'Bom y Bom',
+            'Chocboy',
+            'Chocboy'
+           ],
 
-         //id_act:0,
-         //act:'',//obj
+           config:
+           {
+            sound:
+             {
+              vol_sound:0.1,
+              vol_music:0,
+             },
+
+           },
+
            //|perfiles
            perfiles:
            {
@@ -1214,21 +2248,21 @@
 
             set(f_id)
             {
+             console.log('perfil act :' + f_id);
              this.id_act = f_id;
              this.act = this.perfiles[f_id];
+             window.$perfil = this.act;
+
 
             },
 
             refill()
             {
-
              this.act.hp[0]=this.act.hp[1];
              this.act.pp[0]=this.act.pp[1];
-            
             },
             set_var(f_n, f_var, _modo)
             {
-
                 let _var = this.act[f_var];
 
                 if(_modo=='set')
@@ -1256,10 +2290,12 @@
                 {
                  name:'maga',
                  arma_name:'arco',
-                 yvel_salto:4,
-                 hp:[10,10],
-                 pp:[10,10],
-                 fama:0,
+                 yvel_salto:5,
+                 hp:[20,20],
+                 pp:[20,20],
+                 exp:[0,50],
+                 atk:5,
+                 lv:5,
                  ataques:[],
                 },
            
@@ -1267,32 +2303,38 @@
                 {
                  name:'bartender',
                  arma_name:'espada',         
-                 yvel_salto:3.3,
-                 hp:[10,10],
-                 pp:[10,10],
-                 fama:0,
+                 yvel_salto:5,
+                 hp:[19,19],
+                 pp:[0,0],
+                 exp:[0,50],
+                 atk:5,
+                 lv:5,
                  ataques:[],
                 },                                
                 
                 //barba
                 {
                  name:'barba',
-                 arma_name:'arco',
-                 yvel_salto:4,
-                 hp:[10,10],
-                 pp:[10,10],
-                 fama:0,
+                 arma_name:'espada',
+                 yvel_salto:5,
+                 hp:[20,20],
+                 pp:[20,20],
+                 exp:[0,50],
+                 atk:5,
+                 lv:5,
                  ataques:[],
                 },
            
                 //mundano
                 {
                  name:'mundano',
-                 yvel_salto:4,
+                 yvel_salto:5,
                  arma_name:'arco',
-                 hp:[10,10],
-                 pp:[10,10],
-                 fama:0,
+                 hp:[20,20],
+                 pp:[20,20],
+                 exp:[0,50],
+                 atk:5,
+                 lv:5,
                  ataques:[],
                 },
             ]
@@ -1310,16 +2352,272 @@
      nueva_partida(_goto_wmap=0)
      {
       this.data = clone_object(this._data_default);
+      if(_goto_wmap==0)
+        this.data.items=this.data.test_items;
+      
+
       this.data.perfiles.set(1);//0-> 'maga'
+      game.itemcon.on_particon_set();
 
 
-      if(_goto_wmap)
-      game.escenario.set('wmap')
+       if(_goto_wmap)
+       {
+       let _script = cargar_txt("_data/maps/0_bar.json", (_map)=>{     
+                             _map.ini_submap=6;
+                             game.escenario.escenas.play_0.map = _map;
+
+                             game.escenario.set('play_0');
+                             game.fadecon.set('aclarar',   ()=>{});
+                              
+
+                                                      }  , 1);
+       }
+
+
+       //if(_goto_wmap)
+       //game.escenario.set('play_0')
+
 
      },
 
 
     },//particon
+
+
+    //|shootcon
+    shootcon:
+    {
+
+      crear_flecha(f_dir, f_vel, f_data={})
+      {
+          let _p;
+          if(f_dir==0)  _p ={buf:[[6,0]], flip:[0,0], xvelocity:-f_vel, yvelocity:0,      tilecol:{w:3,h:3,x:0,y:8}};
+          if(f_dir==1)  _p ={buf:[[6,1]], flip:[0,0], xvelocity: 0,     yvelocity:-f_vel, tilecol:{w:3,h:3,x:8,y:0}};
+          if(f_dir==2)  _p ={buf:[[6,0]], flip:[1,0], xvelocity: f_vel, yvelocity:0,      tilecol:{w:3,h:3,x:16,y:8}};
+          if(f_dir==3)  _p ={buf:[[6,1]], flip:[0,1], xvelocity: 0,     yvelocity: f_vel, tilecol:{w:3,h:3,x:8,y:16} };
+
+          this.crear_simple($root.level, {
+                                        ..._p,
+                                        ...f_data
+                                          })
+
+      },
+      crear_simple(f_donde, f_data={})
+      {
+        let _data = setloop_prop(
+                         {
+                         detectar:[0,1], //player, jugador
+                         x:0,
+                         y:0,
+                         buf:[[6,0]],
+                         flip:[0,0],
+                         remove_on_loop:0,
+                         xvelocity:0,
+                         yvelocity:0,
+
+                         stats:{
+                               atk:3
+                               },
+                        
+                         tilecol:{
+                                  _padre:'',
+                                  estado:1,
+                                  x:0,
+                                  y:0,
+                                  w:2,
+                                  h:2,
+                                  on_col()
+                                  {
+                                   this._padre.remove();
+                                  },
+                                  run()
+                                  {
+                                    let _tilemaps = $tileges.tilemaps;
+                                    let _c = [[this.x       , this.y],
+                                              [this.x+this.w, this.y],
+                                              [this.x       , this.y+this.h],
+                                              [this.x+this.w, this.y+this.h],
+                                             ];
+                                     let _xyids = [];
+                                     for(var i=0;i<4;i++)
+                                     {
+                                      let _yt = fl( (this._padre.y+_c[i][1])/16 );
+                                      let _xt = fl( (this._padre.x+_c[i][0])/16 );
+                                      if(_tilemaps[1][ _yt ])
+                                      {
+                                       let _t = _tilemaps[1][ _yt ][ _xt];
+                                       let _tp = $gameges.tileges.tiledata.col[_t];
+                                       let _xvelocity = this._padre.xvelocity;
+                                       if(this._padre._xvelocity!==undefined) _xvelocity = this._padre._xvelocity;
+                                       let _yvelocity = this._padre.yvelocity;
+                                       if(this._padre._yvelocity!==undefined) _yvelocity = this._padre._yvelocity;
+
+                                       
+                                       if(_t>0 && 
+                                          ( 
+                                            (_xvelocity>0 && this._padre.xprev<_xt*16    && _tp[0]==1)||
+                                            (_xvelocity<0 && this._padre.xprev>_xt*16+16-this._padre.w && _tp[2]==1)||
+
+                                            (_yvelocity>0 && this._padre.yprev<_yt*16    && _tp[1]==1)||
+                                            (_yvelocity<0 && this._padre.yprev>_yt*16+16-this._padre.h && _tp[3]==1)   
+
+                                            )
+                                          )
+                                       {
+                                        let _xyid = (cerear(_yt,3)+cerear(_xt,3));
+                                        if(_xyids.includes(_xyid)) continue;
+                                        _xyids.push(_xyid);
+                                        
+
+                                        //flecha trampolin
+                                        if(_t==150)
+                                        {
+                                          _tilemaps[1][ _yt ][ _xt]=160;
+                                          $gameges.tileges.refresh.force();
+                                          game.soundcon.play(18);
+
+                                          if($jugador.x+$jugador.w>_xt*16 && $jugador.x<_xt*16+16 && 
+                                            $jugador.y+$jugador.h<_yt*16+2&&$jugador.y+$jugador.h>_yt*16-16)
+                                          {
+                                           $jugador.yvelocity=-7; 
+                                           
+                                          }
+
+                                          let _e = $WIN.gameges.cargar_clase($root.level, 1, 
+                                                {anim_id:3, visible:false,remove_on_loop:0, xt_ini:_xt, yt_ini:_yt, x:_xt*16, y:_yt*16, tt:[0,10],enterframe(){ 
+                                                   this.tt[0]++;
+                                                   if(this.tt[0]>this.tt[1])
+                                                   {
+                                                     GES.tileges.tilemaps[1][this.yt_ini][this.xt_ini]=150;
+                                                     $gameges.tileges.refresh.force();
+                                                      this.remove();
+                                                   }
+
+                                                  } });
+                                        }//150
+
+                                        //cajas destruibles
+                                        else if(_t==151||_t==152)
+                                        {
+                                          _tilemaps[1][ _yt ][ _xt]++;
+                                          $gameges.tileges.refresh.force();
+                                          game.soundcon.play(16,1,fl(Math.random()*2)+1);
+                                        }
+                                        else if(_t==153)
+                                        {
+                                           _tilemaps[1][ _yt ][ _xt]=0;
+                                          $gameges.tileges.refresh.force(); 
+
+
+                                           game.soundcon.play(16);
+                                           
+                                           game.misc.crear_rebotinero(
+                                            {x:_xt*16,
+                                             y:_yt*16,
+                                             modo:'hp',
+                                            }
+                                            );
+
+                                           game.particulas_con.caja_destrozada(_xt*16,
+                                                                               _yt*16);
+
+                                        }//153
+                                        
+                                        this.on_col();
+                                        //break;
+                                       
+
+                                       }                                        
+                                      }
+
+                                     }//loop
+
+                                  }//run
+
+                                 },//tilecol
+
+                         on_hit(f_modo)//'player', 'enem'
+                         {
+                          this.remove();
+                         },
+                         //draw_color:'blue',
+                         _enterframe(){},
+                         enterframe()
+                         {
+          
+                           this._enterframe();
+                          
+                           if(this.tilecol.estado)
+                              this.tilecol.run();
+
+                           if(game.editor.estado==0)
+                           {
+                                //enemigos
+                               if(this.detectar[1])
+                               {
+                                 for(var u of game.objs)
+                                 {
+                                   if(u._hitcon.estado==1 && u._hitcon?.detectar[1] && game.simple_hit_test(this, u))
+                                   {
+                                      u._hitcon.on_hit('bullet', {atk:this.stats.atk, clip:this});
+                                      this.on_hit('enem');
+                                   }
+
+                                 }
+                               }  
+                               //jugador
+                               if(this.detectar[0])
+                               {
+                                if($jugador._hitcon.estado==1 && $jugador._hitcon?.detectar[1] && game.simple_hit_test(this, $jugador))
+                                   {
+                                      $jugador._hitcon.on_hit('bullet',{atk:this.stats.atk, clip:this});
+                                      this.on_hit('player');
+                                   }
+                                 
+                               }  
+
+                           }
+
+
+                         if((this.xvelocity<0&&this.x<$root.level.x*-1) || (this.xvelocity>0&& this.x>$root.level.x*-1+game.wcanvas) ||
+                            (this.yvelocity<0&&this.y<$root.level.y*-1) || (this.yvelocity>0&&this.y>$root.level.y*-1+game.hcanvas)  )
+                           {
+                            this.remove();
+                           }
+
+                          this.xprev = this.x;
+                          this.yprev = this.y;
+
+                          this.x = this.x + this.xvelocity;
+                          this.y = this.y + this.yvelocity;
+
+                         }
+                       },
+                       f_data
+                      )
+          
+          let _clip = $WIN.gameges.cargar_clase(f_donde, 1, _data);
+
+          
+              _clip.xprev=_clip.x;
+              _clip.yprev=_clip.y;
+              _clip.tilecol.run();
+
+          _clip.animdata.animations[0].remove_on_loop=_data.remove_on_loop;
+            _clip.animdata.animations[0].flip = _data.flip;
+
+          _clip.animdata.animations[0].buf=_data.buf;
+
+          _data.tilecol._padre=_clip;
+
+          
+           
+           return(_clip);
+
+
+        }
+    },
+
 
     //|dialogo
     dialogo:
@@ -1344,10 +2642,13 @@
           this.dialogo.run();
 
       },
+      on_end()
+      {
+
+      },
       end() {
         if (this.dialogo !== '' && this.dialogo.write.estado !== 0) {
            this.dialogo.write.on_end();
-
 
         }
 
@@ -1544,6 +2845,8 @@
           game.fondocon.run();
           game.dialogo.run();
           game.mapcon.run();
+          if(game.escenario.act.can_itemcon)
+             game.itemcon.run();
 
         }
 
@@ -1725,6 +3028,7 @@
 
            
            this.textos.presstart = game.textoges.crear($root, {x:50,y:90, texto:'PRESS START'},'tn10x18_b')
+           this.textos.cervezaylibertad = game.textoges.crear($root, {x:20,y:170, texto:'Cerveza y Libertad'},'tnb10x18')
            
 
           },
@@ -1767,7 +3071,7 @@
                        
                          game.particon.nueva_partida(1);
 
-                         game.fadecon.set('aclarar',   ()=>{});
+
 
                        } );
                       
@@ -1795,8 +3099,8 @@
                this.estado=1;
 
        
-               this.textos.empezar = game.textoges.crear($root,  {x:20,y:100,   texto:'Empezar'})
-               this.textos.opciones = game.textoges.crear($root, {x:120,y:100,  texto:'Opciones'})
+               this.textos.empezar = game.textoges.crear($root,  {x:20,y:100,   texto:'Empezar'},'tn10x18_b')
+               this.textos.opciones = game.textoges.crear($root, {x:120,y:100,  texto:'Opciones'},'tn10x18_b')
                this.textos.empezar.ini_x = this.textos.empezar.x;
                this.textos.empezar.ini_y = this.textos.empezar.y;
 
@@ -1843,7 +3147,19 @@
         {
           name: 'wmap',
           editor: { img_id: [13,17],   tiledata_id: 0 },
+          can_itemcon:1,
           
+
+          set_clearpath(f_clear)
+          {
+            let _c16 = $root.level.jugador.get_c16();
+            if(f_clear.toString()!=='0,0,0,0')
+            {
+            $root.level.jugador.propagar.ini(_c16.x, _c16.y, f_clear);  
+            }
+            
+             
+          },
           on_nuevapartida()
           {
           let _mapcon = this.mapcon;
@@ -1894,7 +3210,7 @@
 
           mapcon:
           {
-            savepos: { x: 1, y: 3 },//en tile
+            savepos: { x: 2, y: 5 },//en tile
 
             _ids:
             {
@@ -1923,19 +3239,35 @@
             
             update_level_titulo(f_texto)
             {
-            this.textos.level_titulo.set_text(f_texto);
+              //provisional
+              let _texto= "";
+             for (var i =0;i<f_texto.length-5;i++)
+             {
+              let c = f_texto.charAt(i);
+              if(c=='_')c=" ";
+              _texto+=c;
+             }
+            
+
+            this.textos.level_titulo.set_text(_texto);
+            this.textos.level_titulo._onload=()=>
+                          {
+                        // this.textos.level_titulo.visible=true;
+                         this.textos.level_titulo.x= game.wcanvas/2-this.textos.level_titulo.w/2;
+                          }
+
             },
 
             ini() {
               let _hud = this.hud = WIN.gameges.crear_vacio($root, 2,
                 {
                   w: game.wcanvas,
-                  h: 16*2,
+                  h: 16*1,
                   y: 0,
                   draw_color: 'black'
                 });
 
-              this.textos.level_titulo = game.textoges.crear(_hud, {x:2,y:4, texto:' '})
+              this.textos.level_titulo = game.textoges.crear(_hud, {x:2,y:2, texto:' '})
               this.update_level_titulo('')
 
             },
@@ -2082,20 +3414,22 @@
             GES.fondoges.ini(0, { image: 11, x: 0, y: 0 }); //canvasses gameges pintado
             GES.fondoges.estado = 1;
 
-            let _map = clone_object($LIB.CLASES[9]);
+            if(this.map == '')
+               this.map = $LIB.CLASES[9];  
 
-           // game.soundcon.temacon.play(6, 0.3, 0,0);
+            game.mapcon.set(this.map,0);
 
-            
-            game.mapcon.set(_map,0);
+            this.map = game.mapcon.map;
 
 
           },
+          map:'',
 
           on_submapset()
           {
           let _savepos = this.mapcon.savepos;
           WIN.gameges.cargar_clase($root.level, 8, { x: _savepos.x * 16, y: _savepos.y * 16, nombre: 'jugador' }); //jugador
+          window['$jugador'] = $root.level.jugador;
 
             //$root.level.jugador.loadframe();
             //$root.level.jugador.loadframe_state = 1;
@@ -2120,7 +3454,9 @@
             this.mapcon.savepos.x = fl($root.level.jugador.x / 16);//provisorio
             this.mapcon.savepos.y = fl($root.level.jugador.y / 16);//provisorio
             this.hudbottom.run();
+
             game.center_nivel($root.level.jugador.camera_offset);
+
             //GES.canvasses[2].no_clear=1;
             //GES._enterframe=()=>{GES.canvasses[2].draw.line(0,0,100,100);}
 
@@ -2138,6 +3474,7 @@
           editor: { img_id: [5,17], tiledata_id: 1 },
           can_pause:1,
           can_slide:1,
+          can_itemcon:1,
 
           map:'',
                           //{value, name, modo}
@@ -2146,9 +3483,16 @@
           {
             _padre: '',
             
-            hudbarras:{  },
+            barras:{exp:'',hp:'',pp:''  },
             textos:{},
             estado:0,
+
+            set_lv()
+            {
+             let _tx = this.textos.lv;
+                 _tx.set_text("Lv:" + $perfil.lv);
+
+            },
 
             ini() {
               this._padre.tt_dead=[0,60];
@@ -2162,11 +3506,24 @@
                 });
                let _stats = game.particon.data.perfiles.act;
 
-               this.hudbarras.hp = game.crear_hudbarra(_hud, 
-                     {valores:_stats.hp, x:1, y:6, w:8*5, h:6, texto:{x:-1,y:-7,texto:'salud'}, colores:['gray','white'  ]  })
+               this.barras.exp = game.crear_hudbarra(_hud, 
+                 {valores:_stats.exp, x:1, y:1, w:190, h:3, texto:{x:0,y:-1,texto:'Ex'}, colores:['rgb(33,33,33)','white'  ]  })
+
+               this.barras.hp = game.crear_hudbarra(_hud, 
+                 {valores:_stats.hp, x:1, y:5, w:_stats.hp[1]*2, h:4, texto:{x:0,y:0,texto:'HP'}, colores:['rgb(54,54,54)',
+                 'rgb(319,151,139)']  })
+                 //'rgb(107,113,180)']  })
                
-               this.hudbarras.pp = game.crear_hudbarra(_hud, 
-                    {valores:_stats.pp, x:(8*5)+5, y:6, w:8*5, h:6, texto:{x:-1,y:-7,texto:'magia'}, colores:['gray','white'  ]  })
+               this.barras.pp = game.crear_hudbarra(_hud, 
+
+                 {valores:_stats.pp, x:1, y:10, w:_stats.pp[1]*2, h:4, texto:{x:0,y:0,texto:'PP'}, colores:['rgb(54,54,54)',
+                 'rgb(107,113,180)']})
+                // 'rgb(101,189,134)']})
+
+                this.textos.lv=game.textoges.crear(_hud, {x:202, y:0, texto:"Lv:0"},"tb4x4");
+
+                this.set_lv();
+
 
             },
             run()
@@ -2188,9 +3545,9 @@
 
           on_stats_update(f_obj)
           {
-           this._padre.hud.hudbarras[f_obj.name].set(f_obj.value[0], 'set');
+           this._padre.hud.barras[f_obj.name].set(f_obj.value[0], 'set');
            
-           this.estado='hit_hp';
+           //this.estado='hit_hp';
 
            if(f_obj.name=='hp'&&f_obj.value[0]<=0)
            {
@@ -2204,9 +3561,9 @@
           update_hudbarras()
           {
             let _stats = game.particon.data.perfiles.act;
-            for(var i in this.hudbarras)
+            for(var i in this.barras)
             {
-              this.hudbarras[i].set(_stats[i][1], 'set');
+              this.barras[i].set(_stats[i][1], 'set');
             }
 
           },
@@ -2295,7 +3652,8 @@
           if(!_startpoint)
             _startpoint={x:3,y:3, direccion:1};
 
-          WIN.gameges.cargar_clase($root.level, 0, { x: _startpoint.x * 16, y: _startpoint.y * 16, nombre: 'jugador'}); //jugador
+          WIN.gameges.cargar_clase($root.level, 0, { x: _startpoint.x * 16, y: (_startpoint.y+1) * 16-25, nombre: 'jugador'}); //jugador
+          window['$jugador'] = $root.level.jugador;
           $root.level.jugador.modos.modos.normal.estado=_startpoint.direccion;
           
 
@@ -2315,8 +3673,6 @@
           
 
           this.hud.ini();
-
-           
 
 
           game.center_nivel($root.level.jugador.camera_offset);
@@ -2356,16 +3712,19 @@
       WIN.cursor.add_mouseup(bindear_(game.on_mouseup, game));
       WIN.cursor.add_mousemove(bindear_(game.on_mousemove, game));
 
-      var ARR_CAN = [crear_canvas(this._bloque, 2, 0, 0, [0,0], [0,0]),
-                     crear_canvas(this._bloque, 2, 0, 0, [0,0], [0,0]),
-                     crear_canvas(this._bloque, 2, 0, 0, [0,0], [0,0]),
-                     crear_canvas(this._bloque, 2, 0, 0, [0,0], [0,0]),
+      
+      var ARR_CAN = [crear_canvas(WIN._bloque, 2, 0, 0, [0,0], [0,0], {},{modo_borde:'sobrepuesto'}),
+                     crear_canvas(WIN._bloque, 2, 0, 0, [0,0], [0,0], {},{modo_borde:'sobrepuesto'}),
+                     crear_canvas(WIN._bloque, 2, 0, 0, [0,0], [0,0], {},{modo_borde:'sobrepuesto'}),
+                     crear_canvas(WIN._bloque, 2, 0, 0, [0,0], [0,0], {},{modo_borde:'sobrepuesto'}),
       ];
+
 
       game.wcanvas = ARR_CAN[0].obj.width;
       game.hcanvas = ARR_CAN[0].obj.height;
       
-      WIN.set_literal_size(game.wcanvas*2, game.hcanvas*2);
+      //alert(WIN._bloque.wr + ' ' + game.wcanvas*2);  
+      //WIN.set_literal_size(game.wcanvas*2, game.hcanvas*2);
 
 
       window['GES'] = GAME.crear_gestor(WIN, ARR_CAN,
@@ -2446,7 +3805,8 @@
 
       });
 
-      game.escenario.set('play_0');
+      game.particon.nueva_partida(0);
+      game.escenario.set('menu_0');
 
 
     },//ini
@@ -2635,7 +3995,7 @@
                 tileges: $tileges,                
                 
                 on_get_map: game.mapcon.on_get_map,
-                
+                teclado: WIN.teclado,
 
                 mapcon:
                 {
@@ -2650,6 +4010,93 @@
                 menu:{ //se incorporan a funciones por defecto
                  Map:
                   {
+                    'Propiedades mapa'()
+                    {
+
+
+                    let _map = game.mapcon.map;
+
+                      let _sub = game.editor.tile_editor.win.crear_subventana({x:0, y:0, w:300,h:300, grab:1, titulo: 'Propiedades mapa',
+
+                        });
+
+
+            _sub.mostrar_error=(f_texto='ERROR')=>
+            {
+
+             let _err  = _sub.crear_subventana({x:35,y:50,w:200,h:150,titulo:'Error', grab:1,});
+                   
+                    let _tmes = _FORM.crear_text(_err._bloque, {texto: f_texto,  
+                              x:0,y:10,w:[5,5], h:60, style:{border:'none', whiteSpace:'wrap'} });
+
+                    _FORM.crear_boton(_err._bloque, {x:40, y:70, w:100,texto:'Ok', mousedown:()=>                      
+                      {
+                       _err.cerrar();
+                      }
+
+                     });
+
+            }
+
+                      console.log(_map)
+
+
+                      _FORM.crear_text(_sub._bloque, {texto: 'Nombre:',  
+                              x:10,y:10,w:90, h:30, style:{textAlign:'left', border:'none', whiteSpace:'wrap'} });
+
+                      let _i_nombre = _FORM.crear_input(_sub._bloque,{x:0,y:10,w:[100,10],h:20,max_char:19, value:_map.nombre });
+
+
+                      _FORM.crear_text(_sub._bloque, {texto: 'Ini submap:',  
+                              x:10,y:50,w:90, h:30, style:{textAlign:'left', border:'none', whiteSpace:'wrap'} });
+
+                      let _i_ini_submap = _FORM.crear_input(_sub._bloque,{x:0,y:50,w:[100,10],h:20,max_char:2, value:_map.ini_submap });
+
+
+              _FORM.crear_boton(_sub._bloque, {x:10, y:220, w:100,texto:'Aplicar', mousedown:()=>                      
+                      {
+                       
+               
+                  let _v_nombre     = remove_lastspace_string(_i_nombre.get_value() ); 
+                  let _v_ini_submap = _i_ini_submap.get_value();
+                  
+
+                  if(_v_nombre == '' )
+                  {
+                        _sub.mostrar_error('Nombre no valido');              
+                        return;
+                  }
+            
+
+                       if(!is_numeric(_v_ini_submap ) )
+                       {
+                        _sub.mostrar_error('Ini_submap no valido');
+
+                        return;
+                       }
+                       
+                       
+
+                      _map.nombre     = _v_nombre; 
+                      _map.ini_submap = string_to_number(_v_ini_submap) ;
+                      
+
+                       _sub.cerrar();
+                      
+
+
+                      }});
+
+              _FORM.crear_boton(_sub._bloque, {x:130, y:220, w:100,texto:'Cancelar', mousedown:()=>                      
+                      {
+                       _sub.cerrar();
+                      }});
+
+
+
+
+
+                    }, //propiedades mapa
                     'Nuevo mapa'(){
                        let _tileges = this.tileges;
                        _tileges.remade_tilemaps(_tileges.yt_max,_tileges.xt_max,0);
@@ -2821,6 +4268,8 @@
                    let _yt_max = GES.tileges.yt_max;
                    
                    
+                   if(game.escenario.act.name=='play_0')
+                       _yt_max --;
 
                    let _submap =
                      {
@@ -2844,8 +4293,9 @@
                       ],
 
                      }
-
+                   
                    game.mapcon.map.submaps.push(_submap);
+                   game.mapcon.map_master.submaps.push(clone_object(_submap) ); //es necesario clonar?
                    game.mapcon.update_menu_submaps();
 
 
@@ -2995,8 +4445,8 @@
     
     //$root.level.x = fl((f_x * -1)  + $root.w / 2);
     //$root.level.y = fl((f_y * -1)  + $root.h / 2);
-    $root.level.x = ((f_x * -1)  + $root.w / 2);
-    $root.level.y = ((f_y * -1)  + $root.h / 2);
+    $root.level.x = ((f_x * -1)  + game.wcanvas / 2);
+    $root.level.y = ((f_y * -1)  + game.hcanvas / 2);
 
     if(_limit)
     {
@@ -3133,7 +4583,7 @@
                   w: _data.w,
                   h: _data.h,
                   y: _data.y,
-                  x: _data.x,
+                  x: _data.x+(_data.texto.texto.length*4)+2,
                   draw_color: _data.colores[0],
                 }),
    WIN.gameges.crear_vacio(f_donde, 2,
@@ -3141,12 +4591,12 @@
                   w: _data.w,
                   h: _data.h,
                   y: _data.y,
-                  x: _data.x,
+                  x: _data.x+(_data.texto.texto.length*4)+2,
                   draw_color: _data.colores[1],
                 })
     ];
 
-    _data.texto = game.textoges.crear(f_donde, {x:_data.x+_data.texto.x, y:_data.y+_data.texto.y, texto:_data.texto.texto})
+    _data.texto = game.textoges.crear(f_donde, {x:_data.x+_data.texto.x, y:_data.y+_data.texto.y, texto:_data.texto.texto},"tb4x4")
 
     _data.clips.push(_data.texto);
 
@@ -3266,37 +4716,42 @@ padrear(game);
 
 //|imp
   //imp images
-  WIN.load_isc(["_data/images/fondo_0.png",
+  WIN.load_isc([
+    "_data/images/fondo_0.png",
     "_data/images/image_03.png",
     "_data/images/lau_spritesheet.png",
     "_data/images/efecto16.png",
     "_data/images/tileset16_0.png",
     "_data/images/lau_tileset16_0.png",//5
-
     "_data/images/shoot.png",
     "_data/images/enemigos_sprites.png",
     "_data/images/armas_sprites.png",
     "_data/images/fondo_A0.png",
+
     "_data/images/fondo_A1.png", //10
     "_data/images/fondo_A2.png",
     "_data/images/misc.png",
     "_data/images/lau_tileset16_wm.png",
     "_data/images/watons_sprites_wm.png",
-
     "_data/images/cinema.png",//15
     "_data/images/fuente_nb8x8.png",
     "_data/images/tileobj_1.png",
      "_data/images/tileobj_0.png",
      "_data/images/fuente_tn10x18.png",
+    
      "_data/images/fuente_tn5x9.png",//20
      "_data/images/fuente_tn10x18_b.png", //press start menu
      "_data/images/npc.png",
      "_data/images/fuente_tn8x8.png",
      "_data/images/fuente_tr8x8.png",
-     "_data/images/fuente_ta8x8.png",
-
+     "_data/images/fuente_ta8x8.png",//25
      "_data/images/fondo_campo_b_0.png",
-     "_data/images/fondo_campo_b_1.png"
+     "_data/images/fondo_campo_b_1.png",
+     "_data/images/fuente_tb4x4.png",
+     "_data/images/items.png",
+
+     "_data/images/fuente_tnb10x18.png", //cerveza y libertad
+     "_data/images/fuente_tng10x18.png", //cerveza y libertad
 
   ],
 
@@ -3311,19 +4766,22 @@ padrear(game);
 
     "_data/sounds/tema_0.wav",//5
     "_data/sounds/tema.wav",
-
     "_data/sounds/lifelost.mp3",
     "_data/sounds/ataque_sw_0.mp3",
-
     "_data/sounds/hit_2.mp3", //caida fuera de mapa
 
     "_data/sounds/intro_tema.mp3", //10
-
     "_data/sounds/menu_select_0.mp3", 
     "_data/sounds/menu_select_1.mp3", 
-
     "_data/sounds/puerta.mp3", 
     "_data/sounds/tema_1.mp3",
+    "_data/sounds/swoogg.wav",//15
+    "_data/sounds/brick.wav",
+    "_data/sounds/pick0.wav",
+    "_data/sounds/grab_2.wav",
+    "_data/sounds/toc_0.mp3",
+    "_data/sounds/toc_1.mp3",//20
+    "_data/sounds/toc_2.mp3",
     
      ],
 
@@ -3338,7 +4796,9 @@ padrear(game);
 
       "_data/class/config.json",
       //"_data/maps/scrolltest.json",
-      "_data/maps/ruinas_del_bosque.json",
+      //"_data/maps/ruinas_del_bosque.json",
+      "_data/maps/0_bar.json",
+      //"_data/maps/pradera_simplona.json",
       "_data/class/player_wm.js",
       "_data/maps/wm00.json",
       "_data/class/tiledata_wm.json",//10

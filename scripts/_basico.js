@@ -888,10 +888,11 @@ var _BASICO =
       border: '1px solid black', background: 'white', pixel_size: f_size
     }, f_style);
 
-    f_esp = setloop_prop({ gl: 0, dom: 1 }, f_esp);
+    f_esp = setloop_prop({ gl: 0, dom: 1, modo_borde:'sobrepuesto'}, f_esp);
 
 
     let _foo = crear_odiv_hueco(0, 0, 0, 0);
+    _foo.modo_borde=f_esp.modo_borde;
 
     if (f_esp.dom) {
       _foo.obj = crear("canvas", f_donde.obj);
@@ -2876,10 +2877,12 @@ _foo.hini = _foo.hr;
 
   find_json_from_string(f_texto, f_index) {
 
+    f_texto = f_texto.replace(/'/g, '"');
 
     let _llaves = [0, 0];
     for (var i = f_index; i < f_texto.length; i++) {
       let u = f_texto.charAt(i);
+      //if(u=="'")f_texto = f_texto.slice(0,i)+'"'+f_texto.slice(i,0);
       
 
       if (u == "{")

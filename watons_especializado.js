@@ -40,6 +40,12 @@ var RPG =
 {
 
   
+ check_charmax()
+ {
+
+ },
+
+ //objeto img
  crear_img_texto(f_data={})
  {
 
@@ -51,37 +57,91 @@ var RPG =
 	                   texto:'A',
 	                   x:0,
 	                   y:0,
-	                   w:[1,1],
-	                   h:[1,1]
+	                   w:[1,1], //tile
+	                   h:[1,1], //tile
+                     max_char:1000,
+                     x_centrar:1,
 
 	                   },
 	                ...f_data
 	  	           }
 	  	           
-	let  _texto = _data.texto;
-	let _wtotal = _data.texto.length*_data.w[1];              
-	let _htotal = _data.h[1];              
+	let  _texto = _data.texto + '';
 
-	     _data.canvas.set(_wtotal,_htotal);
+   let c;
 
-	    for(var i =0;i<_texto.length; i++)
-	    {
-	  	let u = _texto.charAt(i);
-	    	     draw_letra({
-	                  canvas: _data.canvas,
-	                  img: _data.image,
-	                  char: u,
-	                  x: _data.w[1]*i,
-	                  y: 0,
-	                  w: _data.w,
-	                  h: _data.h,
-	                })
+   let _words = [ ];
 
-	    }
+   let _word = '';
+   let _x = 0;
+   let _xx = 0;
+   let _wmax = 0;
+   for(var i =0; i<_texto.length;i++)
+   {
+       c = _texto.charAt(i);
+       _xx=0;
+       if(i>0 && _texto.charAt(i-1)===" ")
+       {
+        for(var j = i; j<_texto.length;j++)
+        {
+
+          let _c = _texto.charAt(j);
+
+          if(_x+_xx>_data.max_char)
+          {
+          if(_word.length>_wmax) _wmax=_word.length-1;
+           _word = _word.slice(0,_word.length-1);
+           _words.push(_word);
+           _word = "";
+           _x=0;
+           _xx=0;
+           break;
+          }
+          if(_c == ' ') break;
+          _xx++;
+        }
+       }
+
+       _word += c;      
+       _x++;
+   }
+
+   if(_word.length>_wmax) _wmax=_word.length;
+   _words.push(_word);
+
+
+  let _wtotal = _wmax * _data.w[1];
+  let _htotal = _words.length  * _data.h[1];
+
+	     _data.canvas.set(_wtotal, _htotal);
+
+
+      for(var k in _words)
+      {
+        for(var i =0;i<_words[k].length; i++)
+        {
+         let u = _words[k].charAt(i);
+
+             draw_letra({
+                    canvas: _data.canvas,
+                    img: _data.image,
+                    char: u,
+
+                    y: _data.h[1]*k,
+                    x: _data.w[1]*i,
+                    w: _data.w,
+                    h: _data.h,
+                  })
+
+        }
+      }
+
 	     
 	           
 	      let _img = document.createElement('img');
 	          _img.src = _data.canvas.toDataURL();
+            _img.w = _wtotal;
+            _img.h = _htotal;
 
          return(_img);
 
@@ -89,17 +149,37 @@ var RPG =
  },
 
 
+  //o_texto
   crear_texto(f_donde, _data={})
   {
 
    let _img = RPG.crear_img_texto(_data);   
-   let _wtotal = _data.texto.length*_data.w[1];              
-   let _htotal = _data.h[1];              
 
 
-   let _otexto =  _data.gameges.crear_imagen(f_donde, _img, _data.canvas_id,
-                                                            {x:_data.x,y:_data.y,w:_wtotal, h:_htotal}); 
+   let _otexto =  _data.gameges.crear_imagen(f_donde, 
+                                             _img, _data.canvas_id,
+                                            {
+                                           x:_data.x,y:_data.y,
+                                           w: _img.w, 
+                                           h: _img.h,
+                                           _onload:_data._onload,
+                                         
+                                             //w:0,
+                                             //h:0
+                                           }); 
+   if(_otexto._onload!==undefined)
+    _otexto._onload();
+   
+
        _otexto.data_text = _data;
+
+
+       _otexto.set_font = function(f_img)
+       {
+        this.data_text.image = f_img;
+        this.set_text(this.data_text.texto);
+       }
+
        _otexto.set_text=function(f_texto)
        {
          let _img = RPG.crear_img_texto({
@@ -108,21 +188,16 @@ var RPG =
          	                            	texto:f_texto
          	                               }
          	                             });
-         let _wtotal = f_texto.length*this.data_text.w[1];              
-         let _htotal = this.data_text.h[1];   
-
-         this.w = _wtotal;           
-         this.h = _htotal;           
-
-         
          _img.onload=()=>{
+         this.w = _img.w;           
+         this.h = _img.h;           
           this.image = _img;	
           if(this._onload!==undefined)this._onload();
-         }
-         
-         
 
+         }
        }
+
+       //_otexto.set_text(_data.texto);
 
    return(_otexto);
     
@@ -185,7 +260,11 @@ var RPG =
           if(to_ini==0)
           this.speed = [this.master_speed[0], this.master_speed[1]]
           else
-          this.speed = [this.ini_speed[0], this.ini_speed[1]]
+          {
+          this.speed        = [this.ini_speed[0], this.ini_speed[1]];
+          this.master_speed = [this.ini_speed[0], this.ini_speed[1]];
+          }
+          
         },
         yplus: 0,
 
@@ -201,7 +280,7 @@ var RPG =
         //clips a desbloquear al finalizar dialogo
         set(f_text, f_clips = []) {
 
-          this._padre.clip = $gameges.crear_vacio($root, 2, { nombre: "dialogo", x: 0, y: $root.h - 50, w: $root.w, h: 50, draw_color: "black", });
+          this._padre.clip = $gameges.crear_vacio($root, 2, { nombre: "dialogo", x: 0, y: game.hcanvas - 50, w: $root.w, h: 50, draw_color: "black", });
           $gameges.crear_imagen(this._padre.clip, this._padre.canvas.obj, 2, { nombre: "canvas", x: 0, y: 5, enterframe() { } });
 
 
@@ -276,6 +355,7 @@ var RPG =
 
           this._padre.clip.remove();
           this._padre.clip = '';
+          this.scroll_x=0;
 
           if(this.TIMEOUT_P!==undefined)
           {
@@ -287,6 +367,8 @@ var RPG =
 
           for (var u of this.clips)
             u.on_dialogo_end();
+
+          game.dialogo.on_end();
 
         },
         run() {
@@ -352,6 +434,7 @@ var RPG =
                 this.estado = 'scroll_top';
                 this.act[0]++;
 
+
               }
               else //fin dialogos
               {
@@ -388,10 +471,15 @@ var RPG =
 
                   let _json = find_json_from_string(this.line, this.act[1]);
                   
+                  let _a = this.line; this.line = _a.slice(0, _json.a)  +  _a.slice(_json.b + 1);
 
-                  for (var i in _json.json) {
+
+
+                  for (var i in _json.json) 
+                   {
                     let u = _json.json[i];
-                    if (i == 'id') {
+                    if (i == 'id') 
+                    {
                     }
 
                     if (i == 'goto') {
@@ -407,21 +495,30 @@ var RPG =
 
                         this.reset_speed();
                       }
-
+                      
+                   
                       break block_tt;
 
                     }
                     if (i == 'speed') { //velocidad dialogo temporal
+                   
                       this.speed = u;
                     }
 
                     if (i == 'm_speed') {//velocidad dialogo macro
                       this.master_speed = u;
                       this.speed=this.master_speed;
+                   
                     }
 
                     if (i == 'script') {//script personalizado (ejecutar via 'eval')
-                      eval(u);
+                      //let _eval = eval(u);        
+                      let _eval = Function(u)();        
+                      
+                      if(_eval==undefined) _eval = "";
+
+                      this.line = this.line.slice(0,this.act[1]) + _eval + this.line.slice(this.act[1]);
+                      
                     }
 
                     if (i == 'next') { //ir al siguiente parrafo
@@ -440,10 +537,8 @@ var RPG =
                     }
 
                   }
-                  let _a = this.line;
-                  this.line = _a.slice(0, _json.a)  +  _a.slice(_json.b + 1);
+                 
                   _c = this.line.charAt(this.act[1]);
-
 
                 }//json
 
@@ -499,6 +594,16 @@ var RPG =
                 if(this.estado=='paused')
                   break block_tt;
 
+                if(_c!== " ")
+                {
+                if(this.char_snd_bin==undefined)this.char_snd_bin=0;
+                this.char_snd_bin= swap_bin(this.char_snd_bin);
+                if(this.char_snd_bin)
+                      game.soundcon.play(19);  
+
+                }
+                
+
                 draw_letra({
                   canvas: this._padre.buf, img: _fuente.img,
                   char: _c,
@@ -522,13 +627,25 @@ var RPG =
           else if (this.estado == 2) {
 
             if (_teclado.get('aba', 2) == 1) {
+              
               if (this.act[2] < Object.keys(this.line).length - 1)
+              {
+                game.soundcon.play(11);  
                 this.act[2]++;
+              }
             }
             if (_teclado.get('arr', 2) == 1) {
+              
               if (this.act[2] > 0)
+              {
+                game.soundcon.play(11);  
                 this.act[2]--;
+              }
             }
+
+
+            
+            
 
             this.x = 0;
             this.y = 0;
@@ -555,13 +672,40 @@ var RPG =
 
               if (this.y == this.act[2]) {
                 if (_granword) {
-                  if (this.keys[i].length * 8 + this.scroll_x + _margen[0] + _margen[2] > this._padre.odiv.wr / 2)
-                    this.scroll_x -= 0.5;
+                  if (
+                    this.keys[i].length * 8 + this.scroll_x + _margen[0] + _margen[2] > this._padre.odiv.wr / 2)
+                  {
+                    if(!_teclado.get('izq')&&!_teclado.get('der'))
+                    this.scroll_x -= 0.4;
+
+                    if (_teclado.get('der')) 
+                    {
+                    this.scroll_x -=1;
+                    }
+                    if (_teclado.get('izq')) 
+                    {
+                    this.scroll_x +=1;
+                    if(this.scroll_x>0)this.scroll_x=0;
+                    }
 
 
+                  }
+                  else
+                  {
+                    if (_teclado.get('izq')) 
+                    {
+                    this.scroll_x +=1;
+                    if(this.scroll_x>0)this.scroll_x=0;
+                    }                    
+                  }
+
+                    
                 }
                 else
+                {
                   this.scroll_x += (5 - this.scroll_x) / 5;
+                }
+
 
                 _scroll_x = this.scroll_x;
 
@@ -582,8 +726,8 @@ var RPG =
                 draw_letra({
                   canvas: this._padre.buf, img: _fuente.img,
                   char: _c,
-                  x: this.x * 8 + _scroll_x,
-                  y: this.y * 8 + _margen[4] * this.y,
+                  x: fl(this.x * 8 + _scroll_x),
+                  y: fl(this.y * 8 + _margen[4] * this.y),
                   w: _fuente.w,
                   h: _fuente.h,
                 })
@@ -595,7 +739,8 @@ var RPG =
             }
 
             if (_z == 1) {
-              
+
+              game.soundcon.play(12);                
               this.estado = "scroll_top";
               this.y = Object.keys(this.line).length - 1;
 
@@ -683,4 +828,103 @@ var RPG =
 
 
 }//RPG
+
+
+//copiado de col_check de enemigos.js
+  function col_check(_clip, _auto_vel_stop=1) {
+    let _x16 = fl(_clip.x / 16);
+    let _y16 = fl(_clip.y / 16);
+
+    let _tiledata = $gameges.tileges.tiledata.col;
+    let _p = _clip;
+    let _ret = [0, 0, 0, 0];
+
+    let _pos = [
+      [_clip.x, _clip.y], [_clip.x + _clip.w / 2, _clip.y], [_clip.x + _clip.w, _clip.y],
+      [_clip.x, _clip.y + _clip.h / 2], [_clip.x + _clip.w / 2, _clip.y + _clip.h / 2], [_clip.x + _clip.w, _clip.y + _clip.h / 2],
+      [_clip.x, _clip.y + _clip.h], [_clip.x + _clip.w / 2, _clip.y + _clip.h], [_clip.x + _clip.w, _clip.y + _clip.h],
+    ];
+
+    let _tilemap_1 = $tileges.tilemaps[1];
+    let _col = [];
+    for (var u of _pos) {
+      let _yt = fl((u[1]) / 16);
+      let _xt = fl((u[0]) / 16);
+
+      let _tile;
+      if (_tilemap_1[_yt] !== undefined)
+        _tile = _tilemap_1[_yt][_xt];
+
+      if (_tile > 0) {
+        _col.push({
+          id: _tile,
+          x: _xt * 16,
+          y: _yt * 16,
+          w: 16,
+          h: 16,
+          xt: _xt,
+          yt: _yt,
+
+        });
+      }
+    }
+
+
+
+    for (var u of _col) {
+
+      let _udata = _tiledata[u.id];
+
+      //arriba bajo
+      if (_p.x + _p.w > u.x && _p.x < u.x + u.w) {
+
+        if (_udata[1] == 1 &&
+          _tilemap_1[u.yt - 1] != undefined && _udata[_tilemap_1[u.yt - 1][u.xt]] != '1,1,1,1' &&
+          _p.yprev + _p.h <= u.y + 1 && _p.yvelocity > 0 && _p.y + _p.h > u.y) //colision arriba tile
+        {
+          _p.y = u.y - _p.h;
+          if(_auto_vel_stop)_p.yvelocity = 0;
+          _ret[1] = 1;
+        }
+
+
+        if (_udata[3] == 1 &&
+          _tilemap_1[u.yt + 1] != undefined && _udata[_tilemap_1[u.yt + 1][u.xt]] != '1,1,1,1' &&
+          _p.yprev >= u.y + u.h && _p.yvelocity < 0 && _p.y < u.y + u.h) //colision abajo tile
+        {
+          _p.y = u.y + u.h;
+
+          if(_auto_vel_stop)_p.yvelocity = 0.5;
+          _ret[3] = 1;
+        }
+
+
+      }
+
+
+      //izquieda derecha
+      if (_p.y < u.y + u.h && _p.y + _p.h > u.y) {
+        if (_udata[0] == 1 &&
+          _p.xprev + _p.w <= u.x && _p.xvelocity > 0 && _p.x + _p.w > u.x) // colision izquierda tile
+        {
+          _p.x = u.x - _p.w;
+          if(_auto_vel_stop)_p.xvelocity = 0;
+          _ret[0] = 1;
+        }
+
+        if (_udata[2] == 1 &&
+          _p.xprev >= u.x + u.w && _p.xvelocity < 0 && _p.x < u.x + u.w) // colosion derecha tile
+        {
+          _p.x = u.x + u.w;
+
+          if(_auto_vel_stop)_p.xvelocity = 0;
+          _ret[2] = 1;
+        }
+
+      }
+
+    }
+    return (_ret);
+  }
+
 

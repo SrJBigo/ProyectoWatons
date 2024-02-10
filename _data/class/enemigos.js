@@ -34,6 +34,153 @@ document.currentScript.class =
 
   visible_editor:1,
 
+  stats:
+  {
+    hp:[10,10],
+    pp:[10,10],
+    atk:2,
+    def:3,
+  },
+
+  //|_hitcon
+  _hitcon:
+  {
+   _padre:'',
+   estado:0,
+   detectar:[1,1], //player, bullet
+
+   _blinky:{
+           _padre:'',
+           estado:0,
+           tt:[0,10],
+           detectar_res:[0,0],
+           ini()
+           {
+             this.estado=1;
+             this.detectar_res[0] = this._padre.detectar[0];
+             this.detectar_res[1] = this._padre.detectar[1];
+
+             this._padre.detectar[0]=0;
+             this._padre.detectar[1]=0;
+
+           },
+           run()
+           {
+             if(this.estado==1)
+             {
+              this.tt[0]++;
+
+                if(this.tt[0]>this.tt[1])
+                {
+                this.estado=0;
+                this.tt[0]=0;
+                this._padre.detectar[0]=this.detectar_res[0];
+                this._padre.detectar[1]=this.detectar_res[1];
+                this.detectar_res[0]=0;
+                this.detectar_res[0]=0;
+                }
+             }
+           }
+           },
+   damage(f_damage=0)
+   {
+    let _hp = this._padre.stats.hp;
+      _hp[0] += f_damage;
+      if(_hp[0]> _hp[1]) _hp[0] = _hp[1];
+      if(_hp[0]<=0) this.on_kill();
+
+
+      return(_hp);
+   },
+   blinky()
+   {
+    this._blinky.ini();
+   },
+
+   floatext(f_texto="")
+   {
+      let _htext = game.textoges.crear($root.level, {x:this._padre.x,y:this._padre.y-5, texto: f_texto}, 'tr8x8')
+          _htext.tt=[0,30];
+          _htext.enterframe=()=>
+               {
+                _htext.tt[0]++;
+                _htext.y-=0.5;
+
+                if(_htext.tt[0]>_htext.tt[1])
+                  _htext.remove();
+               }
+   },
+   
+    empujar(_xvel=0, _yvel=0)
+    {
+      this._padre.xvelocity += _xvel;
+      this._padre.yvelocity += _yvel;
+    },
+     sound(f_id)
+     {
+      game.soundcon.play(f_id);
+     },
+     center_compare(f_clip)
+     {
+      if(f_clip._xvelocity<0) return({x:1});
+      if(f_clip._xvelocity>0) return({x:0});
+
+      return (game.center_compare({x:f_clip.xprev,w:f_clip.w,
+                                   y:f_clip.yprev,h:f_clip.w},
+                                   this._padre
+                                   )
+                                  );
+
+     },
+
+     //--------------
+     on_hit(f_modo, f_data)//'bullet', 'player'
+     {
+
+     },
+     
+     on_kill()
+     {
+      let _mapdata = this._padre.mapdata;
+      $gameges.tileges.tilemaps_all[3][_mapdata.y][_mapdata.x]=0;
+
+      let foo = ['hp','pp','exp','exp','exp','exp','exp'];
+      for(var i=0;i<5;i++)
+      {
+      game.misc.crear_rebotinero(
+                  {x:this._padre.x,
+                   y:this._padre.y,
+                   modo:random_from_array(foo),
+                  }
+                  );
+      }
+
+      this._padre.remove();
+     },
+     //------------------
+
+     run()
+     {
+       if(this.estado && game.editor.estado==0)
+       {
+         this._blinky.run();
+         
+         if(this.detectar[0])//jugador
+         {
+            if($jugador._hitcon.estado==1 && $jugador._hitcon?.detectar[0] && game.simple_hit_test(this._padre, $jugador) )
+            {
+               this.on_hit('player', {atk:$perfil.atk, clip:$jugador});
+               $jugador._hitcon.on_hit('enem', {atk:this._padre.stats.atk, clip:this._padre})
+            }
+         }
+
+       }
+     
+     },
+
+  },//_hitcon
+
+
   //|hitcon
   hitcon:
   {
@@ -52,11 +199,7 @@ document.currentScript.class =
 
     texto_flotante:'DAMAGE',
 
-    on_kill(f_data){
-
-    },
-
-
+    on_kill(f_data){ },
     
     _on_hit(){ },
                             //player, bullet
@@ -97,8 +240,6 @@ document.currentScript.class =
           this._padre.remove();
           }
         }  
-
-
     },
     run()
     {
@@ -118,102 +259,7 @@ document.currentScript.class =
 
   },
 
-  col_check() {
-    let _x16 = fl(this.x / 16);
-    let _y16 = fl(this.y / 16);
-
-    let _tiledata = $gameges.tileges.tiledata.col;
-    let _p = this;
-    let _ret = [0, 0, 0, 0];
-
-    let _pos = [
-      [this.x, this.y], [this.x + this.w / 2, this.y], [this.x + this.w, this.y],
-      [this.x, this.y + this.h / 2], [this.x + this.w / 2, this.y + this.h / 2], [this.x + this.w, this.y + this.h / 2],
-      [this.x, this.y + this.h], [this.x + this.w / 2, this.y + this.h], [this.x + this.w, this.y + this.h],
-    ];
-
-    let _tilemap_1 = $tileges.tilemaps[1];
-    let _col = [];
-    for (var u of _pos) {
-      let _yt = fl((u[1]) / 16);
-      let _xt = fl((u[0]) / 16);
-
-      let _tile;
-      if (_tilemap_1[_yt] !== undefined)
-        _tile = _tilemap_1[_yt][_xt];
-
-      if (_tile > 0) {
-        _col.push({
-          id: _tile,
-          x: _xt * 16,
-          y: _yt * 16,
-          w: 16,
-          h: 16,
-          xt: _xt,
-          yt: _yt,
-
-        });
-      }
-    }
-
-
-
-    for (var u of _col) {
-
-      let _udata = _tiledata[u.id];
-
-      //arriba bajo
-      if (_p.x + _p.w > u.x && _p.x < u.x + u.w) {
-
-        if (_udata[1] == 1 &&
-          _tilemap_1[u.yt - 1] != undefined && _udata[_tilemap_1[u.yt - 1][u.xt]] != '1,1,1,1' &&
-          _p.yprev + _p.h <= u.y + 1 && _p.yvelocity > 0 && _p.y + _p.h > u.y) //colision arriba tile
-        {
-          _p.y = u.y - _p.h;
-          _p.yvelocity = 0;
-          _ret[1] = 1;
-        }
-
-
-        if (_udata[3] == 1 &&
-          _tilemap_1[u.yt + 1] != undefined && _udata[_tilemap_1[u.yt + 1][u.xt]] != '1,1,1,1' &&
-          _p.yprev >= u.y + u.h && _p.yvelocity < 0 && _p.y < u.y + u.h) //colision abajo tile
-        {
-          _p.y = u.y + u.h;
-
-          _p.yvelocity = 0.5;
-          _ret[3] = 1;
-        }
-
-
-      }
-
-
-      //izquieda derecha
-      if (_p.y < u.y + u.h && _p.y + _p.h > u.y) {
-        if (_udata[0] == 1 &&
-          _p.xprev + _p.w <= u.x && _p.xvelocity > 0 && _p.x + _p.w > u.x) // colision izquierda tile
-        {
-          _p.x = u.x - _p.w;
-          _p.xvelocity = 0;
-          _ret[0] = 1;
-        }
-
-        if (_udata[2] == 1 &&
-          _p.xprev >= u.x + u.w && _p.xvelocity < 0 && _p.x < u.x + u.w) // colosion derecha tile
-        {
-          _p.x = u.x + u.w;
-
-          _p.xvelocity = 0;
-          _ret[2] = 1;
-        }
-
-      }
-
-    }
-    return (_ret);
-
-  },
+  
 
   check_tile(f_x, f_y) {
     let _x = fl(f_x / 16);
@@ -231,50 +277,101 @@ document.currentScript.class =
       animdata:[
           { master: { wt: 16, ht: 16, ll: 30 } },
 
-          { wt:32,  ht:32, ll: 10, flip: [1, 0], buf: [[0, 0], [0, 1]] },
-          { wt:32,  ht:32, ll: 10, flip: [0, 0], buf: [[0, 0], [0, 1]] },
-          { wt:32,  ht:32, ll: 10, flip: [1, 0], buf: [[0, 0], [0, 1]] },
           { wt:32,  ht:32, ll: 10, flip: [0, 0], buf: [[0, 0], [0, 1]] },
           { wt:32,  ht:32, ll: 10, flip: [1, 0], buf: [[0, 0], [0, 1]] },
 
+          { wt:32,  ht:32, ll: 10, flip: [0, 0], buf: [[0, 0], [0, 1]] },
+          { wt:32,  ht:32, ll: 10, flip: [1, 0], buf: [[0, 0], [0, 1]] },
+
+          { wt:32,  ht:32, ll: 10, flip: [0, 0], buf: [[0, 2] ] },
+          { wt:32,  ht:32, ll: 10, flip: [1, 0], buf: [[0, 2] ] },
+        
             ],
 
 
       w: 16,
       h: 16,
+
       offset: [-7, -16],
-      hitcon: {
       
-        estado:1,  
-        hp: [10, 10],
-        sound_id:0,
+      stats:
+      {
+      atk:3,
       },
+      _hitcon:{
+        estado:1,
+        detectar:[1,1],
+       on_hit(f_modo, f_data)//'bullet', 'player'
+       {
+
+          let _n = -f_data.atk;
+          //this.floatext(_n);
+          this.blinky();
+          this.damage(_n);
+          this.sound(0);
+          
+
+          if (this.center_compare(f_data.clip).x) 
+            {
+            this._padre.estado=3;      
+            }
+          else
+          {
+            
+            this._padre.estado=2;
+          }
+            
+
+
+           this._padre.xvelocity = (f_data.clip._xvelocity ? f_data.clip._xvelocity : f_data.clip.xvelocity)/4;
+           this._padre.yvelocity = (f_data.clip._yvelocity ? f_data.clip._yvelocity : f_data.clip.yvelocity)/5;
+          
+          
+
+       },
+
+      },
+
+
       loadframe() {
         //console.log(this.anim.animdata.animations);
       
-        this.estado=this.direccion;
+        this.estado   = this.direccion + 2;
         this.estado_h = this.estado;
 
       },
       enterframe() {
-        let _col = this.col_check(); //[n,n,n,n] relativo a tile
+        let _col = col_check($enterload); //[n,n,n,n] relativo a tile
+           
 
-        if (this.estado == 0) {
-          this.xvelocity = -0.5;
+        if (this.estado == 2) {
+          this.xvelocity -= 0.1;
+           if(this.xvelocity<-0.5)
+              this.xvelocity=-0.5;
+
           if (_col[2])
-            this.estado = 1;
+            this.estado = 3;
         }
-        if (this.estado == 1) {
-          this.xvelocity = 0.5;
+        if (this.estado == 3) {
+         this.xvelocity += 0.1;
+           if(this.xvelocity>0.5)
+              this.xvelocity=0.5;
+
+
           if (_col[0])
-            this.estado = 0;
+            this.estado = 2;
         }
 
-        this.yvelocity += 0.5;
+        this.yvelocity += 0.2;
         if (this.yvelocity > 3.5)
           this.yvelocity = 3.5;
 
         this.estado_h = this.estado;
+        if(this._hitcon._blinky.estado)
+        {
+          this.estado_h +=2;
+        }
+
 
       },
 
@@ -285,7 +382,7 @@ document.currentScript.class =
           { master: { wt: 16, ht: 16, ll: 30 } },
 
           { wt:16,  ht:32, ll: 5, flip: [0, 0], buf: [[2, 0] ] },
-          { wt:16,  ht:32, ll: 2, flip: [0, 0], buf: [[2, 1],[2, 2],[2, 1] ] },
+          { wt:16,  ht:32, ll: 3, loop:1, flip: [0, 0], buf: [[2, 1],[2, 2] ] },
           { wt:16,  ht:32, ll: 5, flip: [0, 0], buf: [[2, 0], [2, 1]] },
           { wt:16,  ht:32, ll: 5, flip: [0, 0], buf: [[2, 0], [2, 1]] },
           { wt:16,  ht:32, ll: 10, flip: [0, 0], buf: [[2, 0], [2, 1]] },
@@ -301,13 +398,37 @@ document.currentScript.class =
       h: 16,
       petro:0,
       offset: [0, -16],
-      hitcon: {
-        estado:1,  
-        hp: [12, 12],
-        sound_id:0,
-      },
+      
       j_yvel:-7,
       tt:[0,10],
+
+      stats:
+      {
+        atk:3,
+      },
+
+        _hitcon:{
+        estado:1,
+        detectar:[1,1],
+       on_hit(f_modo, f_data)//'bullet', 'player'
+       {
+          let _n = -f_data.atk;
+          this.floatext(_n);
+          this.blinky();
+          this.damage(_n);
+          this.sound(0);
+
+           this._padre.xvelocity = (f_data.clip._xvelocity ? f_data.clip._xvelocity : f_data.clip.xvelocity)/10;
+           this._padre.yvelocity = (f_data.clip._yvelocity ? f_data.clip._yvelocity : f_data.clip.yvelocity)/5;
+
+          
+
+       },
+
+      },
+
+
+
       loadframe() {
 
         this.estado=this.direccion;
@@ -315,10 +436,9 @@ document.currentScript.class =
 
       },
       enterframe() {
-        let _col = this.col_check(); //[n,n,n,n] relativo a tile
+        let _col = col_check($enterload); //[n,n,n,n] relativo a tile
 
-
-       
+         this.xvelocity+= (0-this.xvelocity)/10;
 
         if(this.estado==0)
         {
@@ -366,18 +486,13 @@ document.currentScript.class =
       w: 32,
       h: 32,
       offset: [0, 0],
-      hitcon: {
-         estado:1,
-        
-        hp: [32, 32],
-        sound_id:0,
-      },
+      
       
       loadframe() {
        this.estado_h=0;
       },
       enterframe() {
-        let _col = this.col_check(); //[n,n,n,n] relativo a tile
+        let _col = col_check($enterload); //[n,n,n,n] relativo a tile
          this.yvelocity+=0.01;
 
         this.estado_h = 0;
@@ -400,22 +515,7 @@ document.currentScript.class =
       w: 16,
       h: 16,
       offset: [0, 0],
-      hitcon: {
-        
-        on_hit(f_quien, f_data, f_modo)
-        {
-          if (game.editor.estado == 1) return;
-
-          if(f_modo=='player')
-          {
-          this._padre.remove();
-          }
-
-          return(0);
-        },
-        hp: [12, 12],
-        sound_id:0,
-      },
+      
       
       loadframe() {
         console.log('load completo')
@@ -423,7 +523,7 @@ document.currentScript.class =
 
       },
       enterframe() {
-        let _col = this.col_check(); //[n,n,n,n] relativo a tile
+        let _col = col_check($enterload); //[n,n,n,n] relativo a tile
          this.yvelocity+=0.01;
 
         this.estado_h = 0;
@@ -444,20 +544,7 @@ document.currentScript.class =
       w: 16,
       h: 16,
       offset: [0, 0],
-      hitcon: {
-        
-        on_hit(f_quien, f_data, f_modo)
-        {
-          if(f_modo=='player')
-          {
-          this._padre.remove();
-          }
-
-          return(0);
-        },
-        hp: [12, 12],
-        sound_id:0,
-      },
+      
       
       loadframe() {
 
@@ -465,7 +552,7 @@ document.currentScript.class =
 
       },
       enterframe() {
-        let _col = this.col_check(); //[n,n,n,n] relativo a tile
+        let _col = col_check($enterload); //[n,n,n,n] relativo a tile
          
 
         this.estado_h = 0;
@@ -492,14 +579,14 @@ document.currentScript.class =
       h: 16,
       offscreen_dis: 100,
       //id_npc
-      hitcon: {
-        on_hit(f_quien, f_data, f_modo)
-        {
-          return(0);
-        },
-        hp: [12, 12],
-        sound_id:0,
-      },
+      _hitcon:
+      {
+       estado:1,
+       detectar:[0,0],
+       on_hit()
+       {
+       }
+      } ,     
       
       loadframe() {
 
@@ -517,7 +604,10 @@ document.currentScript.class =
         }
         
         this.anim.image=$LIB.IMAGES[22]; //22 = imagen de npcs
-        this.draw_color='';
+        this.anim.wn = this.anim.image.naturalWidth;
+        this.anim.hn = this.anim.image.naturalHeight;
+        
+        this.draw_color=''; 
         this.estado_h=0;
         this.estado=2;
 
@@ -527,13 +617,15 @@ document.currentScript.class =
 
         if(this.overdialogos.length>0)
         {
-        this.overdialogo_con.textos = this.overdialogos;
-        this.overdialogo_con.ini();  
+        this.dialogo_con.overdialogo_con.textos = this.overdialogos;
+        this.dialogo_con.overdialogo_con.ini();  
         }
         
 
       },
 
+      dialogo_con:
+      {
       overdialogo_con:
       {
        tt:[0,100,100],
@@ -542,16 +634,13 @@ document.currentScript.class =
        textos:[],
        ini()
        {
-        this.texto = game.textoges.crear($enterload.anim, {x:0,y:0-25, texto: 'Insuficiente!', canvas_id:1})
+        this.texto = game.textoges.crear($enterload.anim, {x:0,y:0-25, texto: 'Insuficiente!', canvas_id:1, max_char:20},'tr8x8')
         this.texto.visible=false;
-        //$enterload._z=5;
+
         this.texto.image.onload= ()=>
         {
          this.estado=1;
-         this.texto.x-=this.texto.image.width/2-5;  
-         //this.texto.visible=false;
         }
-
 
        },
        run()
@@ -567,7 +656,9 @@ document.currentScript.class =
             {
               this.texto._onload = ()=>{
               this.texto.visible=true;
-              this.texto.x=-(this.texto.image.width/2)+4;  
+              //this.texto.x= -(this.texto.image.width/2)+4;  
+              this.texto.x= -(this.texto.w/2)+4;  
+              this.texto.y= -16-this.texto.h;  
               }
               this.texto.set_text( random_from_array(this.textos) );
 
@@ -577,17 +668,41 @@ document.currentScript.class =
               this.texto.visible=false;
 
           }
-        }
+         }
+         else
+          this.texto.visible=false;
 
 
-       },
+         },
+       },//overdialogo
 
-      },
+          on_chat()
+          {
+           this.overdialogo_con.estado=0;
+          },
+          on_chat_end()
+          {
+            if(this.overdialogo_con.textos.length>0)
+            {
+            this.overdialogo_con.estado=1;  
+            this.overdialogo_con.tt[0]=0;
+            }
+          
+          },
+
+          run()
+          {
+            this.overdialogo_con.run();
+          }
+
+      },//dialogo
 
       enterframe() {
-        let _col = this.col_check(); //[n,n,n,n] relativo a tile
+
+        let _col = col_check($enterload,1); //[n,n,n,n] relativo a tile
          
-         this.overdialogo_con.run();
+         
+         this.dialogo_con.run();
 
          this.yvelocity+=0.5;
 
@@ -639,14 +754,10 @@ document.currentScript.class =
       w: 16,
       h: 16,
       offset: [0, 0],
-      hitcon: {
-        on_hit(f_quien, f_data, f_modo)
-        {
-          return(0);
-        },
-        hp: [12, 12],
-        sound_id:0,
+      _hitcon:{
+       estado:0,
       },
+      
       
       loadframe() {
        this.estado_h=0;
@@ -673,26 +784,18 @@ document.currentScript.class =
       w: 16,
       h: 16,
       offset: [0, -16],
-      hitcon: {
-        
-        on_hit(f_quien, f_data, f_modo)
-        {
-          
-
-          return(0);
-        },
-        hp: [12, 12],
-        sound_id:0,
-      },
+      visible_estados:[1,1],
       
       loadframe() {
 
        this.estado_h=0;
+       if(this.visible!==undefined)
+        this.visible_estados[0]=this.visible;
 
 
       },
       enterframe() {
-        let _col = this.col_check(); //[n,n,n,n] relativo a tile
+        let _col = col_check($enterload); //[n,n,n,n] relativo a tile
          
 
         this.estado_h = 0;
@@ -713,15 +816,7 @@ document.currentScript.class =
       h: 16,
       visible_estados:[0,1],
       offset: [0, 0],
-      hitcon: {
-        
-        on_hit(f_quien, f_data, f_modo)
-        {
-          return(0);
-        },
-        hp: [12, 12],
-        sound_id:0,
-      },
+      
       
       loadframe() {
 
@@ -735,6 +830,33 @@ document.currentScript.class =
       },
 
     },//scroll_point
+
+    'end_point': {
+    animdata:[
+          { master: { wt: 16, ht: 16, ll: 30 } },
+
+          { ll: 5, flip: [0, 0], buf: [ [3, 11] ] },
+          
+            ],
+
+      w: 16,
+      h: 16,
+      visible_estados:[0,1],
+      offset: [0, 0],
+      
+      
+      loadframe() {
+
+       this.estado_h=0;
+
+      },
+      enterframe() { 
+
+        this.estado_h = 0;
+
+      },
+
+    },//end_point
 
 
 
@@ -756,6 +878,9 @@ document.currentScript.class =
      //_class.animdata = _class.LOAD.animdata;
  
     this.hitcon._padre = this;
+    this._hitcon._padre = this;
+    this._hitcon._blinky._padre = this._hitcon;
+
     this.xprev = this.x;
     this.yprev = this.y;
     this.anim = this.hijos_clip[0];
@@ -799,7 +924,8 @@ document.currentScript.class =
     this.anim.visible=this.visible_estados[game.editor.estado];
     
 
-   this.hitcon.run();
+   this._hitcon.run();
+   
 
    let _modo = this.modos[this.id];
 

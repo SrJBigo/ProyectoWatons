@@ -23,7 +23,7 @@ document.currentScript.class =
           modo: 'sprite',
           animdata: GAME.crear_animdata({ master: { wt: 16, ht: 16, ll: 30 } },
 
-            { ll: 30, flip: [1, 0], buf: [[0, 0], [0, 1], [0, 2], [0, 1]] },
+            { ll: 20, flip: [1, 0], buf: [[0, 0], [0, 1], [0, 2], [0, 1]] },
 
             { ll: 10, flip: [1, 0], buf: [[2, 0], [2, 1], [2, 2], [2, 1]] },
             { ll: 10, flip: [0, 0], buf: [[1, 0], [1, 1], [1, 2], [1, 1]] },
@@ -60,9 +60,6 @@ mapstart_tt:[0,60],
 
 
 
-
-  
-
                 //0=quieto, 1 = izquierda, 2=arriba...
   check_tile_ini(f_estado) {
 
@@ -93,7 +90,7 @@ mapstart_tt:[0,60],
     _padre: '',
     puntos: [], //[{x, y en tiles}      ]
     estado: 0,
-    tt: [0, 20],
+    tt: [0, 10],
     run() {
       let _tilemaps = $gameges.tileges.tilemaps_all;
 
@@ -105,7 +102,7 @@ mapstart_tt:[0,60],
           let _copy = this.puntos.slice();
           this.puntos = [];
           for (var u of _copy) {
-            this.check_4(u.x, u.y);
+            this.check_4(u.x, u.y, u.pos);
           }
           $gameges.tileges.refresh.force();
           if (this.puntos.length == 0) {
@@ -116,12 +113,12 @@ mapstart_tt:[0,60],
       }
 
     },//run
-    ini(_xt, _yt) {
+    ini(_xt, _yt, _pos = [1,1,1,1]) {
 
       this.estado = 1;
       this.tt[0] = 0;
       this.puntos = [];
-      this.puntos.push({ x: _xt, y: _yt })
+      this.puntos.push({ x: _xt, y: _yt, pos:_pos})
     },//ini
     end() {
       this.estado = 0;
@@ -183,7 +180,7 @@ mapstart_tt:[0,60],
     },
     */
 
-    check_4(_xt, _yt) {
+    check_4(_xt, _yt, _pos) {
       let _tilemaps = $gameges.tileges.tilemaps_all;
       let _tiledata = $gameges.tileges.tiledata.col;
       let _id_ini = _tilemaps[1][_yt][_xt];
@@ -194,22 +191,18 @@ mapstart_tt:[0,60],
                  [0, 1]
                 ];
 
-      for (var u of _xy) {
+      for (var i =0;i<4;i++) {
+        let  u = _xy[i];
         let _x = _xt + u[0];
         let _y = _yt + u[1];
         if (_tilemaps[1][_y] == undefined || _tilemaps[1][_y][_x] == undefined)
           continue;
 
         let _id = _tilemaps[1][_y][_x];
-        let _id_dig = number_to_arr_digitos(_id);
-        if (_id_dig.length == 1)
-          _id_dig.unshift(0);
 
 
-        if (_id_dig[1] >= 4 && _id_dig[1] <= 7 &&
-            _id_dig[0] >= 0 && _id_dig[0] <= 5 &&
-           this.check_join(_xt, _yt, _x, _y,  2)
-        ) {
+        if (this.check_join(_xt, _yt, _x, _y,  2) && _pos[i]==1)
+           {
            
            //swap tile
 
@@ -221,8 +214,7 @@ mapstart_tt:[0,60],
            continue
            }
             
-           this.puntos.push({ x: _x, y: _y })
-
+           this.puntos.push({ x: _x, y: _y, pos:[1,1,1,1]})
 
         }
 
@@ -353,11 +345,12 @@ mapstart_tt:[0,60],
 
     let _estado_h = this.estado;
 
-    this.camera_offset.update(); //bug
+    
 
 
     this.propagar.run();
-    let _vel = 1.6;
+    //let _vel = 1.6;
+        let _vel = 1.7;
 
     let _to = _tilemaps[3][_y16][_x16];
       
@@ -474,11 +467,28 @@ mapstart_tt:[0,60],
     }
 
     this.anim.animdata.set_anim(_estado_h);
+    let _perfil_id = game.particon.data.perfiles.id_act;
+    
+ 
 
+    if(this.animations_ini == undefined )
+      this.animations_ini = clone_array(this.anim.animdata.animations,1);
+   
+
+    let _animations = this.anim.animdata.animations
+    let _animation =  _animations[this.anim.animdata.act[0]];
+
+    for(var i =0;i< _animation.buf.length;i++)
+    {
+      _animation.buf[i][0]= this.animations_ini[this.anim.animdata.act[0]].buf[i][0] + (4*_perfil_id);
+    }
+    
 
     this.anim.x = 0;
     this.anim.y = -5;
 
+
+    this.camera_offset.update();
 
 
     //game.center_nivel($root.level.jugador.camera_offset);

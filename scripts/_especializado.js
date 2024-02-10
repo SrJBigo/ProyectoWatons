@@ -988,19 +988,6 @@ var _ESPECIALIZADO =
     window['$enterload'] = _clip;
 
 
-    if (_clip.loadframe_state != 1 && _clip.loadframe != undefined) //ejecutar loadframe si no se ha iniciado
-    {
-      bindear_(_clip.loadframe, f_this)();
-      _clip.loadframe_state = 1;
-    }
-
-    if (_clip.enterframe != undefined) {
-      if (_clip.locked == undefined || _clip.locked != undefined && _clip.locked.locked !== 1) {
-
-        bindear_(_clip.enterframe, f_this)();
-      }
-    }
-
 
     if (_clip.is_clip == 1 && _clip.active == 1) {
       if (_clip.padre._is == "clip")//MOVER HIJOS; si esta dentro de clip; sumar sus cordenadas
@@ -1020,6 +1007,21 @@ var _ESPECIALIZADO =
       }
       _clip._draw(); //metacall
     }
+
+
+    if (_clip.loadframe_state != 1 && _clip.loadframe != undefined) //ejecutar loadframe si no se ha iniciado
+    {
+      bindear_(_clip.loadframe, f_this)();
+      _clip.loadframe_state = 1;
+    }
+
+    if (_clip.enterframe != undefined) {
+      if (_clip.locked == undefined || _clip.locked != undefined && _clip.locked.locked !== 1) {
+
+        bindear_(_clip.enterframe, f_this)();
+      }
+    }
+
 
 
     if (_clip.modulos_enterframe != undefined && _clip.modulos_enterframe.length > 0) {
@@ -1054,6 +1056,7 @@ var _ESPECIALIZADO =
         _u = f_donde.hijos_clip[i - f_donde.hijos.length];
 
 
+      if(_u.enabled_enterload!==0)
       enterload(_u);
 
       if (_u.propagar_enterframe && (_u.is_clip !== 1 || _u.is_clip == 1 && _u.active == 1) && _u.hijos !== undefined && _u.hijos_clip !== undefined) // |! cambio [08-13-2022] _clip.propagar_enterframe != 0
@@ -2747,7 +2750,7 @@ getWavHeader(options) {
           
           for (var u of this.canvasses) {
             u.obj.style.background = "transparent";
-            if (u.no_clear != 1)
+            if (u.no_clear !== 1)
             {
               u.clear();
             }
@@ -3798,6 +3801,7 @@ getWavHeader(options) {
           window['$enterload'] = _ret;
           _ret.loadframe();
           _ret.loadframe_state = 1;
+          //_ret._draw(); //metacall
           }
 
 
@@ -3887,9 +3891,13 @@ getWavHeader(options) {
 
           _draw() //metafuncion
           {
-
+           
             this.rx = Math.floor(this.x + this.px);
             this.ry = Math.floor(this.y + this.py);
+            
+            if(this.w=='') //workaround establecer w h de sprite al inicio
+            this.draw(0);
+
             if (this.visible == 1) {
               if (this.draw_color !== "") {
                 this.ctx.fillStyle = this.draw_color;
@@ -3907,6 +3915,7 @@ getWavHeader(options) {
 
           draw_image() //funcion general para aplicar filtros, etc...
           {
+            if(this.modo=='imagen' && this.image==='') return;
 
             if (this.filter !== undefined) {
 
@@ -4099,6 +4108,7 @@ getWavHeader(options) {
       let _animdata = setloop_prop(
         {
           tt: 0,
+          pause:0,
           act: [0, 0, 0], //anim, frame, loop
 
           set_anim(f_n = this.act[0], f_force = 0) {
@@ -4125,7 +4135,7 @@ getWavHeader(options) {
             flip: "", //[x, y]
             reverse: "", //0,1
             offset: "", //[x, y]
-            ll: "",
+            ll: ""
           },
           master:
           {
@@ -4198,7 +4208,7 @@ getWavHeader(options) {
 
       _data.animdata.set_anim(_data.animdata.act[0], 1);
 
-      _data.draw = function () {
+      _data.draw = function (f_draw=1) {
         let _ctx = _data.ctx;
 
 
@@ -4214,9 +4224,10 @@ getWavHeader(options) {
 
 
         let _reverse = dualset(_anim.reverse, _animdata.force.reverse);
-        let _loop = dualset(_anim.loop, _animdata.force.loop);
-        let _flip = dualset(_anim.flip, _animdata.force.flip);
-        let _ll = dualset(_anim.ll, _animdata.force.ll);
+        let _loop    = dualset(_anim.loop, _animdata.force.loop);
+        let _flip    = dualset(_anim.flip, _animdata.force.flip);
+        let _ll      = dualset(_anim.ll, _animdata.force.ll);
+
         //coord corte
         let _end = [[0, 0, 0, 0],
         [this.rx, this.ry, 50, 50],
@@ -4295,12 +4306,17 @@ getWavHeader(options) {
 
 
         //usad en pintado de fondo
+        
+        if(this._w)_end[1][2]=this._w;
+        if(this._h)_end[1][3]=this._h;
+
         this.w = _end[1][2];
         this.h = _end[1][3];
 
 
 
         //control frames
+        if(_animdata.pause==0)
         _animdata.tt++;
 
 
@@ -4366,11 +4382,14 @@ getWavHeader(options) {
                                   
                                  ); 
         */
+        if(f_draw)
+        {
         this.draw_image(_end[2],
           _end[0][0], _end[0][1], _end[0][2], _end[0][3],
           _end[1][0], _end[1][1], _end[1][2], _end[1][3],
 
         );
+        }
 
 
 
@@ -4497,8 +4516,10 @@ getWavHeader(options) {
           set_literal_size(f_w, f_h) {
             let _ven = this;
             let _borde = _ven.skin.borde;
+            //if (f_w) _ven.set_w(f_w + _borde[0] + _borde[2] + 2); // 
+            //if (f_h) _ven.set_h(f_h + _borde[1] + _borde[3] + 2 + _ven._bloque.yr + 2);
             if (f_w) _ven.set_w(f_w + _borde[0] + _borde[2] + 2); //
-            if (f_h) _ven.set_h(f_h + _borde[1] + _borde[3] + 2 + _ven._bloque.yr + 2);
+            if (f_h) _ven.set_h(f_h + _borde[1] + _borde[3] + 2 + _ven._bloque.yr + 4);//fix bug 01/29/2024
           },
 
           load_isc(f_images = [], f_sounds = [], f_clases = [], f_callback = this.al_cargar_recursos) {
@@ -7021,6 +7042,7 @@ getWavHeader(options) {
           titulo: "titulo",
           value: "",
 
+          can_paste:0,
           w: [0, 0],
           h: 20,
           y: 0,
@@ -7069,6 +7091,25 @@ getWavHeader(options) {
       }
 
       _macro.set_value = function (f_string) {
+        if(get_type(f_string)=='array')
+        {
+          let _str = "";
+          for(var i =0; i< f_string.length;i++)
+          {
+               let u = f_string[i];
+               if(get_type(u)!=='object')
+                _str += u;
+               else
+                _str += JSON.stringify(u);
+
+
+               if(i<f_string.length-1)
+               _str += ',';
+          }
+
+          f_string = _str;
+          
+        }
         _macro.input.obj.value = f_string;
       }
 
@@ -7076,8 +7117,11 @@ getWavHeader(options) {
         return (_macro.input.obj.value);
       }
 
+      if(_data.can_paste==0)
+      {
       _input.obj.onpaste = function (e) {
         e.preventDefault();
+      }
       }
       _input.obj.onkeydown = function (e) {
 
@@ -7211,6 +7255,7 @@ getWavHeader(options) {
           win: '',
           odiv_image: '',
           teclado: '',
+          r_teclado:'', //root_teclado
 
           modo:0, //tile, objectos
 
@@ -7242,6 +7287,7 @@ getWavHeader(options) {
                                                              value: "",
                                                              multiline:1,
                                                              titulo_style:{paddingLeft:'4px'},
+                                                             can_paste:1,
                                                              y: 40,h:300,
                                                              onwrite() { },
                                                              onenter_by_key:0,
@@ -7278,14 +7324,32 @@ getWavHeader(options) {
                                                             onenter: bindear_(function () 
                                                             {
                                                             let _tiledata = this._padre.tileges.tiledata;
-                                                            let _value = this.forms.col.get_value().split(",");
+                                                            
+                                                                                      //, que no este dentro de {}
+                                                          let _value = 
+                                                          this.forms.col.get_value().split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)(?![^{]*\})/gm);
+                                                            
+                                                           // console.log(_value);
+
+                                                            
 
                                                               for (var i = 0; i < _value.length; i++) 
-                                                              _value[i] = +_value[i];
-                                                            
+                                                              {
+                                                                if(is_numeric(_value[i]))
+                                                                    _value[i] = +_value[i];  
+                                                                else if(_value[i].charAt(0)=='{')
+                                                                {
+                                                                    _value[i]=JSON.parse(_value[i]);
+                                                                 //   console.log(_value[i]);
+                                                                }
+                                                              }
+
+                                                              
                                                                let _id = this._padre.selector.id;
 
                                                                _tiledata.col[_id] = _value;
+                                                               //console.log(_tiledata.col[_id]);
+
                                                             }, this)
 
                                                         })
@@ -7542,7 +7606,7 @@ getWavHeader(options) {
 
                  id: 'puerta',
                  in: 0,
-                 json:'{"tag":"A", "destino": [0,"A" ], "direccion":1 }'//nunca referenciado en tilemaps[3]
+                 json:'{"tag":"A", "destino": [0,"A" ], "visible":1, "direccion":1 }'//nunca referenciado en tilemaps[3]
                  
                  },
 
@@ -7563,6 +7627,14 @@ getWavHeader(options) {
                  id: 'scroll_point',
                  in: 0,
                  json:'{"alien":["A","A"], "id_submap": 0}'//nunca referenciado en tilemaps[3]
+                 
+                 },
+                112:{
+                 _id:'end_point', //index ids(automatico)
+
+                 id: 'end_point',
+                 in: 0,
+                 json:'{"clear":[0,0,0,0]  }'//nunca referenciado en tilemaps[3]
                  
                  }
 
@@ -7601,6 +7673,7 @@ getWavHeader(options) {
           run() 
           {
 
+
             if (this.estado == 1) {              
               //|editor
               let _cursor = this.cursor[1];
@@ -7608,9 +7681,12 @@ getWavHeader(options) {
               let _id = this.selector.id;
               let _offset = this.offset_obj;
               let _teclado = this.teclado;
+              let _r_teclado = this.r_teclado;
               let _key = this.key;
 
              
+              
+
 
 
                   //this.modo == 0 -> pintado tiles
@@ -7697,7 +7773,7 @@ getWavHeader(options) {
               //control capas
               for (var i in _key.capas) {
                 let k = _key.capas[i];
-                if (_teclado.get(k, 2) == 1) {
+                if (_r_teclado.get(k, 2) == 1) {
                   this.set_capa_act(i);
                 }
               }
@@ -7791,7 +7867,6 @@ getWavHeader(options) {
             {
               'Save map'() {
                 this.save_map();
-
               },
               'Load map'(){
                 this.mapcon.file_load();
@@ -7899,8 +7974,28 @@ getWavHeader(options) {
           },//mapcon
 
           
-          save_map(f_nombre = "map.json", f_data) {
-            save_txt(f_nombre, this.get_map(f_data, 1));
+          save_map(f_data) {
+
+            let _map = this.get_map(f_data, 0);
+            
+            let _name = 'map.json';
+            if(_map.nombre!==undefined)
+            {
+              _name = '';
+              for(var i =0;i< _map.nombre.length;i++)
+              {
+                let c = _map.nombre.charAt(i).toLowerCase();
+                if(c==' ')
+                  c = '_';
+
+               _name += c;
+              }
+              _name += '.json';
+            }
+
+
+            save_txt(_name, JSON.stringify(_map) );
+
           },
 
           get_tiledata() {
@@ -8082,17 +8177,19 @@ getWavHeader(options) {
             this.cursor = [this.win.cursor_bloque, _data.cursor_des];
             this.win.cursor_bloque.mousedown = bindear_(this.mousedown, this);
             
+            this.r_teclado = _root.teclado;
+            if (_root.teclado == undefined)
+                this.r_teclado = TECLADO.crear_teclado(_root);
+
             // si no se encuentra teclado, crearlo en root
             if (this.teclado == "") 
             {
-              if (_root.teclado == undefined)
-                this.teclado = TECLADO.crear_teclado(_root);
-              else
-                this.teclado = _root.teclado;
+
+                this.teclado = this.r_teclado;
             }
 
-           this.teclado.onkeydown = bindear_(this.key.onkeydown, this);
-           this.teclado.onkeyup   = bindear_(this.key.onkeyup, this); 
+           this.teclado.add_keydown(bindear_(this.key.onkeydown, this));
+           this.teclado.add_keydown( bindear_(this.key.onkeyup, this))  ; 
 
            this.set_capa_act(1);
 
